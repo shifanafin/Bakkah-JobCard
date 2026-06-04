@@ -6,7 +6,6 @@ type Theme = 'dark' | 'light'
 
 interface ThemeCtx { theme: Theme; toggle: () => void }
 
-
 const ThemeContext = createContext<ThemeCtx>({ theme: 'dark', toggle: () => { } })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
