@@ -12,6 +12,29 @@ import { cn } from '@/lib/utils/cn'
 
 const JOB_TYPES: JobType[] = ['service', 'inspection', 'detailing', 'repair', 'rta_check', 'valuation', 'other']
 
+function Section({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+  return (
+    <div className="card space-y-4">
+      <div className="flex items-center gap-2.5 border-b border-gray-100 pb-4 dark:border-white/[0.06]">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
+          <Icon className="h-3.5 w-3.5 text-brand" />
+        </div>
+        <h2 className="section-title">{title}</h2>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+    </div>
+  )
+}
+
+function Field({ label, required, children, full }: { label: string; required?: boolean; children: React.ReactNode; full?: boolean }) {
+  return (
+    <div className={cn(full && 'sm:col-span-2')}>
+      <label className="label">{label}{required && <span className="ml-0.5 text-brand">*</span>}</label>
+      {children}
+    </div>
+  )
+}
+
 export default function NewJobCardPage() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -51,30 +74,11 @@ export default function NewJobCardPage() {
     })
   }
 
-  const Section = ({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) => (
-    <div className="card space-y-4">
-      <div className="flex items-center gap-2.5 border-b border-white/[0.06] pb-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
-          <Icon className="h-3.5 w-3.5 text-brand" />
-        </div>
-        <h2 className="section-title">{title}</h2>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
-    </div>
-  )
-
-  const Field = ({ label, required, children, full }: { label: string; required?: boolean; children: React.ReactNode; full?: boolean }) => (
-    <div className={cn(full && 'sm:col-span-2')}>
-      <label className="label">{label}{required && <span className="ml-0.5 text-brand">*</span>}</label>
-      {children}
-    </div>
-  )
-
   return (
-    <div className="min-h-screen bg-surface-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="New Job Card" subtitle="Vehicle check-in" />
       <div className="mx-auto max-w-2xl p-6">
-        <Link href="/workshop/job-cards" className="mb-6 inline-flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors">
+        <Link href="/workshop/job-cards" className="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70">
           <ArrowLeft className="h-4 w-4" /> Back to Job Cards
         </Link>
 
@@ -85,7 +89,7 @@ export default function NewJobCardPage() {
             <Field label="Email Address"><input type="email" value={form.customer_email} onChange={e => set('customer_email', e.target.value)} placeholder="customer@email.com" className="input-base" /></Field>
             <Field label="Company (fleet clients)"><input value={form.customer_company} onChange={e => set('customer_company', e.target.value)} placeholder="Al Futtaim Logistics LLC" className="input-base" /></Field>
             <div className="sm:col-span-2">
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-white/60">
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-600 dark:text-white/60">
                 <input type="checkbox" checked={form.is_fleet} onChange={e => set('is_fleet', e.target.checked)} className="h-4 w-4 accent-brand rounded" />
                 Fleet / Corporate Account (B2B)
               </label>
@@ -108,18 +112,18 @@ export default function NewJobCardPage() {
             <Field label="Job Type">
               <div className="relative">
                 <select value={form.job_type} onChange={e => set('job_type', e.target.value)} className="input-base appearance-none pr-8">
-                  {JOB_TYPES.map(t => <option key={t} value={t} className="bg-zinc-900">{JOB_TYPE_LABEL[t]}</option>)}
+                  {JOB_TYPES.map(t => <option key={t} value={t} className="dark:bg-zinc-900">{JOB_TYPE_LABEL[t]}</option>)}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               </div>
             </Field>
             <Field label="Assign Technician">
               <div className="relative">
                 <select value={form.technician_id} onChange={e => set('technician_id', e.target.value)} className="input-base appearance-none pr-8">
-                  <option value="" className="bg-zinc-900">— Unassigned —</option>
-                  {technicians.map(t => <option key={t.id} value={t.id} className="bg-zinc-900">{t.name} ({t.role})</option>)}
+                  <option value="" className="dark:bg-zinc-900">— Unassigned —</option>
+                  {technicians.map(t => <option key={t.id} value={t.id} className="dark:bg-zinc-900">{t.name} ({t.role})</option>)}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               </div>
             </Field>
             <Field label="Date In"><input type="date" value={form.date_in} onChange={e => set('date_in', e.target.value)} className="input-base" /></Field>

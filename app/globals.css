@@ -85,3 +85,7 @@
   .no-print { display: none !important; }
   body { background: #fff !important; color: #000 !important; }
 }
+
+/* ── Page Transitions ───────────────────────────────────── */
+.page-enter { animation: fadeIn 0.2s ease forwards; }
+.skeleton { @apply animate-pulse rounded bg-gray-200 dark:bg-white/[0.06]; }

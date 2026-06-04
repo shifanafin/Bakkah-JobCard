@@ -8,7 +8,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isLoggedIn = !!req.auth
 
-  if (pathname.startsWith('/auth')) return NextResponse.next()
+  if (pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/track')) return NextResponse.next()
 
   if (!isLoggedIn) {
     const url = req.nextUrl.clone()

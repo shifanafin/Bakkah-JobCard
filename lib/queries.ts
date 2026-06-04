@@ -85,15 +85,17 @@ export async function createJobCard(input: {
     vehicleId = nv.id
   }
 
+  const initialStatus = input.technician_id ? 'assigned' : 'pending'
+
   const { data: jc, error: je } = await sb.from('job_cards').insert({
     customer_id: customerId, vehicle_id: vehicleId, technician_id: input.technician_id || null,
     job_type: input.job_type, date_in: input.date_in, date_out: input.date_out || null,
     mileage_in: input.mileage_in, customer_complaint: input.customer_complaint,
-    work_instructions: input.work_instructions, status: 'received',
+    work_instructions: input.work_instructions, status: initialStatus,
   }).select('id').single()
   if (je) throw je
 
-  await sb.from('job_card_history').insert({ job_card_id: jc.id, new_status: 'received', notes: 'Job card created' })
+  await sb.from('job_card_history').insert({ job_card_id: jc.id, new_status: initialStatus, notes: 'Job card created' })
   return getJobCard(jc.id)
 }
 
@@ -166,6 +168,21 @@ export async function deletePhoto(id: string, cloudinaryId?: string) {
   if (error) throw error
 }
 
+export async function assignTechnician(jobId: string, technicianId: string, changedBy?: string) {
+  const sb = createClient()
+  const { data: cur } = await sb.from('job_cards').select('status').eq('id', jobId).single()
+  const shouldAdvance = cur?.status === 'pending' || cur?.status === 'received'
+  const updates: Record<string, unknown> = { technician_id: technicianId, updated_at: new Date().toISOString() }
+  if (shouldAdvance) updates.status = 'assigned'
+
+  const { error } = await sb.from('job_cards').update(updates).eq('id', jobId)
+  if (error) throw error
+
+  if (shouldAdvance) {
+    await sb.from('job_card_history').insert({ job_card_id: jobId, old_status: cur?.status, new_status: 'assigned', changed_by: changedBy, notes: 'Technician assigned' })
+  }
+}
+
 // ── Technicians ───────────────────────────────────────────────
 
 export async function getTechnicians() {
@@ -182,12 +199,24 @@ export async function getDashboardStats() {
   const today = new Date().toISOString().split('T')[0]
   const monthStart = today.slice(0, 7) + '-01'
 
-  const [{ count: total }, { count: active }, { data: revenue }] = await Promise.all([
+  const [{ count: total }, { count: active }, { data: revenue }, { data: statusRows }] = await Promise.all([
     sb.from('job_cards').select('*', { count: 'exact', head: true }),
-    sb.from('job_cards').select('*', { count: 'exact', head: true }).in('status', ['received', 'in_progress', 'qc_check', 'ready']),
+    sb.from('job_cards').select('*', { count: 'exact', head: true }).in('status', ['pending', 'received', 'assigned', 'in_progress', 'qc_check', 'ready']),
     sb.from('job_cards').select('total').eq('payment_status', 'paid').gte('date_in', monthStart),
+    sb.from('job_cards').select('status').in('status', ['pending', 'received', 'assigned', 'in_progress', 'qc_check', 'ready']),
   ])
 
   const monthRevenue = (revenue || []).reduce((s: number, j: { total: number }) => s + (j.total || 0), 0)
-  return { total: total || 0, active: active || 0, monthRevenue }
+  const counts: Record<string, number> = {}
+  for (const row of statusRows || []) {
+    counts[row.status] = (counts[row.status] || 0) + 1
+  }
+  const statusCounts = {
+    pending:     (counts.pending || 0) + (counts.received || 0),
+    assigned:    counts.assigned || 0,
+    in_progress: counts.in_progress || 0,
+    qc_check:    counts.qc_check || 0,
+    ready:       counts.ready || 0,
+  }
+  return { total: total || 0, active: active || 0, monthRevenue, statusCounts }
 }

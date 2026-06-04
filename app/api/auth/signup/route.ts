@@ -22,6 +22,9 @@ export async function POST(req: NextRequest) {
     if (password.length < 6) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 })
     }
+    if (role === 'admin') {
+      return NextResponse.json({ error: 'Admin accounts can only be created by an existing admin' }, { status: 403 })
+    }
 
     const sb = adminClient()
 

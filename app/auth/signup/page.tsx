@@ -10,8 +10,8 @@ import { Eye, EyeOff, Loader2, Zap, User, Lock, Mail, AtSign } from 'lucide-reac
 const ROLES = [
   { value: 'receptionist', label: 'Receptionist' },
   { value: 'technician',   label: 'Technician' },
+  { value: 'supervisor',   label: 'Supervisor' },
   { value: 'manager',      label: 'Manager' },
-  { value: 'admin',        label: 'Admin' },
 ]
 
 export default function SignUpPage() {
@@ -67,10 +67,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-surface-900">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gray-50 dark:bg-surface-900">
 
       {/* Background */}
-      <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-100" />
+      <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-100" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(255,127,10,0.12),transparent)]" />
 
       <div className="relative z-10 w-full max-w-sm px-4">
@@ -80,12 +80,12 @@ export default function SignUpPage() {
           <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/30 bg-brand/10">
             <Zap className="h-7 w-7 text-brand" />
           </div>
-          <h1 className="font-display text-3xl tracking-wide text-white">AutoEdge Pro</h1>
-          <p className="mt-1 text-sm text-white/40">Create your account</p>
+          <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">AutoEdge Pro</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-white/40">Create your account</p>
         </div>
 
-        <div className="card border-white/[0.08] bg-surface-800/80 backdrop-blur-xl">
-          <h2 className="mb-6 text-lg font-bold text-white">Sign up</h2>
+        <div className="card border-gray-200 bg-white/80 backdrop-blur-xl dark:border-white/[0.08] dark:bg-surface-800/80">
+          <h2 className="mb-6 text-lg font-bold text-gray-900 dark:text-white">Sign up</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -93,7 +93,7 @@ export default function SignUpPage() {
             <div>
               <label className="label">Full Name</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
                 <input
                   type="text" required autoFocus
                   value={form.name} onChange={e => set('name', e.target.value)}
@@ -107,7 +107,7 @@ export default function SignUpPage() {
             <div>
               <label className="label">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
                 <input
                   type="email" required
                   value={form.email} onChange={e => set('email', e.target.value)}
@@ -121,7 +121,7 @@ export default function SignUpPage() {
             <div>
               <label className="label">Username</label>
               <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+                <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
                 <input
                   type="text" required
                   value={form.username} onChange={e => set('username', e.target.value.replace(/\s/g, '').toLowerCase())}
@@ -139,7 +139,7 @@ export default function SignUpPage() {
                 className="input-base"
               >
                 {ROLES.map(r => (
-                  <option key={r.value} value={r.value} className="bg-surface-800">{r.label}</option>
+                  <option key={r.value} value={r.value} className="dark:bg-surface-800">{r.label}</option>
                 ))}
               </select>
             </div>
@@ -148,7 +148,7 @@ export default function SignUpPage() {
             <div>
               <label className="label">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
                 <input
                   type={showPw ? 'text' : 'password'} required minLength={6}
                   value={form.password} onChange={e => set('password', e.target.value)}
@@ -157,7 +157,7 @@ export default function SignUpPage() {
                 />
                 <button type="button" tabIndex={-1}
                   onClick={() => setShowPw(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-white/30 dark:hover:text-white/60">
                   {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -167,7 +167,7 @@ export default function SignUpPage() {
             <div>
               <label className="label">Confirm Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
                 <input
                   type={showConfirm ? 'text' : 'password'} required
                   value={form.confirm} onChange={e => set('confirm', e.target.value)}
@@ -176,7 +176,7 @@ export default function SignUpPage() {
                 />
                 <button type="button" tabIndex={-1}
                   onClick={() => setShowConfirm(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors dark:text-white/30 dark:hover:text-white/60">
                   {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -191,14 +191,14 @@ export default function SignUpPage() {
           </form>
         </div>
 
-        <p className="mt-5 text-center text-sm text-white/40">
+        <p className="mt-5 text-center text-sm text-gray-500 dark:text-white/40">
           Already have an account?{' '}
           <Link href="/auth/login" className="text-brand hover:text-brand/80 font-medium transition-colors">
             Sign in
           </Link>
         </p>
 
-        <p className="mt-4 text-center text-xs text-white/20">
+        <p className="mt-4 text-center text-xs text-gray-400 dark:text-white/20">
           AutoEdge Pro · Al Qusais, Dubai, UAE
         </p>
       </div>

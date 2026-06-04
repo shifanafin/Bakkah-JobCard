@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useCloudinaryUpload } from '@/lib/hooks/use-cloudinary'
 import { addPhoto, deletePhoto } from '@/lib/queries'
 import { PHOTO_CATEGORY_LABEL, type JobCardPhoto, type PhotoCategory } from '@/types'
@@ -25,7 +25,12 @@ export default function PhotoUpload({ jobCardId, photos, onPhotosChange }: {
   jobCardId: string; photos: JobCardPhoto[]; onPhotosChange: (p: JobCardPhoto[]) => void
 }) {
   const fileRef = useRef<HTMLInputElement>(null)
+  const cameraRef = useRef<HTMLInputElement>(null)
   const { uploading, progress, uploadMultiple } = useCloudinaryUpload()
+
+  useEffect(() => {
+    if (cameraRef.current) cameraRef.current.setAttribute('capture', 'environment')
+  }, [])
   const [category, setCategory] = useState<PhotoCategory>('exterior_front')
   const [caption, setCaption] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -114,13 +119,20 @@ export default function PhotoUpload({ jobCardId, photos, onPhotosChange }: {
         )}
       </div>
 
-      {/* Camera button (mobile) */}
-      <button type="button" onClick={() => { if (fileRef.current) { fileRef.current.setAttribute('capture', 'environment'); fileRef.current.click() }}}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] py-2.5 text-sm text-white/40 transition hover:border-brand/30 hover:text-brand sm:hidden">
-        <Camera className="h-4 w-4" /> Take Photo
-      </button>
+      {/* Upload + Camera buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <button type="button" onClick={() => fileRef.current?.click()}
+          className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] py-2.5 text-sm text-white/40 transition hover:border-brand/30 hover:text-brand">
+          <ImagePlus className="h-4 w-4" /> Upload Photos
+        </button>
+        <button type="button" onClick={() => cameraRef.current?.click()}
+          className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] py-2.5 text-sm text-white/40 transition hover:border-brand/30 hover:text-brand">
+          <Camera className="h-4 w-4" /> Take Photo
+        </button>
+      </div>
 
-      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+      <input ref={fileRef}   type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+      <input ref={cameraRef} type="file" accept="image/*"          className="hidden" onChange={e => handleFiles(e.target.files)} />
 
       {/* Gallery */}
       {Object.keys(grouped).length > 0 && (

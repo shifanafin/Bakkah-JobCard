@@ -2,11 +2,11 @@
 // AutoEdge Pro — Global Type Definitions
 // ============================================================
 
-export type JobStatus = 'received' | 'in_progress' | 'qc_check' | 'ready' | 'delivered' | 'cancelled'
+export type JobStatus = 'pending' | 'assigned' | 'received' | 'in_progress' | 'qc_check' | 'ready' | 'delivered' | 'cancelled'
 export type JobType = 'service' | 'inspection' | 'detailing' | 'repair' | 'rta_check' | 'valuation' | 'other'
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
 export type PhotoCategory = 'exterior_front' | 'exterior_rear' | 'exterior_left' | 'exterior_right' | 'interior' | 'engine_bay' | 'damage' | 'before_work' | 'after_work' | 'other'
-export type UserRole = 'admin' | 'manager' | 'technician' | 'receptionist'
+export type UserRole = 'admin' | 'supervisor' | 'manager' | 'technician' | 'receptionist'
 
 export interface User {
   id: string
@@ -119,6 +119,8 @@ export interface JobCardPhoto {
 // ── Display Maps ─────────────────────────────────────────────
 
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
+  pending:     'Pending',
+  assigned:    'Assigned',
   received:    'Received',
   in_progress: 'In Progress',
   qc_check:    'QC Check',
@@ -128,6 +130,8 @@ export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
 }
 
 export const JOB_STATUS_COLOR: Record<JobStatus, string> = {
+  pending:     'bg-yellow-500/15 text-yellow-400 border-yellow-500/25 ring-yellow-500/20',
+  assigned:    'bg-blue-500/15 text-blue-300 border-blue-500/25 ring-blue-500/20',
   received:    'bg-blue-500/15 text-blue-300 border-blue-500/25 ring-blue-500/20',
   in_progress: 'bg-brand/15 text-brand border-brand/25 ring-brand/20',
   qc_check:    'bg-purple-500/15 text-purple-300 border-purple-500/25 ring-purple-500/20',
@@ -137,7 +141,7 @@ export const JOB_STATUS_COLOR: Record<JobStatus, string> = {
 }
 
 export const JOB_STATUS_STEP: Record<JobStatus, number> = {
-  received: 0, in_progress: 1, qc_check: 2, ready: 3, delivered: 4, cancelled: -1,
+  pending: 0, received: 0, assigned: 1, in_progress: 2, qc_check: 3, ready: 4, delivered: 5, cancelled: -1,
 }
 
 export const JOB_TYPE_LABEL: Record<JobType, string> = {

@@ -1,22 +1,30 @@
 'use client'
 
-import { useState, useEffect, useCallback, use } from 'react'
+import { useState, useEffect, useCallback, use, useTransition } from 'react'
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
 import Header from '@/components/layout/Header'
 import StatusStepper from '@/components/job-card/StatusStepper'
 import LineItems from '@/components/job-card/LineItems'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
-import { getJobCard } from '@/lib/queries'
-import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus, type JobCardPhoto } from '@/types'
+import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
+import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
 export default function JobCardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const { data: session } = useSession()
+  const role = (session?.user as { role?: string })?.role ?? ''
+  const canAssign = role === 'admin' || role === 'supervisor' || role === 'manager'
+
   const [job, setJob] = useState<JobCard | null>(null)
   const [loading, setLoading] = useState(true)
+  const [technicians, setTechnicians] = useState<{ id: string; name: string; role: string }[]>([])
+  const [selectedTech, setSelectedTech] = useState('')
+  const [isAssigning, startAssign] = useTransition()
 
   const load = useCallback(async () => {
     try { setJob(await getJobCard(id)) }
@@ -25,28 +33,43 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   }, [id])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (canAssign) getTechnicians().then(setTechnicians).catch(console.error)
+  }, [canAssign])
+
+  function handleAssign() {
+    if (!selectedTech) { toast.error('Select a technician first'); return }
+    startAssign(async () => {
+      try {
+        await assignTechnician(id, selectedTech)
+        toast.success('Technician assigned')
+        await load()
+        setSelectedTech('')
+      } catch { toast.error('Failed to assign technician') }
+    })
+  }
 
   if (loading) return (
-    <div className="flex h-screen items-center justify-center bg-surface-900">
+    <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
       <Loader2 className="h-8 w-8 animate-spin text-brand" />
     </div>
   )
 
   if (!job) return (
-    <div className="flex h-screen flex-col items-center justify-center bg-surface-900 gap-3">
-      <p className="text-white/50">Job card not found</p>
+    <div className="flex h-screen flex-col items-center justify-center bg-gray-50 gap-3 dark:bg-surface-900">
+      <p className="text-gray-400 dark:text-white/50">Job card not found</p>
       <Link href="/workshop/job-cards" className="btn-ghost">Back to list</Link>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-surface-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title={job.job_number} subtitle={`${job.vehicle?.plate_number} · ${job.vehicle?.make} ${job.vehicle?.model}`} />
 
-      <div className="p-6 space-y-5 max-w-5xl">
+      <div className="p-4 space-y-5 max-w-5xl lg:p-6">
         {/* Breadcrumb + actions */}
         <div className="flex items-center justify-between">
-          <Link href="/workshop/job-cards" className="flex items-center gap-2 text-sm text-white/40 hover:text-white/70 transition-colors">
+          <Link href="/workshop/job-cards" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70">
             <ArrowLeft className="h-4 w-4" /> Job Cards
           </Link>
           <div className="flex items-center gap-2">
@@ -56,19 +79,29 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             <Link href={`/workshop/job-cards/${id}/invoice`} target="_blank" className="btn-ghost text-xs">
               <Printer className="h-3.5 w-3.5" /> Invoice
             </Link>
+            {job.customer?.phone && (
+              <a
+                href={`https://wa.me/${job.customer.phone.replace(/\D/g, '')}?text=Dear+${encodeURIComponent(job.customer?.name ?? '')}%2C+your+${encodeURIComponent(job.vehicle?.make ?? '')}+${encodeURIComponent(job.vehicle?.model ?? '')}+(${encodeURIComponent(job.vehicle?.plate_number ?? '')})+job+${encodeURIComponent(job.job_number)}+is+now+${encodeURIComponent(JOB_STATUS_LABEL[job.status])}.+AutoEdge+Pro`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600 transition-colors h-auto"
+              >
+                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+              </a>
+            )}
           </div>
         </div>
 
         {/* Job header card */}
-        <div className="card border-white/[0.08] bg-surface-800">
+        <div className="card">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2.5 mb-2">
                 <span className="font-mono text-lg font-bold text-brand">{job.job_number}</span>
                 <span className={cn('badge', JOB_STATUS_COLOR[job.status])}>{JOB_STATUS_LABEL[job.status]}</span>
-                <span className="badge border-white/[0.08] bg-white/[0.04] text-white/40">{JOB_TYPE_LABEL[job.job_type]}</span>
+                <span className="badge border-gray-200 bg-gray-100 text-gray-500 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40">{JOB_TYPE_LABEL[job.job_type]}</span>
               </div>
-              <div className="flex flex-wrap gap-4 text-sm text-white/50">
+              <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-white/50">
                 <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> In: {formatDate(job.date_in)}</span>
                 {job.date_out && <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-brand" /> Due: {formatDate(job.date_out)}</span>}
                 {job.mileage_in && <span>Mileage: {job.mileage_in.toLocaleString()} km</span>}
@@ -85,42 +118,78 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         <StatusStepper
           jobId={job.id}
           currentStatus={job.status as JobStatus}
+          hasTechnician={!!job.technician_id}
           onUpdate={s => setJob(j => j ? {...j, status: s} : j)}
         />
+
+        {/* Assign Technician — admin / supervisor / manager */}
+        {canAssign && (
+          <div className="card space-y-3">
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
+                <UserCheck className="h-3.5 w-3.5 text-brand" />
+              </div>
+              <h3 className="section-title">Assign Technician</h3>
+              {job.technician && (
+                <span className="ml-auto text-xs text-gray-400 dark:text-white/40">
+                  Current: <span className="font-medium text-gray-600 dark:text-white/60">{job.technician.name}</span>
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <select
+                  value={selectedTech}
+                  onChange={e => setSelectedTech(e.target.value)}
+                  className="input-base appearance-none pr-8"
+                >
+                  <option value="">— Select technician —</option>
+                  {technicians.map(t => (
+                    <option key={t.id} value={t.id} className="dark:bg-zinc-900">{t.name} ({t.role})</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+              </div>
+              <button onClick={handleAssign} disabled={isAssigning || !selectedTech} className="btn-primary px-4">
+                {isAssigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Info grid */}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
           {/* Customer */}
           <div className="card space-y-3">
-            <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/15">
                 <User className="h-3.5 w-3.5 text-blue-400" />
               </div>
               <h3 className="section-title">Customer</h3>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-white/40">Name</span><span className="text-white font-medium">{job.customer?.name}</span></div>
-              <div className="flex justify-between"><span className="text-white/40">Phone</span><a href={`tel:${job.customer?.phone}`} className="text-brand hover:underline">{job.customer?.phone}</a></div>
-              {job.customer?.email && <div className="flex justify-between"><span className="text-white/40">Email</span><span className="text-white/70">{job.customer.email}</span></div>}
-              {job.customer?.company_name && <div className="flex justify-between"><span className="text-white/40">Company</span><span className="text-white/70">{job.customer.company_name}</span></div>}
-              {job.customer?.is_fleet && <div className="flex justify-between"><span className="text-white/40">Account</span><span className="text-brand text-xs font-bold">Fleet Account</span></div>}
+              <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Name</span><span className="text-gray-900 font-medium dark:text-white">{job.customer?.name}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Phone</span><a href={`tel:${job.customer?.phone}`} className="text-brand hover:underline">{job.customer?.phone}</a></div>
+              {job.customer?.email && <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Email</span><span className="text-gray-600 dark:text-white/70">{job.customer.email}</span></div>}
+              {job.customer?.company_name && <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Company</span><span className="text-gray-600 dark:text-white/70">{job.customer.company_name}</span></div>}
+              {job.customer?.is_fleet && <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Account</span><span className="text-brand text-xs font-bold">Fleet Account</span></div>}
             </div>
           </div>
 
           {/* Vehicle */}
           <div className="card space-y-3">
-            <div className="flex items-center gap-2 border-b border-white/[0.06] pb-3">
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
                 <Car className="h-3.5 w-3.5 text-brand" />
               </div>
               <h3 className="section-title">Vehicle</h3>
             </div>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-white/40">Plate</span><span className="font-mono font-bold text-white tracking-wider">{job.vehicle?.plate_number}</span></div>
-              <div className="flex justify-between"><span className="text-white/40">Vehicle</span><span className="text-white">{job.vehicle?.make} {job.vehicle?.model} {job.vehicle?.year}</span></div>
-              {job.vehicle?.color && <div className="flex justify-between"><span className="text-white/40">Color</span><span className="text-white/70">{job.vehicle.color}</span></div>}
-              {job.vehicle?.vin && <div className="flex justify-between"><span className="text-white/40">VIN</span><span className="font-mono text-white/50 text-xs">{job.vehicle.vin}</span></div>}
-              {job.technician && <div className="flex justify-between"><span className="text-white/40">Technician</span><span className="text-white/70">{job.technician.name}</span></div>}
+              <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Plate</span><span className="font-mono font-bold text-gray-900 tracking-wider dark:text-white">{job.vehicle?.plate_number}</span></div>
+              <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Vehicle</span><span className="text-gray-900 dark:text-white">{job.vehicle?.make} {job.vehicle?.model} {job.vehicle?.year}</span></div>
+              {job.vehicle?.color && <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Color</span><span className="text-gray-600 dark:text-white/70">{job.vehicle.color}</span></div>}
+              {job.vehicle?.vin && <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">VIN</span><span className="font-mono text-gray-400 text-xs dark:text-white/50">{job.vehicle.vin}</span></div>}
+              {job.technician && <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Technician</span><span className="text-gray-600 dark:text-white/70">{job.technician.name}</span></div>}
             </div>
           </div>
         </div>
@@ -136,14 +205,14 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             </div>
             {job.customer_complaint && (
               <div>
-                <p className="text-xs text-white/30 mb-1 uppercase tracking-wider font-bold">Customer Complaint</p>
-                <p className="text-sm text-white/70 leading-relaxed">{job.customer_complaint}</p>
+                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold dark:text-white/30">Customer Complaint</p>
+                <p className="text-sm text-gray-600 leading-relaxed dark:text-white/70">{job.customer_complaint}</p>
               </div>
             )}
             {job.work_instructions && (
-              <div className={job.customer_complaint ? 'border-t border-white/[0.06] pt-3' : ''}>
-                <p className="text-xs text-white/30 mb-1 uppercase tracking-wider font-bold">Work Instructions</p>
-                <p className="text-sm text-white/70 leading-relaxed">{job.work_instructions}</p>
+              <div className={job.customer_complaint ? 'border-t border-gray-100 pt-3 dark:border-white/[0.06]' : ''}>
+                <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold dark:text-white/30">Work Instructions</p>
+                <p className="text-sm text-gray-600 leading-relaxed dark:text-white/70">{job.work_instructions}</p>
               </div>
             )}
           </div>
