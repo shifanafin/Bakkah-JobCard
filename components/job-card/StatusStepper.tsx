@@ -1,0 +1,79 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { updateJobStatus } from '@/lib/queries'
+import { JOB_STATUS_LABEL, JOB_STATUS_STEP, type JobStatus } from '@/types'
+import { Check, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils/cn'
+
+const STEPS: JobStatus[] = ['received', 'in_progress', 'qc_check', 'ready', 'delivered']
+
+export default function StatusStepper({ jobId, currentStatus, onUpdate }: { jobId: string; currentStatus: JobStatus; onUpdate: (s: JobStatus) => void }) {
+  const [isPending, startTransition] = useTransition()
+  const curStep = JOB_STATUS_STEP[currentStatus] ?? 0
+
+  function advance() {
+    if (curStep >= STEPS.length - 1 || currentStatus === 'cancelled') return
+    const next = STEPS[curStep + 1]
+    startTransition(async () => {
+      try {
+        await updateJobStatus(jobId, next)
+        onUpdate(next)
+        toast.success(`Status updated to ${JOB_STATUS_LABEL[next]}`)
+      } catch { toast.error('Failed to update status') }
+    })
+  }
+
+  return (
+    <div className="card">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="section-title">Job Status</h3>
+        {curStep < STEPS.length - 1 && currentStatus !== 'cancelled' && (
+          <button onClick={advance} disabled={isPending} className="btn-primary text-xs px-3 py-1.5 h-auto">
+            {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : `→ Move to ${JOB_STATUS_LABEL[STEPS[curStep + 1]]}`}
+          </button>
+        )}
+      </div>
+
+      {/* Desktop stepper */}
+      <div className="hidden sm:flex items-center">
+        {STEPS.map((step, i) => {
+          const done = i < curStep
+          const active = i === curStep
+          return (
+            <div key={step} className="flex flex-1 items-center last:flex-none">
+              <div className="flex flex-col items-center">
+                <div className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-bold transition-all',
+                  done  ? 'border-emerald-500 bg-emerald-500 text-white' :
+                  active ? 'border-brand bg-brand text-black' :
+                           'border-white/15 bg-white/5 text-white/30'
+                )}>
+                  {done ? <Check className="h-4 w-4" /> : i + 1}
+                </div>
+                <span className={cn('mt-1.5 text-[10px] font-semibold whitespace-nowrap',
+                  active ? 'text-brand' : done ? 'text-emerald-400' : 'text-white/30'
+                )}>{JOB_STATUS_LABEL[step]}</span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className={cn('flex-1 h-0.5 mx-2 rounded-full transition-all', i < curStep ? 'bg-emerald-500' : 'bg-white/10')} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Mobile — just show current + next */}
+      <div className="sm:hidden flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand text-black font-bold text-sm">
+          {curStep + 1}
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-white">{JOB_STATUS_LABEL[currentStatus]}</p>
+          {curStep < STEPS.length - 1 && <p className="text-xs text-white/40">Next: {JOB_STATUS_LABEL[STEPS[curStep + 1]]}</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
