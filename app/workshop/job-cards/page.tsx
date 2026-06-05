@@ -9,6 +9,9 @@ import { Plus, Search, FileSpreadsheet, Car, Eye, X } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import * as XLSX from 'xlsx'
+import Pagination from '@/components/ui/Pagination'
+
+const PAGE_SIZE = 20
 
 const TABS: { value: JobStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -26,6 +29,7 @@ export default function JobCardsPage() {
   const [status, setStatus] = useState<JobStatus | 'all'>('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [page, setPage] = useState(1)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -38,6 +42,8 @@ export default function JobCardsPage() {
   const filtered = jobs
     .filter(j => status === 'all' || j.status === status)
     .filter(j => !search.trim() || [j.vehicle?.plate_number, j.customer?.name, j.job_number, j.customer?.phone].some(v => v?.toLowerCase().includes(search.toLowerCase())))
+
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   function exportExcel() {
     const rows = filtered.map(j => ({
@@ -87,11 +93,11 @@ export default function JobCardsPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
               <input
-                value={search} onChange={e => setSearch(e.target.value)}
+                value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
                 placeholder="Plate, customer, job #..."
                 className="input-base w-56 pl-9 lg:w-64"
               />
-              {search && <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60"><X className="h-3.5 w-3.5" /></button>}
+              {search && <button onClick={() => { setSearch(''); setPage(1) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60"><X className="h-3.5 w-3.5" /></button>}
             </div>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="input-base w-36" />
             <span className="text-xs text-gray-400 dark:text-white/30">to</span>
@@ -125,7 +131,7 @@ export default function JobCardsPage() {
         {/* Status tabs */}
         <div className="flex gap-1 rounded-xl border border-gray-200 bg-gray-100 p-1.5 overflow-x-auto dark:border-white/[0.06] dark:bg-surface-800">
           {TABS.map(tab => (
-            <button key={tab.value} onClick={() => setStatus(tab.value)}
+            <button key={tab.value} onClick={() => { setStatus(tab.value); setPage(1) }}
               className={cn('flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-all',
                 status === tab.value ? 'bg-brand text-black' : 'text-gray-500 hover:text-gray-800 dark:text-white/40 dark:hover:text-white/70'
               )}>
@@ -137,7 +143,8 @@ export default function JobCardsPage() {
           ))}
         </div>
 
-        {/* Table — desktop */}
+        {/* Table + Pagination */}
+        <div className="space-y-3">
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
           {loading ? (
             <div className="flex items-center justify-center py-24">
@@ -162,7 +169,7 @@ export default function JobCardsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
-                    {filtered.map(job => (
+                    {paginated.map(job => (
                       <tr key={job.id} className="group transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                         <td className="px-4 py-3">
                           <span className="font-mono text-xs font-semibold text-brand">{job.job_number}</span>
@@ -198,7 +205,7 @@ export default function JobCardsPage() {
 
               {/* Mobile card list */}
               <div className="md:hidden divide-y divide-gray-100 dark:divide-white/[0.04]">
-                {filtered.map(job => (
+                {paginated.map(job => (
                   <Link key={job.id} href={`/workshop/job-cards/${job.id}`}
                     className="flex items-start gap-3 p-4 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 dark:border-white/[0.08] dark:bg-white/[0.04]">
@@ -221,6 +228,8 @@ export default function JobCardsPage() {
               </div>
             </>
           )}
+        </div>
+        <Pagination page={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
         </div>
       </div>
     </div>

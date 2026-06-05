@@ -5,6 +5,9 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Users, Plus, Loader2, X, Check, RefreshCw, Key, ToggleLeft, ToggleRight, Copy } from 'lucide-react'
+import Pagination from '@/components/ui/Pagination'
+
+const PAGE_SIZE = 15
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils/format'
@@ -59,6 +62,9 @@ export default function EmployeesPage() {
   const [resetTarget, setResetTarget] = useState<Employee | null>(null)
   const [resetPwd, setResetPwd] = useState('')
   const [resetting, setResetting] = useState(false)
+  const [page, setPage] = useState(1)
+
+  const paginated = employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   // Role guard
   useEffect(() => {
@@ -195,7 +201,7 @@ export default function EmployeesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
-                {employees.map(emp => (
+                {paginated.map(emp => (
                   <tr key={emp.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -257,6 +263,9 @@ export default function EmployeesPage() {
               </tbody>
             </table>
           </div>
+        )}
+        {employees.length > PAGE_SIZE && (
+          <Pagination page={page} totalItems={employees.length} pageSize={PAGE_SIZE} onChange={setPage} />
         )}
       </div>
 
