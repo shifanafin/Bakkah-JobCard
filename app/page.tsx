@@ -85,9 +85,9 @@ export default function BakkahHomePage() {
       <motion.nav
         initial={{ y: -72, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.7, ease: easeOut }}
+        transition={{ duration: 0.5, ease: easeOut }}
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled ? 'bg-black/80 backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_2px_30px_rgba(0,0,0,0.5)]' : ''
+          scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/[0.06] shadow-[0_2px_30px_rgba(0,0,0,0.5)]' : ''
         }`}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
@@ -127,12 +127,12 @@ export default function BakkahHomePage() {
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="blob-1 h-[700px] w-[700px] rounded-full bg-[#FF7F0A]/[0.055] blur-[140px]" />
+            <div className="blob-1 h-[320px] w-[320px] sm:h-[700px] sm:w-[700px] rounded-full bg-[#FF7F0A]/[0.055] blur-[60px] sm:blur-[140px]" />
           </div>
-          <div className="absolute left-[15%] top-[25%]">
+          <div className="absolute left-[15%] top-[25%] hidden sm:block">
             <div className="blob-2 h-[400px] w-[400px] rounded-full bg-[#FF7F0A]/[0.035] blur-[110px]" />
           </div>
-          <div className="absolute right-[10%] bottom-[20%]">
+          <div className="absolute right-[10%] bottom-[20%] hidden sm:block">
             <div className="blob-3 h-[350px] w-[350px] rounded-full bg-[#FF7F0A]/[0.03] blur-[100px]" />
           </div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_50%_50%,transparent,#050507_100%)]" />
@@ -143,7 +143,7 @@ export default function BakkahHomePage() {
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#FF7F0A]/25 bg-[#FF7F0A]/10 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#FF7F0A]"
           >
             <Star className="h-3 w-3 fill-[#FF7F0A]" />
@@ -157,7 +157,7 @@ export default function BakkahHomePage() {
               <motion.h1
                 initial={{ y: 110, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.9, delay: 0.3 + i * 0.12, ease: easeOut }}
+                transition={{ duration: 0.7, delay: 0.2 + i * 0.1, ease: easeOut }}
                 className={`font-display leading-[0.88] tracking-[0.05em] text-[clamp(3.2rem,10.5vw,8.5rem)] ${
                   i === 1 ? 'text-[#FF7F0A]' : 'text-white'
                 }`}
@@ -170,7 +170,7 @@ export default function BakkahHomePage() {
           <motion.p
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.7 }}
+            transition={{ duration: 0.6, delay: 0.42 }}
             className="mx-auto mt-8 max-w-lg text-[15px] leading-relaxed text-white/45 sm:text-base"
           >
             Al Qusais, Dubai&apos;s trusted specialists in ceramic coatings, paint correction,
@@ -180,7 +180,7 @@ export default function BakkahHomePage() {
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.85 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
             <Link href="/track"
@@ -198,7 +198,7 @@ export default function BakkahHomePage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.1 }}
+            transition={{ delay: 0.65 }}
             className="mt-14 flex flex-wrap items-center justify-center gap-5 text-xs text-white/30"
           >
             <div className="flex items-center gap-2">
@@ -218,7 +218,7 @@ export default function BakkahHomePage() {
 
         {/* Scroll cue */}
         <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
           <span className="text-[9px] uppercase tracking-[0.25em] text-white/20">Scroll</span>
