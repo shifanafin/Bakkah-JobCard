@@ -1,12 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Bebas_Neue, Geist } from 'next/font/google'
+import { Bebas_Neue, Geist, Cairo } from 'next/font/google'
 import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { I18nProvider } from '@/lib/i18n'
 import PwaRegister from '@/components/PwaRegister'
 import './globals.css'
 
-const bebas = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' })
+const bebas  = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' })
 const geist  = Geist({ subsets: ['latin'], variable: '--font-geist' })
+const cairo  = Cairo({ subsets: ['arabic'], variable: '--font-cairo', display: 'swap' })
 
 export const metadata: Metadata = {
   title: { default: 'AutoEdge Pro', template: '%s — AutoEdge Pro' },
@@ -24,25 +26,27 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" dir="ltr" className="dark" suppressHydrationWarning>
       <head>
-        {/* Anti-flash: apply saved theme before React hydrates */}
-        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.classList.toggle('dark',t==='dark');})();` }} />
+        {/* Apply saved theme and language/dir before hydration to prevent flash */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme')||'dark';document.documentElement.classList.toggle('dark',t==='dark');var l=localStorage.getItem('lang')||'en';var rtl=['ar','ur'];document.documentElement.setAttribute('lang',l);document.documentElement.setAttribute('dir',rtl.includes(l)?'rtl':'ltr');})();` }} />
       </head>
-      <body className={`${bebas.variable} ${geist.variable} font-body antialiased bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white`}>
-        <ThemeProvider>
-          <PwaRegister />
-          {children}
-          <Toaster
-            theme="system"
-            position="top-right"
-            toastOptions={{
-              classNames: {
-                toast: 'bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white',
-              },
-            }}
-          />
-        </ThemeProvider>
+      <body className={`${bebas.variable} ${geist.variable} ${cairo.variable} font-body antialiased bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white`}>
+        <I18nProvider>
+          <ThemeProvider>
+            <PwaRegister />
+            {children}
+            <Toaster
+              theme="system"
+              position="top-right"
+              toastOptions={{
+                classNames: {
+                  toast: 'bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white',
+                },
+              }}
+            />
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   )

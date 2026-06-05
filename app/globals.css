@@ -9,6 +9,11 @@
 
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
+
+  /* Arabic / Urdu — use Cairo for clean Naskh rendering */
+  :lang(ar), :lang(ur) {
+    font-family: var(--font-cairo), 'Segoe UI', 'Arial', sans-serif;
+  }
   body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
   /* Scrollbar — Chrome/Edge/Safari */
