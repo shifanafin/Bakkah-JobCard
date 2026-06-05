@@ -111,3 +111,8 @@
 .blob-2    { animation: blob-pulse-2 11s 2s ease-in-out infinite; will-change: transform; }
 .blob-3    { animation: blob-pulse-3 13s 4s ease-in-out infinite; will-change: transform; }
 .scroll-bob { animation: scroll-bob 2s ease-in-out infinite; }
+
+/* Disable expensive GPU animations on mobile */
+@media (max-width: 639px) {
+  .blob-1, .blob-2, .blob-3 { animation: none; will-change: auto; }
+}
