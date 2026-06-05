@@ -1,0 +1,44 @@
+import type { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'AutoEdge Pro',
+    short_name: 'AutoEdge',
+    description: 'Automotive Workshop Management Platform — Al Qusais, Dubai',
+    start_url: '/workshop/dashboard',
+    scope: '/',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#0a0a0a',
+    theme_color: '#f59e0b',
+    categories: ['business', 'productivity'],
+    icons: [
+      {
+        src: '/icons/icon.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
+        // @ts-expect-error purpose is valid in the spec
+        purpose: 'any',
+      },
+      {
+        src: '/icons/icon-maskable.svg',
+        sizes: 'any',
+        type: 'image/svg+xml',
+        // @ts-expect-error purpose is valid in the spec
+        purpose: 'maskable',
+      },
+    ],
+    shortcuts: [
+      {
+        name: 'My Jobs',
+        url: '/workshop/my-jobs',
+        description: 'View jobs assigned to me',
+      },
+      {
+        name: 'New Job Card',
+        url: '/workshop/job-cards/new',
+        description: 'Create a new job card',
+      },
+    ],
+  }
+}
