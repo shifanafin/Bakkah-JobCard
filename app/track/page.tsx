@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ThemeProvider'
 import { JOB_STATUS_LABEL, JOB_STATUS_STEP, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import {
-  Search, Zap, Sun, Moon, Car, User, Calendar, Check, Loader2,
+  Search, Sun, Moon, Car, User, Calendar, Check, Loader2,
   MessageCircle, ExternalLink, ArrowLeft, X, Star, Send, Quote
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -58,6 +58,17 @@ const ANNOUNCEMENT_STYLE: Record<string, string> = {
   success: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/25',
 }
 
+function getOrCreateSessionId(): string {
+  if (typeof window === 'undefined') return ''
+  const key = 'bakkah_session_id'
+  let id = localStorage.getItem(key)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(key, id)
+  }
+  return id
+}
+
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hovered, setHovered] = useState(0)
   return (
@@ -102,14 +113,32 @@ export default function TrackPage() {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
   const [reviews, setReviews] = useState<ApprovedFeedback[]>([])
 
-  // Feedback form state
   const [fbRating, setFbRating] = useState(0)
   const [fbComment, setFbComment] = useState('')
   const [fbName, setFbName] = useState('')
   const [fbSubmitting, setFbSubmitting] = useState(false)
   const [fbDone, setFbDone] = useState(false)
 
+  const logEvent = useCallback(async (
+    eventType: string,
+    extra?: { job_number?: string; query_type?: string }
+  ) => {
+    try {
+      await fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_type: eventType,
+          session_id: getOrCreateSessionId(),
+          ...extra,
+        }),
+      })
+    } catch { /* fire-and-forget — never block the user */ }
+  }, [])
+
   useEffect(() => {
+    logEvent('page_view')
+
     async function loadAnnouncements() {
       try {
         const sb = createClient()
@@ -136,7 +165,7 @@ export default function TrackPage() {
 
     loadAnnouncements()
     loadReviews()
-  }, [])
+  }, [logEvent])
 
   async function handleSearch(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -151,6 +180,9 @@ export default function TrackPage() {
     setFbRating(0)
     setFbComment('')
 
+    const queryType = q.toUpperCase().startsWith('JC-') ? 'job_number' : 'phone'
+    logEvent('track_search', { query_type: queryType })
+
     try {
       const sb = createClient()
       const select = `id, job_number, status, date_in, date_out, total,
@@ -161,7 +193,7 @@ export default function TrackPage() {
 
       let data: TrackResult | null = null
 
-      if (q.toUpperCase().startsWith('JC-')) {
+      if (queryType === 'job_number') {
         const { data: rows, error: err } = await sb
           .from('job_cards').select(select).ilike('job_number', q).limit(1).single()
         if (err && err.code !== 'PGRST116') throw err
@@ -179,11 +211,12 @@ export default function TrackPage() {
       }
 
       if (!data) {
+        logEvent('track_not_found', { query_type: queryType })
         setError('No job found. Please check your job number or phone number and try again.')
       } else {
+        logEvent('track_found', { job_number: data.job_number, query_type: queryType })
         setResult(data)
         setFbName(data.customer?.name ?? '')
-        // Check if feedback already submitted for this job
         const key = `fb_${data.job_number}`
         if (localStorage.getItem(key)) setFbDone(true)
       }
@@ -211,10 +244,11 @@ export default function TrackPage() {
         }),
       })
       if (!res.ok) throw new Error()
+      logEvent('feedback_submit', { job_number: result.job_number })
       setFbDone(true)
       localStorage.setItem(`fb_${result.job_number}`, '1')
     } catch {
-      // silent — don't block the user
+      // silent
     } finally {
       setFbSubmitting(false)
     }
@@ -236,18 +270,19 @@ export default function TrackPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
+
       {/* Header */}
       <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm dark:border-white/[0.06] dark:bg-surface-900/80">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-brand/30 bg-brand/10">
-              <Zap className="h-5 w-5 text-brand" />
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FF7F0A] shadow-[0_0_16px_rgba(255,127,10,0.35)] group-hover:shadow-[0_0_24px_rgba(255,127,10,0.5)] transition-all duration-300">
+              <Car className="h-[18px] w-[18px] text-black" />
             </div>
-            <div>
-              <p className="font-display text-lg leading-none tracking-wide text-gray-900 dark:text-white">AutoEdge Pro</p>
-              <p className="text-[10px] text-gray-400 dark:text-white/30">Job Status Tracker</p>
+            <div className="leading-none">
+              <p className="font-display text-lg tracking-[0.2em] text-gray-900 leading-none dark:text-white">BAKKAH</p>
+              <p className="text-[9px] tracking-[0.15em] text-gray-400 dark:text-white/30">AUTO DETAILING</p>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-2">
             <button
               onClick={toggle}
@@ -256,6 +291,15 @@ export default function TrackPage() {
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
+            <a
+              href="https://wa.me/971589397610"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex h-8 items-center gap-1.5 rounded-lg bg-[#25D366]/15 border border-[#25D366]/25 px-3 text-xs font-semibold text-[#25D366] hover:bg-[#25D366]/25 transition-colors"
+            >
+              <MessageCircle className="h-3.5 w-3.5" />
+              WhatsApp
+            </a>
             <Link href="/auth/login" className="hidden text-xs text-gray-400 hover:text-gray-600 transition dark:text-white/30 dark:hover:text-white/60 sm:block">
               Staff Login →
             </Link>
@@ -285,11 +329,11 @@ export default function TrackPage() {
         {/* Hero */}
         {!searched && (
           <div className="mb-8 text-center">
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/15 to-brand/5">
+            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/15 to-brand/5 shadow-[0_0_30px_rgba(255,127,10,0.1)]">
               <Car className="h-8 w-8 text-brand" />
             </div>
             <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">Track Your Vehicle</h1>
-            <p className="mt-2 text-gray-500 dark:text-white/50">Enter your job number or phone number to check your vehicle's service status</p>
+            <p className="mt-2 text-gray-500 dark:text-white/50">Enter your job number or phone number to check your vehicle&apos;s service status</p>
           </div>
         )}
 
@@ -486,11 +530,9 @@ export default function TrackPage() {
 
                 {fbDone ? (
                   <div className="flex flex-col items-center py-6 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 mb-3">
-                      <Check className="h-6 w-6 text-emerald-500" />
-                    </div>
+                    <div className="text-4xl mb-3">🎉</div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">Thank you for your feedback!</p>
-                    <p className="text-xs text-gray-400 mt-1 dark:text-white/30">Your review will be published after our team reviews it.</p>
+                    <p className="text-xs text-gray-400 mt-1 dark:text-white/30">Your review will be published after our team reviews it. We truly appreciate it!</p>
                   </div>
                 ) : (
                   <form onSubmit={handleFeedbackSubmit} className="space-y-4">
@@ -542,24 +584,23 @@ export default function TrackPage() {
                 View Invoice
               </a>
               <a
-                href={`https://wa.me/971589397610?text=Hi+AutoEdge+Pro%2C+I+want+to+follow+up+on+job+${encodeURIComponent(result.job_number)}`}
+                href={`https://wa.me/971589397610?text=Hi+Bakkah%2C+I+want+to+follow+up+on+job+${encodeURIComponent(result.job_number)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
               >
                 <MessageCircle className="h-4 w-4" />
-                Contact AutoEdge Pro
+                Contact Bakkah
               </a>
             </div>
 
-            {/* Track another */}
             <button onClick={reset} className="flex w-full items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition dark:text-white/30 dark:hover:text-white/60 mt-2">
               <ArrowLeft className="h-3.5 w-3.5" /> Track Another Job
             </button>
           </div>
         )}
 
-        {/* Customer Reviews section (approved feedback) */}
+        {/* Customer Reviews */}
         {!searched && reviews.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center gap-2 mb-5">
@@ -568,12 +609,17 @@ export default function TrackPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {reviews.slice(0, 6).map(r => (
-                <div key={r.id} className="card space-y-2.5">
+                <div key={r.id} className="card space-y-2.5 hover:border-brand/20 transition-colors duration-200">
                   <StarRow rating={r.rating} />
                   {r.comment && (
                     <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed line-clamp-3">&ldquo;{r.comment}&rdquo;</p>
                   )}
-                  <p className="text-xs font-semibold text-gray-700 dark:text-white/60">{r.customer_name}</p>
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand/15 text-xs font-bold text-brand shrink-0">
+                      {r.customer_name.charAt(0).toUpperCase()}
+                    </div>
+                    <p className="text-xs font-semibold text-gray-700 dark:text-white/60">{r.customer_name}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -582,7 +628,7 @@ export default function TrackPage() {
 
         {/* Footer */}
         <div className="mt-10 text-center text-xs text-gray-400 dark:text-white/20 space-y-1">
-          <p>AutoEdge Pro · Al Qusais, Dubai, UAE</p>
+          <p>Bakkah Auto Detailing · Al Qusais, Dubai, UAE 🇦🇪</p>
           <a
             href="https://wa.me/971589397610"
             target="_blank"
