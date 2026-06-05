@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import {
   Loader2, RefreshCw, Clock, LogIn, LogOut,
-  Briefcase, CheckCircle, BarChart2, Wifi, WifiOff
+  CheckCircle, BarChart2, UserCheck, UserX,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -78,7 +78,7 @@ export default function AttendancePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
-      <Header title="Attendance" subtitle="WiFi-based check-in / check-out" />
+      <Header title="Attendance" subtitle="Manual check-in / check-out — GPS or WiFi verified" />
 
       <div className="p-4 space-y-5 max-w-6xl lg:p-6">
 
@@ -101,10 +101,10 @@ export default function AttendancePage() {
         {/* Summary cards */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Checked In',      value: checkedIn.length,           icon: Wifi,         color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-            { label: 'Checked Out',     value: checkedOut.length,          icon: WifiOff,      color: 'text-gray-400',    bg: 'bg-gray-500/10' },
-            { label: 'Absent',          value: absent.length,              icon: LogOut,       color: 'text-red-400',     bg: 'bg-red-500/10' },
-            { label: 'Jobs Closed Today', value: totalJobsClosedToday,     icon: CheckCircle,  color: 'text-brand',       bg: 'bg-brand/10' },
+            { label: 'Checked In',        value: checkedIn.length,        icon: UserCheck,   color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+            { label: 'Checked Out',     value: checkedOut.length,       icon: LogOut,      color: 'text-gray-400',    bg: 'bg-gray-500/10' },
+            { label: 'Absent',          value: absent.length,           icon: UserX,       color: 'text-red-400',     bg: 'bg-red-500/10' },
+            { label: 'Jobs Closed Today', value: totalJobsClosedToday,  icon: CheckCircle, color: 'text-brand',       bg: 'bg-brand/10' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="card cursor-default">
               <div className={cn('inline-flex h-9 w-9 items-center justify-center rounded-xl mb-3', bg)}>
@@ -235,7 +235,7 @@ export default function AttendancePage() {
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Checked in (still at work)</span>
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-gray-400" /> Checked out</span>
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Absent (no check-in)</span>
-          <span className="ml-2 italic">Check-in/out is triggered automatically when WiFi connects or disconnects.</span>
+          <span className="ml-2 italic">Staff check in/out manually via the button in their sidebar — requires GPS within 200 m of workshop or WiFi connection.</span>
         </div>
 
       </div>

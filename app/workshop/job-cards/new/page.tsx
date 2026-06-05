@@ -77,10 +77,8 @@ export default function NewJobCardPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="New Job Card" subtitle="Vehicle check-in" />
-      <div className="mx-auto max-w-2xl p-6">
-        <Link href="/workshop/job-cards" className="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70">
-          <ArrowLeft className="h-4 w-4" /> Back to Job Cards
-        </Link>
+      <div className="mx-auto  p-6">
+    
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <Section icon={User} title="Customer Details">

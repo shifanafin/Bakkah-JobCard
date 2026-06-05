@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useShell } from '@/components/layout/WorkshopShell'
+import AttendanceWidget from '@/components/AttendanceWidget'
 
 type NavItem = {
   href: string
@@ -156,8 +157,13 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
         )}
       </nav>
 
+      {/* Attendance widget — visible to technicians, supervisors, receptionists */}
+      <div className="border-t border-gray-200 dark:border-white/[0.06] pt-3">
+        <AttendanceWidget />
+      </div>
+
       {/* Bottom */}
-      <div className="border-t border-gray-200 p-3 space-y-0.5 dark:border-white/[0.06]">
+      <div className="p-3 space-y-0.5">
         <Link href="/workshop/settings" onClick={onClose} className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-all dark:text-white/40 dark:hover:bg-white/[0.04] dark:hover:text-white/70">
           <Settings className="h-4 w-4" />
           Settings
