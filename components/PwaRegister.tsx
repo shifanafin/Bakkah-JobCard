@@ -6,8 +6,8 @@ export default function PwaRegister() {
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
-        .register('/sw.js', { scope: '/' })
-        .catch(() => {}) // silent fail — SW is enhancement only
+        .register('/sw.js', { scope: '/auth/login' })
+        .catch(() => { })
     }
   }, [])
 

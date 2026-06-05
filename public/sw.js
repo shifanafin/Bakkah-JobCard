@@ -1,6 +1,6 @@
-// AutoEdge Pro — Service Worker
+
 const CACHE = 'autoedge-pro-v1'
-const OFFLINE_URLS = ['/', '/track']
+const OFFLINE_URLS = ['/auth/login', '/track']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
