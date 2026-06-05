@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState } from 'react'
+import AttendanceTracker from '@/components/AttendanceTracker'
 
 interface ShellCtx { sidebarOpen: boolean; setSidebarOpen: (v: boolean) => void }
 const ShellContext = createContext<ShellCtx>({ sidebarOpen: false, setSidebarOpen: () => {} })
@@ -10,6 +11,7 @@ export function WorkshopShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   return (
     <ShellContext.Provider value={{ sidebarOpen, setSidebarOpen }}>
+      <AttendanceTracker />
       <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-surface-900">
         {/* Mobile overlay */}
         {sidebarOpen && (

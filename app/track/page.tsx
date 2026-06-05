@@ -6,7 +6,10 @@ import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ThemeProvider'
 import { JOB_STATUS_LABEL, JOB_STATUS_STEP, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { Search, Zap, Sun, Moon, Car, User, Calendar, Check, Loader2, MessageCircle, ExternalLink, ArrowLeft, ChevronRight, X } from 'lucide-react'
+import {
+  Search, Zap, Sun, Moon, Car, User, Calendar, Check, Loader2,
+  MessageCircle, ExternalLink, ArrowLeft, X, Star, Send, Quote
+} from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 type TrackResult = {
@@ -29,6 +32,14 @@ type Announcement = {
   type: 'info' | 'warning' | 'success' | 'promo'
 }
 
+type ApprovedFeedback = {
+  id: string
+  customer_name: string
+  rating: number
+  comment: string | null
+  created_at: string
+}
+
 const STEPS: JobStatus[] = ['received', 'in_progress', 'qc_check', 'ready', 'delivered']
 
 const STATUS_COLOR: Record<string, string> = {
@@ -47,6 +58,39 @@ const ANNOUNCEMENT_STYLE: Record<string, string> = {
   success: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/25',
 }
 
+function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const [hovered, setHovered] = useState(0)
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map(i => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onChange(i)}
+          onMouseEnter={() => setHovered(i)}
+          onMouseLeave={() => setHovered(0)}
+          className="transition-transform hover:scale-110"
+        >
+          <Star className={cn(
+            'h-7 w-7 transition-colors',
+            i <= (hovered || value) ? 'fill-amber-400 text-amber-400' : 'text-gray-300 dark:text-white/20'
+          )} />
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function StarRow({ rating }: { rating: number }) {
+  return (
+    <div className="flex gap-0.5">
+      {[1, 2, 3, 4, 5].map(i => (
+        <Star key={i} className={cn('h-3.5 w-3.5', i <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200 dark:text-white/10')} />
+      ))}
+    </div>
+  )
+}
+
 export default function TrackPage() {
   const { theme, toggle } = useTheme()
   const [query, setQuery] = useState('')
@@ -56,6 +100,14 @@ export default function TrackPage() {
   const [searched, setSearched] = useState(false)
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set())
+  const [reviews, setReviews] = useState<ApprovedFeedback[]>([])
+
+  // Feedback form state
+  const [fbRating, setFbRating] = useState(0)
+  const [fbComment, setFbComment] = useState('')
+  const [fbName, setFbName] = useState('')
+  const [fbSubmitting, setFbSubmitting] = useState(false)
+  const [fbDone, setFbDone] = useState(false)
 
   useEffect(() => {
     async function loadAnnouncements() {
@@ -70,11 +122,20 @@ export default function TrackPage() {
           .or(`expires_at.is.null,expires_at.gt.${now}`)
           .order('created_at', { ascending: false })
         setAnnouncements((data ?? []) as Announcement[])
-      } catch {
-        // silent fail — announcements are optional
-      }
+      } catch { /* silent */ }
     }
+
+    async function loadReviews() {
+      try {
+        const res = await fetch('/api/feedback?approved=true')
+        if (!res.ok) return
+        const json = await res.json()
+        setReviews(json.feedback ?? [])
+      } catch { /* silent */ }
+    }
+
     loadAnnouncements()
+    loadReviews()
   }, [])
 
   async function handleSearch(e: React.FormEvent<HTMLFormElement>) {
@@ -86,6 +147,9 @@ export default function TrackPage() {
     setError('')
     setResult(null)
     setSearched(true)
+    setFbDone(false)
+    setFbRating(0)
+    setFbComment('')
 
     try {
       const sb = createClient()
@@ -99,29 +163,17 @@ export default function TrackPage() {
 
       if (q.toUpperCase().startsWith('JC-')) {
         const { data: rows, error: err } = await sb
-          .from('job_cards')
-          .select(select)
-          .ilike('job_number', q)
-          .limit(1)
-          .single()
+          .from('job_cards').select(select).ilike('job_number', q).limit(1).single()
         if (err && err.code !== 'PGRST116') throw err
         data = rows as TrackResult | null
       } else {
         const { data: customers } = await sb
-          .from('customers')
-          .select('id')
-          .ilike('phone', `%${q.replace(/\s+/g, '')}%`)
-          .limit(5)
-
+          .from('customers').select('id').ilike('phone', `%${q.replace(/\s+/g, '')}%`).limit(5)
         if (customers && customers.length > 0) {
-          const customerIds = customers.map((c: { id: string }) => c.id)
+          const ids = customers.map((c: { id: string }) => c.id)
           const { data: rows } = await sb
-            .from('job_cards')
-            .select(select)
-            .in('customer_id', customerIds)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single()
+            .from('job_cards').select(select).in('customer_id', ids)
+            .order('created_at', { ascending: false }).limit(1).single()
           data = rows as TrackResult | null
         }
       }
@@ -130,6 +182,10 @@ export default function TrackPage() {
         setError('No job found. Please check your job number or phone number and try again.')
       } else {
         setResult(data)
+        setFbName(data.customer?.name ?? '')
+        // Check if feedback already submitted for this job
+        const key = `fb_${data.job_number}`
+        if (localStorage.getItem(key)) setFbDone(true)
       }
     } catch {
       setError('An error occurred. Please try again.')
@@ -138,15 +194,45 @@ export default function TrackPage() {
     }
   }
 
+  async function handleFeedbackSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!result || fbRating === 0) return
+    setFbSubmitting(true)
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          job_card_id: result.id,
+          job_number: result.job_number,
+          customer_name: fbName || result.customer?.name || 'Customer',
+          rating: fbRating,
+          comment: fbComment || null,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      setFbDone(true)
+      localStorage.setItem(`fb_${result.job_number}`, '1')
+    } catch {
+      // silent — don't block the user
+    } finally {
+      setFbSubmitting(false)
+    }
+  }
+
   function reset() {
     setResult(null)
     setError('')
     setSearched(false)
     setQuery('')
+    setFbDone(false)
+    setFbRating(0)
+    setFbComment('')
   }
 
   const curStep = result ? (JOB_STATUS_STEP[result.status] ?? 0) : 0
   const visibleAnnouncements = announcements.filter(a => !dismissedIds.has(a.id))
+  const showFeedback = result?.status === 'delivered'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
@@ -179,26 +265,16 @@ export default function TrackPage() {
 
       <main className="mx-auto max-w-2xl px-4 py-8">
 
-        {/* Announcements banners */}
+        {/* Announcements */}
         {visibleAnnouncements.length > 0 && (
           <div className="mb-6 space-y-2">
             {visibleAnnouncements.map(a => (
-              <div
-                key={a.id}
-                className={cn(
-                  'relative flex items-start gap-3 rounded-xl border px-4 py-3',
-                  ANNOUNCEMENT_STYLE[a.type] ?? ANNOUNCEMENT_STYLE.info
-                )}
-              >
+              <div key={a.id} className={cn('relative flex items-start gap-3 rounded-xl border px-4 py-3', ANNOUNCEMENT_STYLE[a.type] ?? ANNOUNCEMENT_STYLE.info)}>
                 <div className="flex-1">
                   <p className="text-sm font-bold">{a.title}</p>
                   <p className="text-xs mt-0.5 opacity-80">{a.content}</p>
                 </div>
-                <button
-                  onClick={() => setDismissedIds(prev => new Set([...prev, a.id]))}
-                  className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
-                  aria-label="Dismiss"
-                >
+                <button onClick={() => setDismissedIds(prev => new Set([...prev, a.id]))} className="shrink-0 opacity-60 hover:opacity-100 transition-opacity">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -250,7 +326,7 @@ export default function TrackPage() {
         {/* Results */}
         {result && (
           <div className="space-y-4">
-            {/* Job summary header */}
+            {/* Job summary */}
             <div className="card">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                 <div>
@@ -400,7 +476,61 @@ export default function TrackPage() {
               </div>
             )}
 
-            {/* Action buttons */}
+            {/* Feedback form — only for delivered jobs */}
+            {showFeedback && (
+              <div className="card border-brand/20">
+                <div className="flex items-center gap-2 mb-4">
+                  <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">How was your experience?</h3>
+                </div>
+
+                {fbDone ? (
+                  <div className="flex flex-col items-center py-6 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15 mb-3">
+                      <Check className="h-6 w-6 text-emerald-500" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Thank you for your feedback!</p>
+                    <p className="text-xs text-gray-400 mt-1 dark:text-white/30">Your review will be published after our team reviews it.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                    <div>
+                      <label className="label mb-2">Your Rating *</label>
+                      <StarPicker value={fbRating} onChange={setFbRating} />
+                    </div>
+                    <div>
+                      <label className="label mb-1">Your Name</label>
+                      <input
+                        value={fbName}
+                        onChange={e => setFbName(e.target.value)}
+                        className="input-base w-full"
+                        placeholder="Your name"
+                      />
+                    </div>
+                    <div>
+                      <label className="label mb-1">Comment (optional)</label>
+                      <textarea
+                        value={fbComment}
+                        onChange={e => setFbComment(e.target.value)}
+                        className="input-base w-full min-h-[80px] resize-none"
+                        placeholder="Tell us about your experience..."
+                        rows={3}
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={fbSubmitting || fbRating === 0}
+                      className="btn-primary w-full"
+                    >
+                      {fbSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      Submit Feedback
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {/* Actions */}
             <div className="flex flex-col gap-3 sm:flex-row">
               <a
                 href={`/workshop/job-cards/${result.id}/invoice`}
@@ -423,12 +553,30 @@ export default function TrackPage() {
             </div>
 
             {/* Track another */}
-            <button
-              onClick={reset}
-              className="flex w-full items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition dark:text-white/30 dark:hover:text-white/60 mt-2"
-            >
+            <button onClick={reset} className="flex w-full items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition dark:text-white/30 dark:hover:text-white/60 mt-2">
               <ArrowLeft className="h-3.5 w-3.5" /> Track Another Job
             </button>
+          </div>
+        )}
+
+        {/* Customer Reviews section (approved feedback) */}
+        {!searched && reviews.length > 0 && (
+          <div className="mt-12">
+            <div className="flex items-center gap-2 mb-5">
+              <Quote className="h-4 w-4 text-brand" />
+              <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-white/30">What Our Customers Say</h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {reviews.slice(0, 6).map(r => (
+                <div key={r.id} className="card space-y-2.5">
+                  <StarRow rating={r.rating} />
+                  {r.comment && (
+                    <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed line-clamp-3">&ldquo;{r.comment}&rdquo;</p>
+                  )}
+                  <p className="text-xs font-semibold text-gray-700 dark:text-white/60">{r.customer_name}</p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react'
 import {
   LayoutDashboard, ClipboardList, Plus, Settings,
   LogOut, Zap, ChevronRight, X, Briefcase, Package,
-  Users, Megaphone
+  Users, Megaphone, Wrench, Clock, MessageSquare
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useShell } from '@/components/layout/WorkshopShell'
@@ -78,6 +78,9 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
   if (role === 'admin') {
     adminNav.push(
       { href: '/workshop/admin/employees', icon: Users, label: 'Employees' },
+      { href: '/workshop/admin/technicians', icon: Wrench, label: 'Technicians' },
+      { href: '/workshop/admin/attendance', icon: Clock, label: 'Attendance' },
+      { href: '/workshop/admin/feedback', icon: MessageSquare, label: 'Feedback' },
       { href: '/workshop/admin/announcements', icon: Megaphone, label: 'Announcements' },
     )
   }
