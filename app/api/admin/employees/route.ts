@@ -63,6 +63,11 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
+    // Mirror technician users into the technicians table so they appear in assignment dropdowns
+    if (role === 'technician') {
+      await sb.from('technicians').upsert({ id: data.id, name, active: true }, { onConflict: 'id' })
+    }
+
     return NextResponse.json({ user: data }, { status: 201 })
   } catch (err: unknown) {
     return NextResponse.json(
@@ -85,10 +90,15 @@ export async function PATCH(req: NextRequest) {
     const sb = getServiceClient()
 
     if (action === 'toggle_active') {
-      const { data: user } = await sb.from('users').select('active').eq('id', id).single()
-      const { error } = await sb.from('users').update({ active: !user?.active }).eq('id', id)
+      const { data: user } = await sb.from('users').select('active, role').eq('id', id).single()
+      const newActive = !user?.active
+      const { error } = await sb.from('users').update({ active: newActive }).eq('id', id)
       if (error) throw error
-      return NextResponse.json({ success: true, active: !user?.active })
+      // Keep technicians table in sync
+      if (user?.role === 'technician') {
+        await sb.from('technicians').update({ active: newActive }).eq('id', id)
+      }
+      return NextResponse.json({ success: true, active: newActive })
     }
 
     if (action === 'reset_password') {
