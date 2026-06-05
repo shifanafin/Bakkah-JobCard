@@ -126,21 +126,15 @@ export default function BakkahHomePage() {
         {/* Backgrounds */}
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]" />
-          <motion.div
-            animate={{ scale: [1, 1.12, 1], opacity: [0.5, 0.7, 0.5] }}
-            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#FF7F0A]/[0.055] blur-[140px]"
-          />
-          <motion.div
-            animate={{ scale: [1.1, 1, 1.1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-            className="absolute left-[15%] top-[25%] h-[400px] w-[400px] rounded-full bg-[#FF7F0A]/[0.035] blur-[110px]"
-          />
-          <motion.div
-            animate={{ scale: [1, 1.18, 1], opacity: [0.2, 0.4, 0.2] }}
-            transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
-            className="absolute right-[10%] bottom-[20%] h-[350px] w-[350px] rounded-full bg-[#FF7F0A]/[0.03] blur-[100px]"
-          />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="blob-1 h-[700px] w-[700px] rounded-full bg-[#FF7F0A]/[0.055] blur-[140px]" />
+          </div>
+          <div className="absolute left-[15%] top-[25%]">
+            <div className="blob-2 h-[400px] w-[400px] rounded-full bg-[#FF7F0A]/[0.035] blur-[110px]" />
+          </div>
+          <div className="absolute right-[10%] bottom-[20%]">
+            <div className="blob-3 h-[350px] w-[350px] rounded-full bg-[#FF7F0A]/[0.03] blur-[100px]" />
+          </div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_70%_at_50%_50%,transparent,#050507_100%)]" />
         </div>
 
@@ -228,11 +222,7 @@ export default function BakkahHomePage() {
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
           <span className="text-[9px] uppercase tracking-[0.25em] text-white/20">Scroll</span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-            className="h-10 w-px bg-gradient-to-b from-[#FF7F0A]/40 to-transparent"
-          />
+          <div className="scroll-bob h-10 w-px bg-gradient-to-b from-[#FF7F0A]/40 to-transparent" />
         </motion.div>
       </section>
 

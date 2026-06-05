@@ -89,3 +89,25 @@
 /* ── Page Transitions ───────────────────────────────────── */
 .page-enter { animation: fadeIn 0.2s ease forwards; }
 .skeleton { @apply animate-pulse rounded bg-gray-200 dark:bg-white/[0.06]; }
+
+/* ── Landing blob animations — CSS/GPU, no JS loop ──────── */
+@keyframes blob-pulse-1 {
+  0%, 100% { transform: scale(1);    opacity: 0.5; }
+  50%       { transform: scale(1.12); opacity: 0.7; }
+}
+@keyframes blob-pulse-2 {
+  0%, 100% { transform: scale(1.1); opacity: 0.3; }
+  50%       { transform: scale(1);   opacity: 0.5; }
+}
+@keyframes blob-pulse-3 {
+  0%, 100% { transform: scale(1);    opacity: 0.2; }
+  50%       { transform: scale(1.18); opacity: 0.4; }
+}
+@keyframes scroll-bob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(8px); }
+}
+.blob-1    { animation: blob-pulse-1 9s ease-in-out infinite; will-change: transform; }
+.blob-2    { animation: blob-pulse-2 11s 2s ease-in-out infinite; will-change: transform; }
+.blob-3    { animation: blob-pulse-3 13s 4s ease-in-out infinite; will-change: transform; }
+.scroll-bob { animation: scroll-bob 2s ease-in-out infinite; }

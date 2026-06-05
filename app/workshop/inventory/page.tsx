@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import { createClient } from '@/lib/supabase/client'
 import { Package, Plus, Search, Edit2, Trash2, AlertTriangle, Loader2, X, Check, Minus } from 'lucide-react'
+import Pagination from '@/components/ui/Pagination'
+
+const PAGE_SIZE = 20
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -61,6 +64,7 @@ export default function InventoryPage() {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [adjustingId, setAdjustingId] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
 
   const load = useCallback(async () => {
     try {
@@ -88,6 +92,8 @@ export default function InventoryPage() {
       (item.supplier ?? '').toLowerCase().includes(search.toLowerCase())
     return matchCat && matchSearch
   })
+
+  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   const totalItems = items.length
   const lowStock = items.filter(i => i.stock_quantity <= i.min_stock_level).length
@@ -224,7 +230,7 @@ export default function InventoryPage() {
             {CATEGORIES.map(cat => (
               <button
                 key={cat}
-                onClick={() => setCategoryFilter(cat)}
+                onClick={() => { setCategoryFilter(cat); setPage(1) }}
                 className={cn(
                   'rounded-full px-3 py-1 text-xs font-semibold transition-all',
                   categoryFilter === cat
@@ -241,7 +247,7 @@ export default function InventoryPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               <input
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={e => { setSearch(e.target.value); setPage(1) }}
                 placeholder="Search items, SKU, supplier..."
                 className="input-base w-full pl-9"
               />
@@ -263,6 +269,7 @@ export default function InventoryPage() {
             <p className="text-sm text-gray-400 dark:text-white/30">No items found</p>
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
             <table className="w-full text-sm">
               <thead>
@@ -278,7 +285,7 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
-                {filtered.map(item => {
+                {paginated.map(item => {
                   const isLow = item.stock_quantity <= item.min_stock_level
                   return (
                     <tr
@@ -361,6 +368,8 @@ export default function InventoryPage() {
               </tbody>
             </table>
           </div>
+          <Pagination page={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
+          </>
         )}
       </div>
 
