@@ -7,6 +7,8 @@ import { Bell, Sun, Moon, Menu, X, Check } from 'lucide-react'
 import { useTheme } from '@/components/ThemeProvider'
 import { useShell } from '@/components/layout/WorkshopShell'
 import { cn } from '@/lib/utils/cn'
+import { useT } from '@/lib/i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 interface HeaderProps { title: string; subtitle?: string }
 
@@ -20,6 +22,8 @@ export default function Header({ title, subtitle }: HeaderProps) {
   const { data: session } = useSession()
   const { theme, toggle } = useTheme()
   const { setSidebarOpen } = useShell()
+  const { t } = useT()
+  const h = t.app.header
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
   const notifRef = useRef<HTMLDivElement>(null)
@@ -57,8 +61,9 @@ export default function Header({ title, subtitle }: HeaderProps) {
         </div>
       </div>
 
-      {/* Right: theme toggle, notifications, avatar */}
+      {/* Right: language switcher, theme toggle, notifications, avatar */}
       <div className="flex items-center gap-2">
+        <LanguageSwitcher variant="app" />
         {/* Theme toggle */}
         <button
           onClick={toggle}
@@ -87,11 +92,11 @@ export default function Header({ title, subtitle }: HeaderProps) {
           {notifOpen && (
             <div className="absolute right-0 top-full mt-2 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-surface-800">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-white/[0.06]">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white">Notifications</h3>
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white">{h.notifications}</h3>
                 <div className="flex items-center gap-2">
                   {unreadCount > 0 && (
                     <button onClick={markAllRead} className="text-xs text-brand hover:text-brand/80 transition-colors">
-                      Mark all read
+                      {h.markAllRead}
                     </button>
                   )}
                   <button onClick={() => setNotifOpen(false)} className="text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60">
@@ -101,7 +106,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
               </div>
               <div className="max-h-72 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="py-8 text-center text-sm text-gray-400 dark:text-white/30">No notifications</div>
+                  <div className="py-8 text-center text-sm text-gray-400 dark:text-white/30">{h.noNotifications}</div>
                 ) : (
                   notifications.map(n => (
                     <div key={n.id} className={cn(

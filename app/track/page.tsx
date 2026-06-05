@@ -4,13 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ThemeProvider'
-import { JOB_STATUS_LABEL, JOB_STATUS_STEP, type JobStatus } from '@/types'
+import { JOB_STATUS_STEP, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import {
   Search, Sun, Moon, Car, User, Calendar, Check, Loader2,
   MessageCircle, ExternalLink, ArrowLeft, X, Star, Send, Quote
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { useT } from '@/lib/i18n'
+import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 type TrackResult = {
   id: string
@@ -104,6 +106,8 @@ function StarRow({ rating }: { rating: number }) {
 
 export default function TrackPage() {
   const { theme, toggle } = useTheme()
+  const { t } = useT()
+  const tr = t.track
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TrackResult | null>(null)
@@ -212,7 +216,7 @@ export default function TrackPage() {
 
       if (!data) {
         logEvent('track_not_found', { query_type: queryType })
-        setError('No job found. Please check your job number or phone number and try again.')
+        setError(tr.errors.notFound)
       } else {
         logEvent('track_found', { job_number: data.job_number, query_type: queryType })
         setResult(data)
@@ -221,7 +225,7 @@ export default function TrackPage() {
         if (localStorage.getItem(key)) setFbDone(true)
       }
     } catch {
-      setError('An error occurred. Please try again.')
+      setError(tr.errors.generic)
     } finally {
       setLoading(false)
     }
@@ -284,6 +288,7 @@ export default function TrackPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="website" />
             <button
               onClick={toggle}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 dark:border-white/[0.08] dark:text-white/40 dark:hover:bg-white/[0.06]"
@@ -301,7 +306,7 @@ export default function TrackPage() {
               WhatsApp
             </a>
             <Link href="/auth/login" className="hidden text-xs text-gray-400 hover:text-gray-600 transition dark:text-white/30 dark:hover:text-white/60 sm:block">
-              Staff Login →
+              {tr.staffLogin}
             </Link>
           </div>
         </div>
@@ -332,31 +337,31 @@ export default function TrackPage() {
             <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/15 to-brand/5 shadow-[0_0_30px_rgba(255,127,10,0.1)]">
               <Car className="h-8 w-8 text-brand" />
             </div>
-            <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">Track Your Vehicle</h1>
-            <p className="mt-2 text-gray-500 dark:text-white/50">Enter your job number or phone number to check your vehicle&apos;s service status</p>
+            <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">{tr.hero.title}</h1>
+            <p className="mt-2 text-gray-500 dark:text-white/50">{tr.hero.subtitle}</p>
           </div>
         )}
 
         {/* Search form */}
         <form onSubmit={handleSearch} className="card mb-6">
-          <label className="label mb-1">Job Number or Phone Number</label>
+          <label className="label mb-1">{tr.search.label}</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="e.g. JC-2026-0001 or +971 50 123 4567"
+                placeholder={tr.search.placeholder}
                 className="input-base w-full pl-9"
                 disabled={loading}
               />
             </div>
             <button type="submit" disabled={loading || !query.trim()} className="btn-primary px-5">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Track'}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : tr.search.btn}
             </button>
           </div>
           <p className="mt-2 text-xs text-gray-400 dark:text-white/30">
-            Job numbers start with <span className="font-mono font-bold text-brand">JC-</span> · Or enter the phone number used at check-in
+            {tr.search.hint} <span className="font-mono font-bold text-brand">JC-</span> {tr.search.hint2}
           </p>
         </form>
 
@@ -377,7 +382,7 @@ export default function TrackPage() {
                   <div className="flex items-center gap-2.5 mb-1">
                     <span className="font-mono text-lg font-bold text-brand">{result.job_number}</span>
                     <span className={cn('inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold', STATUS_COLOR[result.status])}>
-                      {JOB_STATUS_LABEL[result.status]}
+                      {(tr.status as Record<string, string>)[result.status] ?? result.status}
                     </span>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-white/50">
@@ -386,7 +391,7 @@ export default function TrackPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-bold text-brand">{formatAED(result.total)}</p>
-                  <p className="text-xs text-gray-400 dark:text-white/30">Total Amount</p>
+                  <p className="text-xs text-gray-400 dark:text-white/30">{tr.result.totalAmount}</p>
                 </div>
               </div>
 
@@ -410,7 +415,7 @@ export default function TrackPage() {
                             </div>
                             <span className={cn('mt-1.5 text-[10px] font-semibold whitespace-nowrap',
                               active ? 'text-brand' : done ? 'text-emerald-500 dark:text-emerald-400' : 'text-gray-300 dark:text-white/30'
-                            )}>{JOB_STATUS_LABEL[step]}</span>
+                            )}>{(tr.status as Record<string, string>)[step] ?? step}</span>
                           </div>
                           {i < STEPS.length - 1 && (
                             <div className={cn('flex-1 h-0.5 mx-2 rounded-full', i < curStep ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-white/10')} />
@@ -425,9 +430,9 @@ export default function TrackPage() {
                       {curStep + 1}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{JOB_STATUS_LABEL[result.status]}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{(tr.status as Record<string, string>)[result.status] ?? result.status}</p>
                       {curStep < STEPS.length - 1 && (
-                        <p className="text-xs text-gray-400 dark:text-white/40">Next: {JOB_STATUS_LABEL[STEPS[curStep + 1]]}</p>
+                        <p className="text-xs text-gray-400 dark:text-white/40">{tr.result.next}: {(tr.status as Record<string, string>)[STEPS[curStep + 1]] ?? STEPS[curStep + 1]}</p>
                       )}
                     </div>
                   </div>
@@ -438,12 +443,12 @@ export default function TrackPage() {
               <div className="flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-1.5 text-gray-500 dark:text-white/50">
                   <Calendar className="h-3.5 w-3.5" />
-                  <span>Date In: <strong className="text-gray-900 dark:text-white">{formatDate(result.date_in)}</strong></span>
+                  <span>{tr.result.dateIn}: <strong className="text-gray-900 dark:text-white">{formatDate(result.date_in)}</strong></span>
                 </div>
                 {result.date_out && (
                   <div className="flex items-center gap-1.5 text-gray-500 dark:text-white/50">
                     <Calendar className="h-3.5 w-3.5 text-brand" />
-                    <span>Expected: <strong className="text-gray-900 dark:text-white">{formatDate(result.date_out)}</strong></span>
+                    <span>{tr.result.expected}: <strong className="text-gray-900 dark:text-white">{formatDate(result.date_out)}</strong></span>
                   </div>
                 )}
               </div>
@@ -454,20 +459,20 @@ export default function TrackPage() {
               <div className="card space-y-2">
                 <div className="flex items-center gap-2 mb-2">
                   <Car className="h-4 w-4 text-brand" />
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">Vehicle</h3>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">{tr.result.vehicleLabel}</h3>
                 </div>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-400 dark:text-white/40">Plate</span>
+                    <span className="text-gray-400 dark:text-white/40">{tr.result.plate}</span>
                     <span className="font-mono font-bold text-gray-900 dark:text-white">{result.vehicle?.plate_number}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400 dark:text-white/40">Vehicle</span>
+                    <span className="text-gray-400 dark:text-white/40">{tr.result.vehicle}</span>
                     <span className="text-gray-700 dark:text-white/70">{result.vehicle?.make} {result.vehicle?.model} {result.vehicle?.year}</span>
                   </div>
                   {result.vehicle?.color && (
                     <div className="flex justify-between">
-                      <span className="text-gray-400 dark:text-white/40">Color</span>
+                      <span className="text-gray-400 dark:text-white/40">{tr.result.color}</span>
                       <span className="text-gray-700 dark:text-white/70">{result.vehicle.color}</span>
                     </div>
                   )}
@@ -476,11 +481,11 @@ export default function TrackPage() {
               <div className="card space-y-2">
                 <div className="flex items-center gap-2 mb-2">
                   <User className="h-4 w-4 text-blue-500" />
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">Customer</h3>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">{tr.result.customer}</h3>
                 </div>
                 <div className="space-y-1.5 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-400 dark:text-white/40">Name</span>
+                    <span className="text-gray-400 dark:text-white/40">{tr.result.name}</span>
                     <span className="text-gray-700 font-medium dark:text-white/70">{result.customer?.name}</span>
                   </div>
                 </div>
@@ -490,7 +495,7 @@ export default function TrackPage() {
             {/* Services */}
             {result.services && result.services.length > 0 && (
               <div className="card">
-                <h3 className="text-sm font-bold text-gray-900 mb-3 dark:text-white">Services</h3>
+                <h3 className="text-sm font-bold text-gray-900 mb-3 dark:text-white">{tr.result.services}</h3>
                 <div className="space-y-2">
                   {result.services.map(s => (
                     <div key={s.id} className="flex items-center justify-between text-sm">
@@ -502,7 +507,7 @@ export default function TrackPage() {
                 {result.parts && result.parts.length > 0 && (
                   <>
                     <div className="my-3 border-t border-gray-100 dark:border-white/[0.06]" />
-                    <h3 className="text-sm font-bold text-gray-900 mb-3 dark:text-white">Parts</h3>
+                    <h3 className="text-sm font-bold text-gray-900 mb-3 dark:text-white">{tr.result.parts}</h3>
                     <div className="space-y-2">
                       {result.parts.map(p => (
                         <div key={p.id} className="flex items-center justify-between text-sm">
@@ -514,7 +519,7 @@ export default function TrackPage() {
                   </>
                 )}
                 <div className="mt-3 border-t border-gray-100 pt-3 flex justify-between dark:border-white/[0.06]">
-                  <span className="font-bold text-gray-900 dark:text-white">Total</span>
+                  <span className="font-bold text-gray-900 dark:text-white">{tr.result.total}</span>
                   <span className="font-bold text-lg text-brand">{formatAED(result.total)}</span>
                 </div>
               </div>
@@ -525,37 +530,37 @@ export default function TrackPage() {
               <div className="card border-brand/20">
                 <div className="flex items-center gap-2 mb-4">
                   <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">How was your experience?</h3>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-white">{tr.feedback.title}</h3>
                 </div>
 
                 {fbDone ? (
                   <div className="flex flex-col items-center py-6 text-center">
                     <div className="text-4xl mb-3">🎉</div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">Thank you for your feedback!</p>
-                    <p className="text-xs text-gray-400 mt-1 dark:text-white/30">Your review will be published after our team reviews it. We truly appreciate it!</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{tr.feedback.thanks}</p>
+                    <p className="text-xs text-gray-400 mt-1 dark:text-white/30">{tr.feedback.thanksMsg}</p>
                   </div>
                 ) : (
                   <form onSubmit={handleFeedbackSubmit} className="space-y-4">
                     <div>
-                      <label className="label mb-2">Your Rating *</label>
+                      <label className="label mb-2">{tr.feedback.rating}</label>
                       <StarPicker value={fbRating} onChange={setFbRating} />
                     </div>
                     <div>
-                      <label className="label mb-1">Your Name</label>
+                      <label className="label mb-1">{tr.feedback.yourName}</label>
                       <input
                         value={fbName}
                         onChange={e => setFbName(e.target.value)}
                         className="input-base w-full"
-                        placeholder="Your name"
+                        placeholder={tr.feedback.namePlaceholder}
                       />
                     </div>
                     <div>
-                      <label className="label mb-1">Comment (optional)</label>
+                      <label className="label mb-1">{tr.feedback.comment}</label>
                       <textarea
                         value={fbComment}
                         onChange={e => setFbComment(e.target.value)}
                         className="input-base w-full min-h-[80px] resize-none"
-                        placeholder="Tell us about your experience..."
+                        placeholder={tr.feedback.commentPlaceholder}
                         rows={3}
                       />
                     </div>
@@ -565,7 +570,7 @@ export default function TrackPage() {
                       className="btn-primary w-full"
                     >
                       {fbSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                      Submit Feedback
+                      {tr.feedback.submit}
                     </button>
                   </form>
                 )}
@@ -581,7 +586,7 @@ export default function TrackPage() {
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/70 dark:hover:border-brand/30 dark:hover:text-brand"
               >
                 <ExternalLink className="h-4 w-4" />
-                View Invoice
+                {tr.actions.viewInvoice}
               </a>
               <a
                 href={`https://wa.me/971589397610?text=Hi+Bakkah%2C+I+want+to+follow+up+on+job+${encodeURIComponent(result.job_number)}`}
@@ -590,12 +595,12 @@ export default function TrackPage() {
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
               >
                 <MessageCircle className="h-4 w-4" />
-                Contact Bakkah
+                {tr.actions.contact}
               </a>
             </div>
 
             <button onClick={reset} className="flex w-full items-center justify-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition dark:text-white/30 dark:hover:text-white/60 mt-2">
-              <ArrowLeft className="h-3.5 w-3.5" /> Track Another Job
+              <ArrowLeft className="h-3.5 w-3.5" /> {tr.actions.trackAnother}
             </button>
           </div>
         )}
@@ -605,7 +610,7 @@ export default function TrackPage() {
           <div className="mt-12">
             <div className="flex items-center gap-2 mb-5">
               <Quote className="h-4 w-4 text-brand" />
-              <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-white/30">What Our Customers Say</h2>
+              <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400 dark:text-white/30">{tr.reviews.title}</h2>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {reviews.slice(0, 6).map(r => (
@@ -628,7 +633,7 @@ export default function TrackPage() {
 
         {/* Footer */}
         <div className="mt-10 text-center text-xs text-gray-400 dark:text-white/20 space-y-1">
-          <p>Bakkah Auto Detailing · Al Qusais, Dubai, UAE 🇦🇪</p>
+          <p>{tr.footer.location}</p>
           <a
             href="https://wa.me/971589397610"
             target="_blank"
