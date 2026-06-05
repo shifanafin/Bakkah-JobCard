@@ -1,12 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0a0a0a"/>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a1a1a"/>
-      <stop offset="100%" stop-color="#0a0a0a"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="#1c1c1c"/>
+      <stop offset="100%" stop-color="#080808"/>
     </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <!-- Zap / bolt icon centered -->
-  <path d="M296 80L160 280h136l-24 152 176-208H312z" fill="#f59e0b"/>
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="96" fill="url(#glow)"/>
+  <!-- Steering wheel outer ring -->
+  <circle cx="256" cy="248" r="155" fill="none" stroke="#f59e0b" stroke-width="28"/>
+  <!-- Hub center -->
+  <circle cx="256" cy="248" r="34" fill="#f59e0b"/>
+  <!-- Spoke top (12 o'clock) -->
+  <line x1="256" y1="214" x2="256" y2="109" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <!-- Spoke bottom-right (4 o'clock / 120°) -->
+  <line x1="285" y1="265" x2="390" y2="326" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <!-- Spoke bottom-left (8 o'clock / 240°) -->
+  <line x1="227" y1="265" x2="122" y2="326" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <!-- Brand text -->
+  <text x="256" y="448" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="52" fill="#f59e0b" letter-spacing="4">AUTOEDGE</text>
 </svg>

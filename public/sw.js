@@ -1,6 +1,6 @@
 
 const CACHE = 'autoedge-pro-v1'
-const OFFLINE_URLS = ['/auth/login', '/track']
+const OFFLINE_URLS = ['/', '/track']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

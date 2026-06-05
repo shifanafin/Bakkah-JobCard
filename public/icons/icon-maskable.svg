@@ -1,5 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Full bleed background for maskable icon (safe zone: inner 80%) -->
-  <rect width="512" height="512" fill="#0a0a0a"/>
-  <path d="M296 100L160 300h136l-24 132 176-188H312z" fill="#f59e0b"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0%" stop-color="#1c1c1c"/>
+      <stop offset="100%" stop-color="#080808"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Full-bleed background (no rounded corners for maskable) -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <rect width="512" height="512" fill="url(#glow)"/>
+  <!-- Steering wheel outer ring — kept within safe zone (51–461) -->
+  <circle cx="256" cy="248" r="148" fill="none" stroke="#f59e0b" stroke-width="28"/>
+  <!-- Hub center -->
+  <circle cx="256" cy="248" r="34" fill="#f59e0b"/>
+  <!-- Spoke top -->
+  <line x1="256" y1="214" x2="256" y2="116" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <!-- Spoke bottom-right -->
+  <line x1="285" y1="265" x2="384" y2="322" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <!-- Spoke bottom-left -->
+  <line x1="227" y1="265" x2="128" y2="322" stroke="#f59e0b" stroke-width="24" stroke-linecap="round"/>
+  <!-- Brand text -->
+  <text x="256" y="448" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="50" fill="#f59e0b" letter-spacing="4">AUTOEDGE</text>
 </svg>

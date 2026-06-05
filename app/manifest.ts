@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'AutoEdge Pro',
     short_name: 'AutoEdge',
     description: 'Automotive Workshop Management Platform — Al Qusais, Dubai',
-    start_url: '/workshop/dashboard',
+    start_url: '/auth/login',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
