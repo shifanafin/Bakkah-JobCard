@@ -17,14 +17,12 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/icons/icon.svg',
         sizes: 'any',
         type: 'image/svg+xml',
-        // @ts-expect-error purpose is valid in the spec
         purpose: 'any',
       },
       {
         src: '/icons/icon-maskable.svg',
         sizes: 'any',
         type: 'image/svg+xml',
-        // @ts-expect-error purpose is valid in the spec
         purpose: 'maskable',
       },
     ],
