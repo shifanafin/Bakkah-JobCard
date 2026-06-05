@@ -90,7 +90,7 @@ function LoginForm() {
       </form>
 
       {/* Demo credentials */}
-      <div className="mt-5 space-y-1.5 rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.03]">
+      {/* <div className="mt-5 space-y-1.5 rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.03]">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-white/30">Demo credentials</p>
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
           <span className="text-gray-400 dark:text-white/30">Email</span>
@@ -100,7 +100,7 @@ function LoginForm() {
           <span className="text-gray-400 dark:text-white/30">Password</span>
           <span className="font-mono text-gray-600 dark:text-white/60">admin123</span>
         </div>
-      </div>
+      </div> */}
     </div>
   )
 }
