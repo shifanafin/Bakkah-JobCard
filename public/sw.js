@@ -1,12 +1,16 @@
 
-const CACHE = 'bakkah-v1'
-const OFFLINE_URLS = ['/', '/track']
+const CACHE = 'autoedge-v1'
+const OFFLINE_URLS = ['/', '/auth/login', '/track']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(OFFLINE_URLS))
   )
   self.skipWaiting()
+})
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting()
 })
 
 self.addEventListener('activate', (event) => {
@@ -41,7 +45,8 @@ self.addEventListener('fetch', (event) => {
       caches.match(request).then(cached => {
         if (cached) return cached
         return fetch(request).then(res => {
-          caches.open(CACHE).then(c => c.put(request, res.clone()))
+          const clone = res.clone()
+          caches.open(CACHE).then(c => c.put(request, clone))
           return res
         })
       })
