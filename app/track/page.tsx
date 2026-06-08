@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ThemeProvider'
@@ -108,6 +108,7 @@ export default function TrackPage() {
   const { theme, toggle } = useTheme()
   const { t } = useT()
   const tr = t.track
+  const autoSearched = useRef(false)
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<TrackResult | null>(null)
@@ -171,10 +172,20 @@ export default function TrackPage() {
     loadReviews()
   }, [logEvent])
 
-  async function handleSearch(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    const q = query.trim()
-    if (!q) return
+  // Auto-search when ?job=JC-xxxx is in the URL (from WhatsApp link)
+  useEffect(() => {
+    if (autoSearched.current) return
+    const jobParam = new URLSearchParams(window.location.search).get('job')
+    if (jobParam) {
+      autoSearched.current = true
+      setQuery(jobParam)
+      runSearch(jobParam)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function runSearch(q: string) {
+    if (!q.trim()) return
 
     setLoading(true)
     setError('')
@@ -229,6 +240,11 @@ export default function TrackPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleSearch(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    runSearch(query.trim())
   }
 
   async function handleFeedbackSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -347,12 +363,12 @@ export default function TrackPage() {
           <label className="label mb-1">{tr.search.label}</label>
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+              <Search className="absolute ltr:left-3 rtl:right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder={tr.search.placeholder}
-                className="input-base w-full pl-9"
+                className="input-base w-full ltr:pl-9 rtl:pr-9"
                 disabled={loading}
               />
             </div>
@@ -580,7 +596,7 @@ export default function TrackPage() {
             {/* Actions */}
             <div className="flex flex-col gap-3 sm:flex-row">
               <a
-                href={`/workshop/job-cards/${result.id}/invoice`}
+                href={`/invoice/${result.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/70 dark:hover:border-brand/30 dark:hover:text-brand"

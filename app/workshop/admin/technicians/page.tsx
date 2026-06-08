@@ -278,11 +278,11 @@ export default function TechniciansPage() {
               <div>
                 <label className="label mb-1">Phone</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-white/30" />
+                  <Phone className="absolute ltr:left-3 rtl:right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-white/30" />
                   <input
                     value={editPhone}
                     onChange={e => setEditPhone(e.target.value)}
-                    className="input-base w-full pl-9"
+                    className="input-base w-full ltr:pl-9 rtl:pr-9"
                     placeholder="+971 50 123 4567"
                     type="tel"
                   />

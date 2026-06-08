@@ -14,6 +14,22 @@ import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, Me
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
+function buildWhatsAppHref(job: JobCard): string {
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const trackUrl = `${origin}/track?job=${encodeURIComponent(job.job_number)}`
+  const invoiceUrl = `${origin}/invoice/${job.id}`
+  const msg = [
+    `Dear ${job.customer?.name ?? 'Customer'},`,
+    `Your ${job.vehicle?.make ?? ''} ${job.vehicle?.model ?? ''} (${job.vehicle?.plate_number ?? ''}) — Job ${job.job_number} is now *${JOB_STATUS_LABEL[job.status]}*.`,
+    ``,
+    `Track your vehicle: ${trackUrl}`,
+    `View invoice: ${invoiceUrl}`,
+    ``,
+    `AutoEdge Pro | +971 58 939 7610`,
+  ].join('\n')
+  return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
+}
+
 export default function JobCardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { data: session } = useSession()
@@ -70,7 +86,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         {/* Breadcrumb + actions */}
         <div className="flex items-center justify-between">
           <Link href="/workshop/job-cards" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70">
-            <ArrowLeft className="h-4 w-4" /> Job Cards
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> Job Cards
           </Link>
           <div className="flex items-center gap-2">
             <button onClick={load} className="btn-ghost text-xs px-3 py-2 h-auto">
@@ -81,7 +97,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             </Link>
             {job.customer?.phone && (
               <a
-                href={`https://wa.me/${job.customer.phone.replace(/\D/g, '')}?text=Dear+${encodeURIComponent(job.customer?.name ?? '')}%2C+your+${encodeURIComponent(job.vehicle?.make ?? '')}+${encodeURIComponent(job.vehicle?.model ?? '')}+(${encodeURIComponent(job.vehicle?.plate_number ?? '')})+job+${encodeURIComponent(job.job_number)}+is+now+${encodeURIComponent(JOB_STATUS_LABEL[job.status])}.+AutoEdge+Pro`}
+                href={buildWhatsAppHref(job)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600 transition-colors h-auto"

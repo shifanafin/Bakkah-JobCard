@@ -82,7 +82,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
           >
             <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-black">
+              <span className="absolute -top-1 ltr:-right-1 rtl:-left-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-black">
                 {unreadCount}
               </span>
             )}
@@ -90,7 +90,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
 
           {/* Notifications dropdown */}
           {notifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-surface-800">
+            <div className="absolute ltr:right-0 rtl:left-0 top-full mt-2 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-surface-800">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-white/[0.06]">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">{h.notifications}</h3>
                 <div className="flex items-center gap-2">

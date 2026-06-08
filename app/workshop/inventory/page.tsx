@@ -244,12 +244,12 @@ export default function InventoryPage() {
           </div>
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+              <Search className="absolute ltr:left-3 rtl:right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               <input
                 value={search}
                 onChange={e => { setSearch(e.target.value); setPage(1) }}
                 placeholder="Search items, SKU, supplier..."
-                className="input-base w-full pl-9"
+                className="input-base w-full ltr:pl-9 rtl:pr-9"
               />
             </div>
             <button onClick={openAdd} className="btn-primary whitespace-nowrap">
