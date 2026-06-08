@@ -25,7 +25,7 @@ function buildWhatsAppHref(job: JobCard): string {
     `Track your vehicle: ${trackUrl}`,
     `View invoice: ${invoiceUrl}`,
     ``,
-    `AutoEdge Pro | +971 58 939 7610`,
+    `Bakkah | +971 58 939 7610`,
   ].join('\n')
   return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
 }
@@ -135,7 +135,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobId={job.id}
           currentStatus={job.status as JobStatus}
           hasTechnician={!!job.technician_id}
-          onUpdate={s => setJob(j => j ? {...j, status: s} : j)}
+          onUpdate={s => setJob(j => j ? { ...j, status: s } : j)}
         />
 
         {/* Assign Technician — admin / supervisor / manager */}
@@ -241,7 +241,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         <PhotoUpload
           jobCardId={job.id}
           photos={job.photos ?? []}
-          onPhotosChange={photos => setJob(j => j ? {...j, photos} : j)}
+          onPhotosChange={photos => setJob(j => j ? { ...j, photos } : j)}
         />
       </div>
     </div>

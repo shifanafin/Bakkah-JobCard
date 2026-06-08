@@ -1,4 +1,4 @@
--- AutoEdge Pro — Fix RLS policies + add username login
+-- Bakkah — Fix RLS policies + add username login
 -- Run in: Supabase Dashboard → SQL Editor
 
 -- ── 1. Add username column ───────────────────────────────────

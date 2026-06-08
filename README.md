@@ -1,4 +1,4 @@
-# AutoEdge Pro — Workshop Management System
+# Bakkah — Workshop Management System
 
 Built with Next.js 15, Supabase, NextAuth v5, Cloudinary · Al Qusais, Dubai
 
@@ -46,7 +46,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ## 📁 Project Structure
 
 ```
-autoedge-pro/
+bakkah/
 ├── app/
 │   ├── auth/login/          ← Login page
 │   ├── workshop/

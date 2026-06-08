@@ -1,4 +1,4 @@
--- AutoEdge Pro — Complete Database Schema
+-- Bakkah — Complete Database Schema
 -- Run in: Supabase Dashboard → SQL Editor
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

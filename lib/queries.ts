@@ -1,5 +1,5 @@
 // ============================================================
-// AutoEdge Pro — All Supabase Queries
+// Bakkah — All Supabase Queries
 // ============================================================
 import { createClient } from '@/lib/supabase/client'
 import type { JobCard, JobCardService, JobCardPart, JobStatus, PhotoCategory } from '@/types'
@@ -19,7 +19,7 @@ export async function getJobCards(filters?: {
 
   if (filters?.status) q = q.eq('status', filters.status)
   if (filters?.dateFrom) q = q.gte('date_in', filters.dateFrom)
-  if (filters?.dateTo)   q = q.lte('date_in', filters.dateTo)
+  if (filters?.dateTo) q = q.lte('date_in', filters.dateTo)
 
   const { data, error } = await q
   if (error) throw error
@@ -112,7 +112,7 @@ export async function updateJobStatus(jobId: string, status: JobStatus, changedB
 
 // ── Services & Parts ──────────────────────────────────────────
 
-export async function addService(jobId: string, s: Omit<JobCardService, 'id'|'job_card_id'|'total_price'>) {
+export async function addService(jobId: string, s: Omit<JobCardService, 'id' | 'job_card_id' | 'total_price'>) {
   const sb = createClient()
   const { data, error } = await sb.from('job_card_services').insert({ ...s, job_card_id: jobId }).select().single()
   if (error) throw error
@@ -125,7 +125,7 @@ export async function deleteService(id: string) {
   if (error) throw error
 }
 
-export async function addPart(jobId: string, p: Omit<JobCardPart, 'id'|'job_card_id'|'total_price'>) {
+export async function addPart(jobId: string, p: Omit<JobCardPart, 'id' | 'job_card_id' | 'total_price'>) {
   const sb = createClient()
   const { data, error } = await sb.from('job_card_parts').insert({ ...p, job_card_id: jobId }).select().single()
   if (error) throw error
@@ -162,7 +162,7 @@ export async function addPhoto(photo: { job_card_id: string; cloudinary_url: str
 export async function deletePhoto(id: string, cloudinaryId?: string) {
   const sb = createClient()
   if (cloudinaryId) {
-    try { await fetch('/api/cloudinary/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ public_id: cloudinaryId }) }) } catch {}
+    try { await fetch('/api/cloudinary/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ public_id: cloudinaryId }) }) } catch { }
   }
   const { error } = await sb.from('job_card_photos').delete().eq('id', id)
   if (error) throw error
@@ -212,11 +212,11 @@ export async function getDashboardStats() {
     counts[row.status] = (counts[row.status] || 0) + 1
   }
   const statusCounts = {
-    pending:     (counts.pending || 0) + (counts.received || 0),
-    assigned:    counts.assigned || 0,
+    pending: (counts.pending || 0) + (counts.received || 0),
+    assigned: counts.assigned || 0,
     in_progress: counts.in_progress || 0,
-    qc_check:    counts.qc_check || 0,
-    ready:       counts.ready || 0,
+    qc_check: counts.qc_check || 0,
+    ready: counts.ready || 0,
   }
   return { total: total || 0, active: active || 0, monthRevenue, statusCounts }
 }

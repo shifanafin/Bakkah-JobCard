@@ -76,7 +76,7 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
   )
 
   const beforePhotos = (job.photos ?? []).filter(p => p.category === 'before_work').slice(0, 4)
-  const afterPhotos  = (job.photos ?? []).filter(p => p.category === 'after_work').slice(0, 4)
+  const afterPhotos = (job.photos ?? []).filter(p => p.category === 'after_work').slice(0, 4)
   const damagePhotos = (job.photos ?? []).filter(p => p.category === 'damage').slice(0, 4)
 
   const trackUrl = `${origin}/track?job=${encodeURIComponent(job.job_number)}`
@@ -136,7 +136,7 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start justify-between border-b-4 border-orange-500 pb-6 mb-6 gap-4">
               <div>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">AutoEdge Pro</h1>
+                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Bakkah</h1>
                 <p className="text-sm text-gray-500 mt-1">Al Qusais Industrial Area, Dubai, UAE</p>
                 <p className="text-sm text-gray-500">Tel: +971 58 939 7610</p>
                 <p className="text-sm text-gray-500">TRN: 100 000 000 000 003</p>
@@ -149,12 +149,11 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
                 <p className="text-sm text-gray-500">Date: <strong className="text-gray-800">{fmtDate(job.date_in)}</strong></p>
                 {job.date_out && <p className="text-sm text-gray-500">Expected: <strong className="text-gray-800">{fmtDate(job.date_out)}</strong></p>}
                 <div className="mt-2">
-                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${
-                    job.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
-                    job.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-                    job.status === 'in_progress' ? 'bg-orange-100 text-orange-700' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${job.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
+                      job.status === 'ready' ? 'bg-blue-100 text-blue-700' :
+                        job.status === 'in_progress' ? 'bg-orange-100 text-orange-700' :
+                          'bg-gray-100 text-gray-600'
+                    }`}>
                     Status: {JOB_STATUS_LABEL[job.status]}
                   </span>
                 </div>
@@ -263,10 +262,9 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
 
             {/* Payment status */}
             <div className="mb-6 flex items-center gap-3 rounded-lg border border-gray-200 p-3">
-              <div className={`h-3 w-3 rounded-full shrink-0 ${
-                job.payment_status === 'paid' ? 'bg-green-500' :
-                job.payment_status === 'partial' ? 'bg-amber-500' : 'bg-red-500'
-              }`} />
+              <div className={`h-3 w-3 rounded-full shrink-0 ${job.payment_status === 'paid' ? 'bg-green-500' :
+                  job.payment_status === 'partial' ? 'bg-amber-500' : 'bg-red-500'
+                }`} />
               <span className="text-sm font-semibold capitalize">{job.payment_status}</span>
               {job.payment_method && <span className="text-sm text-gray-500">via {job.payment_method}</span>}
             </div>
@@ -288,13 +286,13 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 border-gray-300 bg-gray-50 text-center">
                 <div className="grid grid-cols-3 gap-0.5 p-1">
                   {Array.from({ length: 9 }).map((_, i) => (
-                    <div key={i} className={`h-3 w-3 rounded-sm ${[0,2,4,6,8].includes(i) ? 'bg-gray-800' : 'bg-white'}`} />
+                    <div key={i} className={`h-3 w-3 rounded-sm ${[0, 2, 4, 6, 8].includes(i) ? 'bg-gray-800' : 'bg-white'}`} />
                   ))}
                 </div>
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-700">Scan to track online</p>
-                <p className="text-xs text-gray-400 mt-0.5">AutoEdge Pro Job Tracker</p>
+                <p className="text-xs text-gray-400 mt-0.5">Bakkah Job Tracker</p>
                 <p className="text-xs font-mono text-gray-400">{job.job_number}</p>
               </div>
             </div>
@@ -345,7 +343,7 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
 
             {/* Footer */}
             <div className="mt-8 border-t-2 border-orange-500 pt-4 text-center">
-              <p className="text-xs text-gray-400">AutoEdge Pro · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
+              <p className="text-xs text-gray-400">Bakkah · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
               <p className="mt-1 text-xs text-gray-400">This is a computer-generated invoice. Thank you for your business.</p>
               <p className="mt-1 text-xs font-medium text-orange-500">+971 58 939 7610 · autoedgepro.ae</p>
             </div>

@@ -1,5 +1,5 @@
 // ============================================================
-// AutoEdge Pro — Global Type Definitions
+// Bakkah — Global Type Definitions
 // ============================================================
 
 export type JobStatus = 'pending' | 'assigned' | 'received' | 'in_progress' | 'qc_check' | 'ready' | 'delivered' | 'cancelled'
@@ -119,25 +119,25 @@ export interface JobCardPhoto {
 // ── Display Maps ─────────────────────────────────────────────
 
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
-  pending:     'Pending',
-  assigned:    'Assigned',
-  received:    'Received',
+  pending: 'Pending',
+  assigned: 'Assigned',
+  received: 'Received',
   in_progress: 'In Progress',
-  qc_check:    'QC Check',
-  ready:       'Ready',
-  delivered:   'Delivered',
-  cancelled:   'Cancelled',
+  qc_check: 'QC Check',
+  ready: 'Ready',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled',
 }
 
 export const JOB_STATUS_COLOR: Record<JobStatus, string> = {
-  pending:     'bg-yellow-500/15 text-yellow-400 border-yellow-500/25 ring-yellow-500/20',
-  assigned:    'bg-blue-500/15 text-blue-300 border-blue-500/25 ring-blue-500/20',
-  received:    'bg-blue-500/15 text-blue-300 border-blue-500/25 ring-blue-500/20',
+  pending: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/25 ring-yellow-500/20',
+  assigned: 'bg-blue-500/15 text-blue-300 border-blue-500/25 ring-blue-500/20',
+  received: 'bg-blue-500/15 text-blue-300 border-blue-500/25 ring-blue-500/20',
   in_progress: 'bg-brand/15 text-brand border-brand/25 ring-brand/20',
-  qc_check:    'bg-purple-500/15 text-purple-300 border-purple-500/25 ring-purple-500/20',
-  ready:       'bg-emerald-500/15 text-emerald-300 border-emerald-500/25 ring-emerald-500/20',
-  delivered:   'bg-zinc-500/15 text-zinc-400 border-zinc-500/25 ring-zinc-500/20',
-  cancelled:   'bg-red-500/15 text-red-400 border-red-500/25 ring-red-500/20',
+  qc_check: 'bg-purple-500/15 text-purple-300 border-purple-500/25 ring-purple-500/20',
+  ready: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25 ring-emerald-500/20',
+  delivered: 'bg-zinc-500/15 text-zinc-400 border-zinc-500/25 ring-zinc-500/20',
+  cancelled: 'bg-red-500/15 text-red-400 border-red-500/25 ring-red-500/20',
 }
 
 export const JOB_STATUS_STEP: Record<JobStatus, number> = {
@@ -145,30 +145,30 @@ export const JOB_STATUS_STEP: Record<JobStatus, number> = {
 }
 
 export const JOB_TYPE_LABEL: Record<JobType, string> = {
-  service:    'Service',
+  service: 'Service',
   inspection: '360° Inspection',
-  detailing:  'Auto Detailing',
-  repair:     'Repair',
-  rta_check:  'RTA Check',
-  valuation:  'Valuation',
-  other:      'Other',
+  detailing: 'Auto Detailing',
+  repair: 'Repair',
+  rta_check: 'RTA Check',
+  valuation: 'Valuation',
+  other: 'Other',
 }
 
 export const PHOTO_CATEGORY_LABEL: Record<PhotoCategory, string> = {
   exterior_front: 'Exterior — Front',
-  exterior_rear:  'Exterior — Rear',
-  exterior_left:  'Exterior — Left',
+  exterior_rear: 'Exterior — Rear',
+  exterior_left: 'Exterior — Left',
   exterior_right: 'Exterior — Right',
-  interior:       'Interior',
-  engine_bay:     'Engine Bay',
-  damage:         'Damage',
-  before_work:    'Before Work',
-  after_work:     'After Work',
-  other:          'Other',
+  interior: 'Interior',
+  engine_bay: 'Engine Bay',
+  damage: 'Damage',
+  before_work: 'Before Work',
+  after_work: 'After Work',
+  other: 'Other',
 }
 
 export const PAYMENT_STATUS_COLOR: Record<PaymentStatus, string> = {
-  unpaid:  'text-red-400',
+  unpaid: 'text-red-400',
   partial: 'text-amber-400',
-  paid:    'text-emerald-400',
+  paid: 'text-emerald-400',
 }

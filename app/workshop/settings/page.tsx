@@ -78,11 +78,10 @@ export default function SettingsPage() {
             {/* Light mode card */}
             <button
               onClick={() => theme === 'dark' && toggle()}
-              className={`flex-1 flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all ${
-                theme === 'light'
+              className={`flex-1 flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all ${theme === 'light'
                   ? 'border-brand bg-brand/5'
                   : 'border-gray-200 hover:border-gray-300 dark:border-white/[0.08] dark:hover:border-white/20'
-              }`}
+                }`}
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
                 <Sun className="h-5 w-5 text-amber-500" />
@@ -101,11 +100,10 @@ export default function SettingsPage() {
             {/* Dark mode card */}
             <button
               onClick={() => theme === 'light' && toggle()}
-              className={`flex-1 flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all ${
-                theme === 'dark'
+              className={`flex-1 flex flex-col items-center gap-3 rounded-xl border-2 p-4 transition-all ${theme === 'dark'
                   ? 'border-brand bg-brand/5'
                   : 'border-gray-200 hover:border-gray-300 dark:border-white/[0.08] dark:hover:border-white/20'
-              }`}
+                }`}
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-500/20">
                 <Moon className="h-5 w-5 text-indigo-500 dark:text-indigo-400" />
@@ -150,7 +148,7 @@ export default function SettingsPage() {
           <SectionHeader icon={Building2} title="Workshop Info" subtitle="Business details" />
           <div className="space-y-3">
             {[
-              { label: 'Workshop Name', value: 'AutoEdge Pro' },
+              { label: 'Workshop Name', value: 'Bakkah' },
               { label: 'Location', value: 'Al Qusais, Dubai, UAE' },
               { label: 'TRN', value: '100 123 456 700 003' },
               { label: 'Phone', value: '+971 4 123 4567' },
