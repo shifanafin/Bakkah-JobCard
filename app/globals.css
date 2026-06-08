@@ -85,6 +85,18 @@
   }
 }
 
+/* ── RTL overrides ──────────────────────────────────────── */
+[dir='rtl'] .font-mono { letter-spacing: 0; }
+
+/* Inputs: flip icon padding for RTL */
+[dir='rtl'] .input-base { text-align: right; }
+
+/* Fix badge/pill text alignment */
+[dir='rtl'] .badge { direction: rtl; }
+
+/* Keep tabular numbers LTR regardless of page direction */
+.tabular-nums { unicode-bidi: plaintext; direction: ltr; display: inline-block; }
+
 /* ── Print ──────────────────────────────────────────────── */
 @media print {
   .no-print { display: none !important; }

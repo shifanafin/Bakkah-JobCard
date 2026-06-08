@@ -28,14 +28,17 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop sidebar: always visible on lg+ */}
-      <aside className="hidden lg:flex h-full w-[220px] shrink-0 flex-col border-r border-gray-200 bg-white dark:border-white/[0.06] dark:bg-surface-950">
+      <aside className="hidden lg:flex h-full w-[220px] shrink-0 flex-col border-r border-gray-200 bg-white dark:border-white/[0.06] dark:bg-surface-950 ltr:border-r rtl:border-l rtl:order-last">
         <SidebarContent path={path} onClose={() => {}} showClose={false} />
       </aside>
 
-      {/* Mobile sidebar: slide-in drawer */}
+      {/* Mobile sidebar: slide-in drawer — slides from left in LTR, from right in RTL */}
       <aside className={cn(
-        'absolute inset-y-0 left-0 z-30 flex w-[220px] flex-col border-r border-gray-200 bg-white transition-transform duration-200 dark:border-white/[0.06] dark:bg-surface-950 lg:hidden',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        'absolute inset-y-0 z-30 flex w-[220px] flex-col border-gray-200 bg-white transition-transform duration-200 dark:border-white/[0.06] dark:bg-surface-950 lg:hidden',
+        'ltr:left-0 ltr:border-r rtl:right-0 rtl:border-l',
+        sidebarOpen
+          ? 'translate-x-0'
+          : 'ltr:-translate-x-full rtl:translate-x-full'
       )}>
         <SidebarContent path={path} onClose={() => setSidebarOpen(false)} showClose />
       </aside>
@@ -130,7 +133,7 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
             )}>
               <Icon className="h-4 w-4 shrink-0" />
               <span className="flex-1">{label}</span>
-              {isActive && <ChevronRight className="h-3 w-3 opacity-40" />}
+              {isActive && <ChevronRight className="h-3 w-3 opacity-40 rtl:rotate-180" />}
             </Link>
           )
         })}
@@ -152,7 +155,7 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
                 )}>
                   <Icon className="h-4 w-4 shrink-0" />
                   <span className="flex-1">{label}</span>
-                  {isActive && <ChevronRight className="h-3 w-3 opacity-40" />}
+                  {isActive && <ChevronRight className="h-3 w-3 opacity-40 rtl:rotate-180" />}
                 </Link>
               )
             })}

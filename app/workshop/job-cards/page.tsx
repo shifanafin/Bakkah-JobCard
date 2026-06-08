@@ -91,13 +91,13 @@ export default function JobCardsPage() {
           <div className="flex items-center gap-2 flex-wrap">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
+              <Search className="absolute ltr:left-3 rtl:right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
               <input
                 value={search} onChange={e => { setSearch(e.target.value); setPage(1) }}
                 placeholder="Plate, customer, job #..."
-                className="input-base w-56 pl-9 lg:w-64"
+                className="input-base w-56 ltr:pl-9 rtl:pr-9 lg:w-64"
               />
-              {search && <button onClick={() => { setSearch(''); setPage(1) }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60"><X className="h-3.5 w-3.5" /></button>}
+              {search && <button onClick={() => { setSearch(''); setPage(1) }} className="absolute ltr:right-2.5 rtl:left-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60"><X className="h-3.5 w-3.5" /></button>}
             </div>
             <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="input-base w-36" />
             <span className="text-xs text-gray-400 dark:text-white/30">to</span>
