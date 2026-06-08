@@ -4,6 +4,7 @@ import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { I18nProvider } from '@/lib/i18n'
 import PwaRegister from '@/components/PwaRegister'
+import PwaInstallBanner from '@/components/PwaInstallBanner'
 import { PostHogProvider } from '@/components/PostHogProvider'
 import './globals.css'
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
   title: { default: 'AutoEdge Pro', template: '%s — AutoEdge Pro' },
   description: 'Automotive Workshop Management Platform — Al Qusais, Dubai',
   manifest: '/manifest.webmanifest',
-  icons: { icon: '/favicon.ico', apple: '/icons/icon.svg' },
+  icons: { icon: '/icons/icon.svg', apple: '/icons/icon.svg' },
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'AutoEdge Pro' },
   applicationName: 'AutoEdge Pro',
 }
@@ -37,6 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           <ThemeProvider>
             <PwaRegister />
+            <PwaInstallBanner />
             <PostHogProvider>
               {children}
             </PostHogProvider>
