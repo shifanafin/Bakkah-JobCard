@@ -39,12 +39,12 @@ export const en = {
       title: 'OUR SERVICES',
       subtitle: "Professional-grade detailing using the finest imported products and latest techniques. Yes, we're THAT good.",
       items: {
-        fullDetail:      { title: 'Full Detail Package',  tag: 'Most Popular',  desc: "Complete exterior & interior treatment — hand wash, clay bar, machine polish, protective coating. Your car walks in. A showstopper drives out." },
-        ceramic:         { title: 'Ceramic Coating',      tag: '5-Year Warranty', desc: "Nano-ceramic bonds directly to your paint for years of brilliant gloss. Water beads off. Dust slides off. Even Dubai sand waves goodbye." },
-        paintCorrection: { title: 'Paint Correction',     tag: 'Expert Only',   desc: "Swirl marks? Scratches? Oxidation? Parking lot regret? We erase it all with multi-stage machine polishing. Like it never happened." },
-        interior:        { title: 'Interior Detailing',   tag: 'Full Sanitize', desc: "Steam clean every crack, condition the leather, extract the carpets, and eliminate every odor. You'll think you bought a new car." },
-        rta:             { title: 'RTA Inspection',       tag: 'Same Day',      desc: "First-time pass guaranteed (almost always). We prep your vehicle perfectly for RTA registration — no stress, no re-visits, no drama." },
-        fleet:           { title: 'Fleet Services',       tag: 'B2B',           desc: "Got 5 cars? 50 cars? An entire motorcade? Dedicated packages for corporate fleets with flexible scheduling and volume pricing." },
+        fullDetail: { title: 'Full Detail Package', tag: 'Most Popular', desc: "Complete exterior & interior treatment — hand wash, clay bar, machine polish, protective coating. Your car walks in. A showstopper drives out." },
+        ceramic: { title: 'Ceramic Coating', tag: '5-Year Warranty', desc: "Nano-ceramic bonds directly to your paint for years of brilliant gloss. Water beads off. Dust slides off. Even Dubai sand waves goodbye." },
+        paintCorrection: { title: 'Paint Correction', tag: 'Expert Only', desc: "Swirl marks? Scratches? Oxidation? Parking lot regret? We erase it all with multi-stage machine polishing. Like it never happened." },
+        interior: { title: 'Interior Detailing', tag: 'Full Sanitize', desc: "Steam clean every crack, condition the leather, extract the carpets, and eliminate every odor. You'll think you bought a new car." },
+        rta: { title: 'RTA Inspection', tag: 'Same Day', desc: "First-time pass guaranteed (almost always). We prep your vehicle perfectly for RTA registration — no stress, no re-visits, no drama." },
+        fleet: { title: 'Fleet Services', tag: 'B2B', desc: "Got 5 cars? 50 cars? An entire motorcade? Dedicated packages for corporate fleets with flexible scheduling and volume pricing." },
       },
     },
     beforeAfter: {
@@ -63,10 +63,10 @@ export const en = {
       title: 'WHY CHOOSE BAKKAH',
       subtitle: "Numbers don't lie. We've been transforming cars since before ceramic coating was even a thing.",
       items: [
-        { label: 'Cars Transformed',  sub: 'And counting' },
+        { label: 'Cars Transformed', sub: 'And counting' },
         { label: 'Client Satisfaction', sub: 'Verified reviews' },
         { label: 'Years of Excellence', sub: 'Since 2012' },
-        { label: 'Cars Per Month',    sub: 'Busy workshop!' },
+        { label: 'Cars Per Month', sub: 'Busy workshop!' },
       ],
     },
     howItWorks: {
@@ -75,9 +75,9 @@ export const en = {
       subtitle: 'Three steps. One immaculate car. Zero headaches. We promise.',
       bookNow: 'Book Your Appointment Now',
       steps: [
-        { title: 'Drop Your Car',      desc: "Drive in any time. Our team does a full walkaround, documents every existing scratch (you're covered), and explains exactly what we'll do." },
+        { title: 'Drop Your Car', desc: "Drive in any time. Our team does a full walkaround, documents every existing scratch (you're covered), and explains exactly what we'll do." },
         { title: 'We Work Our Magic', desc: "Certified detailers go to work with premium imported products and professional equipment. Track live status from your phone the whole time." },
-        { title: 'Pick Up & Stare',   desc: "Come collect your car. Prepare for a double-take. We guarantee it'll look better than the day you bought it — or we make it right." },
+        { title: 'Pick Up & Stare', desc: "Come collect your car. Prepare for a double-take. We guarantee it'll look better than the day you bought it — or we make it right." },
       ],
     },
     reviews: {
@@ -163,14 +163,14 @@ export const en = {
     footer: { location: 'Bakkah Auto Detailing · Al Qusais, Dubai, UAE 🇦🇪' },
   },
   auth: {
-    title: 'AutoEdge Pro',
+    title: 'Bakkah',
     subtitle: 'Workshop Management System',
     signInTitle: 'Sign in to your account',
     emailOrUsername: 'Email or Username',
     password: 'Password',
     signIn: 'Sign In',
     signingIn: 'Signing in...',
-    footer: 'AutoEdge Pro · Al Qusais, Dubai, UAE',
+    footer: 'Bakkah · Al Qusais, Dubai, UAE',
     errors: {
       invalid: 'Invalid credentials — check your email/username and password',
       welcome: 'Welcome back!',

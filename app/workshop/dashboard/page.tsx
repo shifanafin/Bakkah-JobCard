@@ -20,11 +20,11 @@ async function getStats() {
     const counts: Record<string, number> = {}
     for (const row of statusRows || []) counts[row.status] = (counts[row.status] || 0) + 1
     const statusCounts = {
-      pending:     (counts.pending || 0) + (counts.received || 0),
-      assigned:    counts.assigned || 0,
+      pending: (counts.pending || 0) + (counts.received || 0),
+      assigned: counts.assigned || 0,
       in_progress: counts.in_progress || 0,
-      qc_check:    counts.qc_check || 0,
-      ready:       counts.ready || 0,
+      qc_check: counts.qc_check || 0,
+      ready: counts.ready || 0,
     }
     return { total: total || 0, active: active || 0, monthRevenue, recent: recent || [], statusCounts }
   } catch {
@@ -88,7 +88,7 @@ export default async function DashboardPage() {
           <div className="relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-6">
             <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-brand/5 blur-3xl" />
             <div className="relative">
-              <p className="text-sm text-gray-500 mb-1 dark:text-white/50">AutoEdge Pro · My Dashboard</p>
+              <p className="text-sm text-gray-500 mb-1 dark:text-white/50">Bakkah · My Dashboard</p>
               <h2 className="font-display text-3xl text-gray-900 tracking-wide dark:text-white">{greeting}, {firstName}</h2>
               <p className="mt-2 text-sm text-gray-500 dark:text-white/40">
                 {myActive > 0 ? `You have ${myActive} active job${myActive !== 1 ? 's' : ''} assigned to you.` : 'No active jobs assigned to you.'}
@@ -198,7 +198,7 @@ export default async function DashboardPage() {
         <div className="relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-6">
           <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-brand/5 blur-3xl" />
           <div className="relative">
-            <p className="text-sm text-gray-500 mb-1 dark:text-white/50">AutoEdge Pro · Workshop Management</p>
+            <p className="text-sm text-gray-500 mb-1 dark:text-white/50">Bakkah · Workshop Management</p>
             <h2 className="font-display text-3xl text-gray-900 tracking-wide dark:text-white">{greeting}, {firstName}</h2>
             <p className="mt-2 text-sm text-gray-500 dark:text-white/40">
               {active > 0 ? `You have ${active} active job${active !== 1 ? 's' : ''} in the workshop today.` : 'No active jobs — ready for new vehicles!'}

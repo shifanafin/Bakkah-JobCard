@@ -4,18 +4,19 @@ import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { I18nProvider } from '@/lib/i18n'
 import PwaRegister from '@/components/PwaRegister'
+import { PostHogProvider } from '@/components/PostHogProvider'
 import './globals.css'
 
-const bebas  = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' })
-const geist  = Geist({ subsets: ['latin'], variable: '--font-geist' })
-const cairo  = Cairo({ subsets: ['arabic'], variable: '--font-cairo', display: 'swap' })
+const bebas = Bebas_Neue({ weight: '400', subsets: ['latin'], variable: '--font-bebas' })
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
+const cairo = Cairo({ subsets: ['arabic'], variable: '--font-cairo', display: 'swap' })
 
 export const metadata: Metadata = {
-  title: { default: 'AutoEdge Pro', template: '%s — AutoEdge Pro' },
+  title: { default: 'Bakkah', template: '%s — Bakkah' },
   description: 'Automotive Workshop Management Platform — Al Qusais, Dubai',
   icons: { icon: '/favicon.ico', apple: '/icons/icon.svg' },
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'AutoEdge Pro' },
-  applicationName: 'AutoEdge Pro',
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Bakkah' },
+  applicationName: 'Bakkah',
 }
 
 export const viewport: Viewport = {
@@ -35,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <I18nProvider>
           <ThemeProvider>
             <PwaRegister />
-            {children}
+            <PostHogProvider>
+              {children}
+            </PostHogProvider>
             <Toaster
               theme="system"
               position="top-right"

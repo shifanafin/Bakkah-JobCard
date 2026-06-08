@@ -41,12 +41,12 @@ export const fr: AppTranslations = {
       title: 'NOS SERVICES',
       subtitle: "Detailing haut de gamme avec les meilleurs produits importés et les dernières techniques. Oui, nous sommes CE bons.",
       items: {
-        fullDetail:      { title: 'Formule Detailing Complète', tag: 'La plus populaire', desc: "Traitement extérieur et intérieur complet — lavage à la main, clay bar, polish machine, revêtement protecteur. Votre voiture entre. Un chef-d'œuvre ressort." },
-        ceramic:         { title: 'Revêtement Céramique',        tag: 'Garantie 5 ans',   desc: "La nano-céramique se lie directement à votre peinture pour des années de brillance. L'eau perle. La poussière glisse. Même le sable de Dubaï dit au revoir." },
-        paintCorrection: { title: 'Correction de Peinture',       tag: 'Experts seulement', desc: "Traces de spirales ? Rayures ? Oxydation ? Regrets de parking ? Nous effaçons tout avec un polish multi-étapes. Comme si rien ne s'était passé." },
-        interior:        { title: 'Detailing Intérieur',          tag: 'Assainissement complet', desc: "Nettoyage à la vapeur de chaque recoin, conditionnement du cuir, extraction des tapis, élimination de toutes les odeurs. Vous croirez avoir acheté une nouvelle voiture." },
-        rta:             { title: 'Inspection RTA',                tag: 'Le jour même',    desc: "Réussite du premier passage garantie (presque toujours). Nous préparons parfaitement votre véhicule pour l'immatriculation RTA — sans stress, sans retour." },
-        fleet:           { title: 'Services Flotte',               tag: 'B2B',             desc: "5 voitures ? 50 voitures ? Une flotte entière ? Forfaits dédiés pour les flottes d'entreprise avec planification flexible et tarifs dégressifs." },
+        fullDetail: { title: 'Formule Detailing Complète', tag: 'La plus populaire', desc: "Traitement extérieur et intérieur complet — lavage à la main, clay bar, polish machine, revêtement protecteur. Votre voiture entre. Un chef-d'œuvre ressort." },
+        ceramic: { title: 'Revêtement Céramique', tag: 'Garantie 5 ans', desc: "La nano-céramique se lie directement à votre peinture pour des années de brillance. L'eau perle. La poussière glisse. Même le sable de Dubaï dit au revoir." },
+        paintCorrection: { title: 'Correction de Peinture', tag: 'Experts seulement', desc: "Traces de spirales ? Rayures ? Oxydation ? Regrets de parking ? Nous effaçons tout avec un polish multi-étapes. Comme si rien ne s'était passé." },
+        interior: { title: 'Detailing Intérieur', tag: 'Assainissement complet', desc: "Nettoyage à la vapeur de chaque recoin, conditionnement du cuir, extraction des tapis, élimination de toutes les odeurs. Vous croirez avoir acheté une nouvelle voiture." },
+        rta: { title: 'Inspection RTA', tag: 'Le jour même', desc: "Réussite du premier passage garantie (presque toujours). Nous préparons parfaitement votre véhicule pour l'immatriculation RTA — sans stress, sans retour." },
+        fleet: { title: 'Services Flotte', tag: 'B2B', desc: "5 voitures ? 50 voitures ? Une flotte entière ? Forfaits dédiés pour les flottes d'entreprise avec planification flexible et tarifs dégressifs." },
       },
     },
     beforeAfter: {
@@ -65,10 +65,10 @@ export const fr: AppTranslations = {
       title: 'POURQUOI CHOISIR BAKKAH',
       subtitle: "Les chiffres ne mentent pas. Nous transformons des voitures depuis avant que le revêtement céramique existe.",
       items: [
-        { label: 'Voitures transformées',   sub: 'Et ça continue' },
-        { label: 'Satisfaction client',     sub: 'Avis vérifiés' },
-        { label: "Années d'excellence",     sub: 'Depuis 2012' },
-        { label: 'Voitures par mois',       sub: 'Atelier très actif !' },
+        { label: 'Voitures transformées', sub: 'Et ça continue' },
+        { label: 'Satisfaction client', sub: 'Avis vérifiés' },
+        { label: "Années d'excellence", sub: 'Depuis 2012' },
+        { label: 'Voitures par mois', sub: 'Atelier très actif !' },
       ],
     },
     howItWorks: {
@@ -79,7 +79,7 @@ export const fr: AppTranslations = {
       steps: [
         { title: 'Déposez votre voiture', desc: "Venez à tout moment. Notre équipe fait un tour complet, documente chaque rayure existante (vous êtes couvert) et explique exactement ce que nous allons faire." },
         { title: 'Nous faisons la magie', desc: "Des techniciens certifiés se mettent au travail avec des produits importés haut de gamme. Suivez le statut en direct depuis votre téléphone tout au long." },
-        { title: 'Récupérez et admirez',  desc: "Venez chercher votre voiture. Préparez-vous à une double prise. Nous garantissons qu'elle sera plus belle que le jour de l'achat — sinon nous rectifions." },
+        { title: 'Récupérez et admirez', desc: "Venez chercher votre voiture. Préparez-vous à une double prise. Nous garantissons qu'elle sera plus belle que le jour de l'achat — sinon nous rectifions." },
       ],
     },
     reviews: {
@@ -165,14 +165,14 @@ export const fr: AppTranslations = {
     footer: { location: 'Bakkah Auto Detailing · Al Qusais, Dubaï, EAU 🇦🇪' },
   },
   auth: {
-    title: 'AutoEdge Pro',
+    title: 'Bakkah',
     subtitle: 'Système de gestion d\'atelier',
     signInTitle: 'Connexion à votre compte',
     emailOrUsername: 'E-mail ou nom d\'utilisateur',
     password: 'Mot de passe',
     signIn: 'Se connecter',
     signingIn: 'Connexion en cours...',
-    footer: 'AutoEdge Pro · Al Qusais, Dubaï, EAU',
+    footer: 'Bakkah · Al Qusais, Dubaï, EAU',
     errors: {
       invalid: 'Identifiants incorrects — vérifiez votre e-mail/nom d\'utilisateur et mot de passe',
       welcome: 'Bon retour !',

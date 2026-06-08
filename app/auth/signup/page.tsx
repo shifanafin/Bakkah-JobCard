@@ -9,9 +9,9 @@ import { Eye, EyeOff, Loader2, Zap, User, Lock, Mail, AtSign } from 'lucide-reac
 
 const ROLES = [
   { value: 'receptionist', label: 'Receptionist' },
-  { value: 'technician',   label: 'Technician' },
-  { value: 'supervisor',   label: 'Supervisor' },
-  { value: 'manager',      label: 'Manager' },
+  { value: 'technician', label: 'Technician' },
+  { value: 'supervisor', label: 'Supervisor' },
+  { value: 'manager', label: 'Manager' },
 ]
 
 export default function SignUpPage() {
@@ -80,7 +80,7 @@ export default function SignUpPage() {
           <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/30 bg-brand/10">
             <Zap className="h-7 w-7 text-brand" />
           </div>
-          <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">AutoEdge Pro</h1>
+          <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">Bakkah</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-white/40">Create your account</p>
         </div>
 
@@ -199,7 +199,7 @@ export default function SignUpPage() {
         </p>
 
         <p className="mt-4 text-center text-xs text-gray-400 dark:text-white/20">
-          AutoEdge Pro · Al Qusais, Dubai, UAE
+          Bakkah · Al Qusais, Dubai, UAE
         </p>
       </div>
     </div>

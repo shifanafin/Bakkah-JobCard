@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'AutoEdge Pro',
+    name: 'Bakkah',
     short_name: 'AutoEdge',
     description: 'Automotive Workshop Management Platform — Al Qusais, Dubai',
     start_url: '/auth/login',
