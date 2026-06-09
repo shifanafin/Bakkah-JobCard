@@ -170,6 +170,8 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
               <button onClick={handleAssign} disabled={isAssigning || !selectedTech} className="btn-primary px-4">
                 {isAssigning ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Assign'}
               </button>
+
+
             </div>
           </div>
         )}
