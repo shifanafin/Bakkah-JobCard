@@ -34,6 +34,21 @@ function fmtDate(s: string) {
   return new Date(s).toLocaleDateString('en-AE', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
+const STATUS_PILL: Record<string, string> = {
+  delivered:   'bg-emerald-100 text-emerald-700 border border-emerald-200',
+  ready:       'bg-blue-100 text-blue-700 border border-blue-200',
+  in_progress: 'bg-orange-100 text-orange-700 border border-orange-200',
+  qc_check:    'bg-purple-100 text-purple-700 border border-purple-200',
+  received:    'bg-gray-100 text-gray-600 border border-gray-200',
+  cancelled:   'bg-red-100 text-red-700 border border-red-200',
+}
+
+const PAYMENT_CONFIG: Record<string, { dot: string; text: string; bg: string; border: string }> = {
+  paid:    { dot: 'bg-emerald-500', text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  partial: { dot: 'bg-amber-500',   text: 'text-amber-700',   bg: 'bg-amber-50',   border: 'border-amber-200'   },
+  unpaid:  { dot: 'bg-red-500',     text: 'text-red-700',     bg: 'bg-red-50',     border: 'border-red-200'     },
+}
+
 export default function PublicInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const { theme, toggle } = useTheme()
@@ -63,152 +78,158 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
   }
 
   if (loading) return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
-      <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
+      <div className="flex flex-col items-center gap-3">
+        <Loader2 className="h-8 w-8 animate-spin text-brand" />
+        <p className="text-sm text-gray-400 dark:text-white/30">Loading invoice…</p>
+      </div>
     </div>
   )
 
   if (!job) return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white">
-      <p className="text-gray-400">Invoice not found</p>
-      <Link href="/track" className="flex items-center gap-2 text-sm text-orange-500 hover:text-orange-600">
-        <ArrowLeft className="h-4 w-4" /> Track another job
+    <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-gray-50 dark:bg-surface-900 px-4">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/[0.06]">
+        <span className="text-2xl">📄</span>
+      </div>
+      <div className="text-center">
+        <p className="text-base font-bold text-gray-900 dark:text-white mb-1">Invoice not found</p>
+        <p className="text-sm text-gray-400 dark:text-white/30">This invoice may have been removed or the link is incorrect.</p>
+      </div>
+      <Link href="/invoice" className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-black shadow-[0_2px_12px_rgba(255,127,10,0.25)] hover:bg-brand/90 transition">
+        <ArrowLeft className="h-4 w-4" /> Find your invoice
       </Link>
     </div>
   )
 
   const beforePhotos = (job.photos ?? []).filter(p => p.category === 'before_work').slice(0, 4)
-  const afterPhotos = (job.photos ?? []).filter(p => p.category === 'after_work').slice(0, 4)
+  const afterPhotos  = (job.photos ?? []).filter(p => p.category === 'after_work').slice(0, 4)
   const damagePhotos = (job.photos ?? []).filter(p => p.category === 'damage').slice(0, 4)
 
   const trackUrl = `${origin}/track?job=${encodeURIComponent(job.job_number)}`
-  const waText = `Invoice ${job.job_number} for ${job.vehicle?.plate_number ?? ''}\nTotal: AED ${job.total.toFixed(2)}\n\nView invoice: ${origin}/invoice/${id}`
-  const waLink = `https://wa.me/971589397610?text=${encodeURIComponent(waText)}`
+  const waText   = `Invoice ${job.job_number} for ${job.vehicle?.plate_number ?? ''}\nTotal: AED ${job.total.toFixed(2)}\n\nView invoice: ${origin}/invoice/${id}`
+  const waLink   = `https://wa.me/971589397610?text=${encodeURIComponent(waText)}`
+  const payment  = PAYMENT_CONFIG[job.payment_status] ?? PAYMENT_CONFIG.unpaid
 
   return (
     <>
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          body { margin: 0; }
+          body { margin: 0; background: #fff !important; color: #000 !important; }
           @page { size: A4; margin: 15mm; }
+          .invoice-paper { box-shadow: none !important; border: none !important; }
         }
       `}</style>
 
-      {/* Action bar */}
-      <div className="no-print fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-2 border-b border-gray-100 dark:border-white/[0.06] bg-white/95 dark:bg-surface-900/95 px-4 py-3 backdrop-blur-sm shadow-sm flex-wrap">
-        <Link
-          href={trackUrl}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-        >
+      {/* ── Action bar ────────────────────────────────── */}
+      <div className="no-print sticky top-0 z-50 flex items-center justify-between gap-2 border-b border-gray-200/80 dark:border-white/[0.06] bg-white/95 dark:bg-surface-900/95 px-4 py-3 backdrop-blur-md shadow-sm flex-wrap">
+        <Link href={trackUrl} className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 dark:text-white/40 dark:hover:text-white/70 transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          <Car className="h-4 w-4 text-orange-500" />
+          <Car className="h-4 w-4 text-brand" />
           <span className="hidden sm:inline">Track Job</span>
         </Link>
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-orange-600 transition-colors"
-          >
+          <button onClick={() => window.print()}
+            className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-black shadow-[0_2px_12px_rgba(255,127,10,0.25)] hover:bg-brand/90 transition-colors">
             <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Download</span> PDF
           </button>
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow hover:bg-emerald-600 transition-colors"
-          >
-            <MessageCircle className="h-4 w-4" /> WhatsApp
+          <a href={waLink} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-[0_2px_8px_rgba(16,185,129,0.25)] hover:bg-emerald-600 transition-colors">
+            <MessageCircle className="h-4 w-4" /> <span className="hidden sm:inline">WhatsApp</span>
           </a>
-          <button
-            onClick={handleCopyLink}
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow hover:bg-gray-50 transition-colors"
-          >
-            {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+          <button onClick={handleCopyLink}
+            className="flex items-center gap-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.04] px-4 py-2 text-sm font-medium text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/[0.07] transition-colors">
+            {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
             <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy Link'}</span>
           </button>
-          <button
-            onClick={toggle}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow hover:bg-gray-50 transition-colors"
-            aria-label="Toggle theme"
-          >
+          <button onClick={toggle}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.04] text-gray-500 dark:text-white/40 hover:bg-gray-50 dark:hover:bg-white/[0.07] transition-colors"
+            aria-label="Toggle theme">
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      {/* Invoice — A4 paper */}
-      <div className="min-h-screen bg-gray-100 dark:bg-surface-900 py-8 pt-20 print:pt-0">
-        <div className="max-w-[210mm] mx-auto bg-white shadow-xl print:shadow-none">
-          <div className="p-6 sm:p-10 text-gray-900 font-sans">
+      {/* ── Invoice wrapper ──────────────────────────── */}
+      <div className="min-h-screen bg-gray-100 dark:bg-surface-900 py-8 pt-6 print:pt-0 print:bg-white transition-colors">
+        <div className="invoice-paper max-w-[210mm] mx-auto bg-white dark:bg-white print:bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.5)] rounded-2xl overflow-hidden print:rounded-none print:shadow-none">
+          <div className="p-7 sm:p-10 text-gray-900 font-sans">
 
             {/* Header */}
-            <div className="flex flex-col sm:flex-row items-start justify-between border-b-4 border-orange-500 pb-6 mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row items-start justify-between pb-7 mb-7 gap-5" style={{ borderBottom: '3px solid #ff7f0a' }}>
               <div>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Bakkah</h1>
-                <p className="text-sm text-gray-500 mt-1">Al Qusais Industrial Area, Dubai, UAE</p>
-                <p className="text-sm text-gray-500">Tel: +971 58 939 7610</p>
-                <p className="text-sm text-gray-500">TRN: 100 000 000 000 003</p>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FF7F0A]">
+                    <Car className="h-5 w-5 text-black" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-black text-gray-900 tracking-tight leading-none">Bakkah</h1>
+                    <p className="text-[10px] tracking-widest text-gray-400 font-medium uppercase">Auto Detailing</p>
+                  </div>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-sm text-gray-500">Al Qusais Industrial Area, Dubai, UAE</p>
+                  <p className="text-sm text-gray-500">Tel: +971 58 939 7610</p>
+                  <p className="text-sm text-gray-500">TRN: 100 000 000 000 003</p>
+                </div>
               </div>
               <div className="sm:text-right">
-                <div className="inline-block bg-orange-500 px-5 py-2.5 rounded-lg mb-3">
-                  <p className="text-white font-black text-xl tracking-widest">TAX INVOICE</p>
+                <div className="inline-flex items-center rounded-xl bg-[#FF7F0A] px-5 py-2.5 mb-3">
+                  <p className="text-white font-black text-xl tracking-[0.15em]">TAX INVOICE</p>
                 </div>
-                <p className="text-sm text-gray-500">Invoice #: <strong className="text-gray-800">{job.job_number}</strong></p>
-                <p className="text-sm text-gray-500">Date: <strong className="text-gray-800">{fmtDate(job.date_in)}</strong></p>
-                {job.date_out && <p className="text-sm text-gray-500">Expected: <strong className="text-gray-800">{fmtDate(job.date_out)}</strong></p>}
-                <div className="mt-2">
-                  <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${job.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
-                      job.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-                        job.status === 'in_progress' ? 'bg-orange-100 text-orange-700' :
-                          'bg-gray-100 text-gray-600'
-                    }`}>
-                    Status: {JOB_STATUS_LABEL[job.status]}
-                  </span>
+                <div className="space-y-1.5">
+                  <p className="text-sm text-gray-500">Invoice: <strong className="text-gray-900 font-mono">{job.job_number}</strong></p>
+                  <p className="text-sm text-gray-500">Date: <strong className="text-gray-900">{fmtDate(job.date_in)}</strong></p>
+                  {job.date_out && <p className="text-sm text-gray-500">Expected: <strong className="text-gray-900">{fmtDate(job.date_out)}</strong></p>}
+                  <div className="pt-1">
+                    <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${STATUS_PILL[job.status] ?? STATUS_PILL.received}`}>
+                      {JOB_STATUS_LABEL[job.status]}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Customer + Vehicle */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-              <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-3">Bill To</h2>
-                <p className="font-bold text-gray-900 text-base">{job.customer?.name}</p>
-                {job.customer?.company_name && <p className="text-sm text-gray-600">{job.customer.company_name}</p>}
-                <p className="text-sm text-gray-600">{job.customer?.phone}</p>
-                {job.customer?.email && <p className="text-sm text-gray-600">{job.customer.email}</p>}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-7">
+              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-[#FF7F0A] mb-3">Bill To</h2>
+                <p className="font-bold text-gray-900 text-base leading-snug">{job.customer?.name}</p>
+                {job.customer?.company_name && <p className="text-sm text-gray-600 mt-0.5">{job.customer.company_name}</p>}
+                <p className="text-sm text-gray-600 mt-1">{job.customer?.phone}</p>
+                {job.customer?.email && <p className="text-sm text-gray-500">{job.customer.email}</p>}
               </div>
-              <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-3">Vehicle</h2>
-                <p className="font-bold font-mono text-gray-900 text-xl tracking-widest">{job.vehicle?.plate_number}</p>
-                <p className="text-sm text-gray-600">{job.vehicle?.make} {job.vehicle?.model} {job.vehicle?.year}</p>
-                {job.vehicle?.color && <p className="text-sm text-gray-600">Color: {job.vehicle.color}</p>}
-                {job.mileage_in && <p className="text-sm text-gray-600">Mileage In: {job.mileage_in.toLocaleString()} km</p>}
-                <p className="text-sm text-gray-600">Type: {JOB_TYPE_LABEL[job.job_type]}</p>
-                {job.technician && <p className="text-sm text-gray-600">Technician: {job.technician.name}</p>}
+              <div className="rounded-xl bg-gray-50 p-4 border border-gray-100">
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-[#FF7F0A] mb-3">Vehicle</h2>
+                <p className="font-black font-mono text-gray-900 text-2xl tracking-widest mb-1">{job.vehicle?.plate_number}</p>
+                <p className="text-sm font-semibold text-gray-700">{job.vehicle?.make} {job.vehicle?.model} {job.vehicle?.year}</p>
+                {job.vehicle?.color && <p className="text-xs text-gray-500 mt-0.5">Colour: {job.vehicle.color}</p>}
+                {job.mileage_in && <p className="text-xs text-gray-500">Mileage in: {job.mileage_in.toLocaleString()} km</p>}
+                <p className="text-xs text-gray-500">Type: {JOB_TYPE_LABEL[job.job_type]}</p>
+                {job.technician && <p className="text-xs text-gray-500">Technician: {job.technician.name}</p>}
               </div>
             </div>
 
             {/* Services */}
             {(job.services ?? []).length > 0 && (
-              <div className="mb-5 overflow-x-auto">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-2">Labour / Services</h2>
+              <div className="mb-6 overflow-x-auto">
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-[#FF7F0A] mb-3">Labour / Services</h2>
                 <table className="w-full text-sm border-collapse min-w-[400px]">
                   <thead>
-                    <tr className="bg-orange-50 border border-orange-100">
-                      <th className="px-3 py-2.5 text-left font-bold text-gray-700">Description</th>
-                      <th className="px-3 py-2.5 text-center font-bold text-gray-700 w-16">Qty</th>
-                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28">Unit (AED)</th>
-                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28">Total (AED)</th>
+                    <tr className="bg-[#FF7F0A]/8 rounded-lg">
+                      <th className="px-3 py-2.5 text-left font-bold text-gray-700 bg-orange-50 rounded-l-lg border border-orange-100 border-r-0">Description</th>
+                      <th className="px-3 py-2.5 text-center font-bold text-gray-700 w-16 bg-orange-50 border-y border-orange-100">Qty</th>
+                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28 bg-orange-50 border-y border-orange-100">Unit (AED)</th>
+                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28 bg-orange-50 rounded-r-lg border border-orange-100 border-l-0">Total (AED)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(job.services ?? []).map(s => (
-                      <tr key={s.id} className="border-b border-gray-100">
-                        <td className="px-3 py-2">{s.description}</td>
-                        <td className="px-3 py-2 text-center">{s.quantity}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">{s.unit_price.toFixed(2)}</td>
-                        <td className="px-3 py-2 text-right tabular-nums font-semibold">{s.total_price.toFixed(2)}</td>
+                    {(job.services ?? []).map((s, i) => (
+                      <tr key={s.id} className={i % 2 === 0 ? '' : 'bg-gray-50/60'}>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-gray-700">{s.description}</td>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-center text-gray-600">{s.quantity}</td>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-right tabular-nums text-gray-600">{s.unit_price.toFixed(2)}</td>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-right tabular-nums font-bold text-gray-900">{s.total_price.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -218,26 +239,26 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
 
             {/* Parts */}
             {(job.parts ?? []).length > 0 && (
-              <div className="mb-5 overflow-x-auto">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-2">Parts / Materials</h2>
+              <div className="mb-6 overflow-x-auto">
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-[#FF7F0A] mb-3">Parts / Materials</h2>
                 <table className="w-full text-sm border-collapse min-w-[400px]">
                   <thead>
-                    <tr className="bg-orange-50 border border-orange-100">
-                      <th className="px-3 py-2.5 text-left font-bold text-gray-700">Part Name</th>
-                      <th className="px-3 py-2.5 text-left font-bold text-gray-700 w-28">Part #</th>
-                      <th className="px-3 py-2.5 text-center font-bold text-gray-700 w-16">Qty</th>
-                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28">Unit (AED)</th>
-                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28">Total (AED)</th>
+                    <tr>
+                      <th className="px-3 py-2.5 text-left font-bold text-gray-700 bg-orange-50 rounded-l-lg border border-orange-100 border-r-0">Part Name</th>
+                      <th className="px-3 py-2.5 text-left font-bold text-gray-700 w-28 bg-orange-50 border-y border-orange-100">Part #</th>
+                      <th className="px-3 py-2.5 text-center font-bold text-gray-700 w-16 bg-orange-50 border-y border-orange-100">Qty</th>
+                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28 bg-orange-50 border-y border-orange-100">Unit (AED)</th>
+                      <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28 bg-orange-50 rounded-r-lg border border-orange-100 border-l-0">Total (AED)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {(job.parts ?? []).map(p => (
-                      <tr key={p.id} className="border-b border-gray-100">
-                        <td className="px-3 py-2">{p.part_name}</td>
-                        <td className="px-3 py-2 font-mono text-xs text-gray-500">{p.part_number ?? '—'}</td>
-                        <td className="px-3 py-2 text-center">{p.quantity}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">{p.unit_price.toFixed(2)}</td>
-                        <td className="px-3 py-2 text-right tabular-nums font-semibold">{p.total_price.toFixed(2)}</td>
+                    {(job.parts ?? []).map((p, i) => (
+                      <tr key={p.id} className={i % 2 === 0 ? '' : 'bg-gray-50/60'}>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-gray-700 font-medium">{p.part_name}</td>
+                        <td className="px-3 py-2.5 border-b border-gray-100 font-mono text-xs text-gray-400">{p.part_number ?? '—'}</td>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-center text-gray-600">{p.quantity}</td>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-right tabular-nums text-gray-600">{p.unit_price.toFixed(2)}</td>
+                        <td className="px-3 py-2.5 border-b border-gray-100 text-right tabular-nums font-bold text-gray-900">{p.total_price.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -246,53 +267,53 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
             )}
 
             {/* Totals */}
-            <div className="flex justify-end mb-6">
-              <div className="w-full sm:w-64 space-y-1.5">
+            <div className="flex justify-end mb-7">
+              <div className="w-full sm:w-72 rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Subtotal</span>
-                  <span className="tabular-nums">{job.subtotal.toFixed(2)}</span>
+                  <span className="tabular-nums font-medium text-gray-700">AED {job.subtotal.toFixed(2)}</span>
                 </div>
                 {job.discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Discount</span>
-                    <span className="tabular-nums text-green-600">−{job.discount.toFixed(2)}</span>
+                    <span className="tabular-nums text-emerald-600 font-medium">−AED {job.discount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">VAT (5%)</span>
-                  <span className="tabular-nums">{job.vat_amount.toFixed(2)}</span>
+                  <span className="tabular-nums font-medium text-gray-700">AED {job.vat_amount.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between border-t-2 border-gray-900 pt-2 text-base font-black">
-                  <span>TOTAL (AED)</span>
-                  <span className="tabular-nums text-orange-500">{job.total.toFixed(2)}</span>
+                <div className="flex justify-between pt-3 border-t-2 border-gray-900 text-base font-black">
+                  <span className="text-gray-900">TOTAL (AED)</span>
+                  <span className="tabular-nums text-[#FF7F0A] text-xl">AED {job.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* Payment status */}
-            <div className="mb-6 flex items-center gap-3 rounded-lg border border-gray-200 p-3">
-              <div className={`h-3 w-3 rounded-full shrink-0 ${job.payment_status === 'paid' ? 'bg-green-500' :
-                  job.payment_status === 'partial' ? 'bg-amber-500' : 'bg-red-500'
-                }`} />
-              <span className="text-sm font-semibold capitalize">{job.payment_status}</span>
-              {job.payment_method && <span className="text-sm text-gray-500">via {job.payment_method}</span>}
+            <div className={`mb-7 flex items-center gap-3 rounded-xl border p-3.5 ${payment.bg} ${payment.border}`}>
+              <div className={`h-3 w-3 rounded-full shrink-0 ${payment.dot}`} />
+              <span className={`text-sm font-bold capitalize ${payment.text}`}>{job.payment_status}</span>
+              {job.payment_method && <span className={`text-sm ${payment.text} opacity-70`}>via {job.payment_method}</span>}
+              <span className="ml-auto text-xs text-gray-400">Payment Status</span>
             </div>
 
             {/* Track Job CTA */}
-            <div className="mb-6 rounded-lg border border-orange-200 bg-orange-50 p-4 no-print">
-              <p className="text-sm font-semibold text-orange-700 mb-1">Track your vehicle status</p>
-              <p className="text-xs text-orange-600 mb-3">Check real-time progress of your job card at any time.</p>
-              <Link
-                href={trackUrl}
-                className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white hover:bg-orange-600 transition-colors"
-              >
-                <Car className="h-4 w-4" /> Track Job {job.job_number}
-              </Link>
+            <div className="mb-7 rounded-xl border border-orange-200 bg-orange-50 p-4 no-print">
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="text-sm font-bold text-orange-800 mb-1">Track your vehicle in real-time</p>
+                  <p className="text-xs text-orange-600 leading-relaxed">See exactly where your car is in the service process.</p>
+                </div>
+                <Link href={trackUrl} className="inline-flex items-center gap-2 rounded-xl bg-[#FF7F0A] px-4 py-2.5 text-sm font-bold text-black hover:bg-orange-500 transition-colors shrink-0">
+                  <Car className="h-4 w-4" /> Track {job.job_number}
+                </Link>
+              </div>
             </div>
 
             {/* QR placeholder */}
-            <div className="mb-6 flex items-center gap-4 rounded-lg border border-dashed border-gray-300 p-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border-2 border-gray-300 bg-gray-50 text-center">
+            <div className="mb-7 flex items-center gap-4 rounded-xl border border-dashed border-gray-200 p-4 bg-gray-50/50">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-gray-200 bg-white">
                 <div className="grid grid-cols-3 gap-0.5 p-1">
                   {Array.from({ length: 9 }).map((_, i) => (
                     <div key={i} className={`h-3 w-3 rounded-sm ${[0, 2, 4, 6, 8].includes(i) ? 'bg-gray-800' : 'bg-white'}`} />
@@ -300,36 +321,36 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-700">Scan to track online</p>
+                <p className="text-sm font-bold text-gray-700">Scan to track online</p>
                 <p className="text-xs text-gray-400 mt-0.5">Bakkah Job Tracker</p>
-                <p className="text-xs font-mono text-gray-400">{job.job_number}</p>
+                <p className="text-xs font-mono text-gray-400 tracking-wider">{job.job_number}</p>
               </div>
             </div>
 
             {/* Photos */}
             {(beforePhotos.length > 0 || afterPhotos.length > 0 || damagePhotos.length > 0) && (
-              <div className="border-t border-gray-200 pt-4">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-3">Vehicle Photos</h2>
+              <div className="border-t border-gray-100 pt-5 mb-7">
+                <h2 className="text-[10px] font-black uppercase tracking-widest text-[#FF7F0A] mb-4">Vehicle Photos</h2>
                 {damagePhotos.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">Damage (pre-existing)</p>
+                  <div className="mb-4">
+                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Damage (Pre-existing)</p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {damagePhotos.map(p => (
-                        <div key={p.id}>
-                          <img src={p.cloudinary_url} alt={p.caption ?? 'damage'} className="rounded w-full aspect-[4/3] object-cover" />
-                          {p.caption && <p className="text-[9px] text-gray-400 mt-0.5 truncate">{p.caption}</p>}
+                        <div key={p.id} className="overflow-hidden rounded-xl">
+                          <img src={p.cloudinary_url} alt={p.caption ?? 'damage'} className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300" />
+                          {p.caption && <p className="text-[9px] text-gray-400 mt-1 truncate px-0.5">{p.caption}</p>}
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
                 {beforePhotos.length > 0 && (
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">Before Work</p>
+                  <div className="mb-4">
+                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Before Work</p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {beforePhotos.map(p => (
-                        <div key={p.id}>
-                          <img src={p.cloudinary_url} alt="before" className="rounded w-full aspect-[4/3] object-cover" />
+                        <div key={p.id} className="overflow-hidden rounded-xl">
+                          <img src={p.cloudinary_url} alt="before" className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300" />
                         </div>
                       ))}
                     </div>
@@ -337,11 +358,11 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
                 )}
                 {afterPhotos.length > 0 && (
                   <div>
-                    <p className="text-xs font-semibold text-gray-500 mb-2">After Work</p>
+                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">After Work</p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {afterPhotos.map(p => (
-                        <div key={p.id}>
-                          <img src={p.cloudinary_url} alt="after" className="rounded w-full aspect-[4/3] object-cover" />
+                        <div key={p.id} className="overflow-hidden rounded-xl">
+                          <img src={p.cloudinary_url} alt="after" className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300" />
                         </div>
                       ))}
                     </div>
@@ -351,10 +372,10 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
             )}
 
             {/* Footer */}
-            <div className="mt-8 border-t-2 border-orange-500 pt-4 text-center">
-              <p className="text-xs text-gray-400">Bakkah · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
-              <p className="mt-1 text-xs text-gray-400">This is a computer-generated invoice. Thank you for your business.</p>
-              <p className="mt-1 text-xs font-medium text-orange-500">+971 58 939 7610 · autoedgepro.ae</p>
+            <div className="mt-8 text-center" style={{ borderTop: '2px solid #ff7f0a', paddingTop: '1.25rem' }}>
+              <p className="text-xs text-gray-400">Bakkah Auto Detailing · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
+              <p className="mt-1 text-xs text-gray-400">This is a computer-generated invoice. Thank you for choosing Bakkah.</p>
+              <p className="mt-1 text-xs font-bold text-[#FF7F0A]">+971 58 939 7610 · autoedgepro.ae</p>
             </div>
 
           </div>
