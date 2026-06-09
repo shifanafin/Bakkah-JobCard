@@ -71,43 +71,44 @@ const fadeUp = {
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }
 
 // ── Static Data ───────────────────────────────────────────────
+// ── All images downloaded from Pexels (free license) to /public/images/detailing/
 const HERO_IMAGES = [
-  'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=1920&q=80',
-  'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1920&q=80',
-  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=80',
+  '/images/detailing/hero-1.jpg',   // Professional car wash & detailing in action
+  '/images/detailing/hero-2.jpg',   // Car detailing — hand wash & dry
+  '/images/detailing/hero-3.jpg',   // Pro detailer at work
 ]
 
 const SERVICE_IMAGES: Record<string, string> = {
-  fullDetail:      'https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=800&q=80',
-  ceramic:         'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=800&q=80',
-  paintCorrection: 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=800&q=80',
-  interior:        'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=800&q=80',
-  rta:             'https://images.unsplash.com/photo-1449426468159-d96dbf08f19f?auto=format&fit=crop&w=800&q=80',
-  fleet:           'https://images.unsplash.com/photo-1467533003447-e295ff1b0435?auto=format&fit=crop&w=800&q=80',
+  fullDetail:      '/images/detailing/service-full-detail.jpg',      // Hand wash & full exterior detail
+  ceramic:         '/images/detailing/service-ceramic.jpg',          // Ceramic coating application
+  paintCorrection: '/images/detailing/service-paint-correction.jpg', // Machine polisher on paint
+  interior:        '/images/detailing/service-interior.jpg',         // Interior steam cleaning
+  rta:             '/images/detailing/service-rta.jpg',              // Vehicle inspection
+  fleet:           '/images/detailing/service-fleet.jpg',            // Fleet service bay
 }
 
 const SERVICE_KEYS = ['fullDetail','ceramic','paintCorrection','interior','rta','fleet'] as const
 
 const GALLERY = [
-  { src: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=900&q=80', alt: 'Ceramic coating gloss finish', wide: true },
-  { src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&q=80', alt: 'Deep paint correction' },
-  { src: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=600&q=80', alt: 'Interior deep clean' },
-  { src: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=900&q=80', alt: 'Showroom finish result', wide: true },
-  { src: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80', alt: 'Premium luxury car detail' },
-  { src: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80', alt: 'Exterior detail complete' },
-  { src: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d11?auto=format&fit=crop&w=600&q=80', alt: 'Polishing machine in action' },
-  { src: 'https://images.unsplash.com/photo-1548616454-4d3c5a3462e9?auto=format&fit=crop&w=600&q=80', alt: 'Hand detailing close-up' },
+  { src: '/images/detailing/gallery-1.jpg', alt: 'Machine polish — paint correction in progress', wide: true },
+  { src: '/images/detailing/gallery-2.jpg', alt: 'Hand detailing — clay bar treatment' },
+  { src: '/images/detailing/gallery-3.jpg', alt: 'Interior detailing — leather conditioning' },
+  { src: '/images/detailing/gallery-4.jpg', alt: 'Wheel & tyre deep clean', wide: true },
+  { src: '/images/detailing/gallery-5.jpg', alt: 'Rotary polisher — swirl removal' },
+  { src: '/images/detailing/gallery-6.jpg', alt: 'Engine bay detailing' },
+  { src: '/images/detailing/gallery-7.jpg', alt: 'Ceramic coating application' },
+  { src: '/images/detailing/gallery-8.jpg', alt: 'Final inspection — showroom finish' },
 ]
 
 const PHOTO_STRIP = [
-  'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=400&h=260&q=70',
-  'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&h=260&q=70',
-  'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&w=400&h=260&q=70',
-  'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=400&h=260&q=70',
-  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&h=260&q=70',
-  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=400&h=260&q=70',
-  'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=400&h=260&q=70',
-  'https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=400&h=260&q=70',
+  '/images/detailing/service-full-detail.jpg',
+  '/images/detailing/strip-1.jpg',
+  '/images/detailing/service-paint-correction.jpg',
+  '/images/detailing/strip-2.jpg',
+  '/images/detailing/service-interior.jpg',
+  '/images/detailing/strip-3.jpg',
+  '/images/detailing/service-ceramic.jpg',
+  '/images/detailing/strip-4.jpg',
 ]
 
 const WHY_US = [
@@ -133,7 +134,8 @@ export default function BakkahHomePage() {
   const { theme, toggle } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [heroIdx, setHeroIdx] = useState(0)
-  const [videoOpen, setVideoOpen] = useState(false)
+  const [videoReady, setVideoReady] = useState(false)
+  const videoRef = useRef<HTMLDivElement>(null)
   const [reviews, setReviews] = useState<Review[]>([])
   const [reviewsLoaded, setReviewsLoaded] = useState(false)
 
@@ -146,6 +148,16 @@ export default function BakkahHomePage() {
   useEffect(() => {
     const t = setInterval(() => setHeroIdx(i => (i + 1) % HERO_IMAGES.length), 5000)
     return () => clearInterval(t)
+  }, [])
+
+  // Auto-play video when scrolled into view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) setVideoReady(true) },
+      { threshold: 0.45 }
+    )
+    if (videoRef.current) observer.observe(videoRef.current)
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
@@ -451,10 +463,10 @@ export default function BakkahHomePage() {
 
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=600&q=80', label: l.beforeAfter.before, type: 'before' },
-              { src: 'https://images.unsplash.com/photo-1608473496680-4e82c2dc7e56?auto=format&fit=crop&w=600&q=80', label: l.beforeAfter.before, type: 'before' },
-              { src: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&w=600&q=80', label: l.beforeAfter.after, type: 'after' },
-              { src: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=600&q=80', label: l.beforeAfter.after, type: 'after' },
+              { src: '/images/detailing/before-1.jpg', label: l.beforeAfter.before, type: 'before' },
+              { src: '/images/detailing/before-2.jpg', label: l.beforeAfter.before, type: 'before' },
+              { src: '/images/detailing/after-1.jpg',  label: l.beforeAfter.after,  type: 'after'  },
+              { src: '/images/detailing/after-2.jpg',  label: l.beforeAfter.after,  type: 'after'  },
             ].map((item, i) => (
               <motion.div key={i} variants={fadeUp} custom={i * 0.5} initial="hidden" whileInView="visible" viewport={{ once: true }}
                 className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.06] group aspect-[3/4]">
@@ -536,7 +548,9 @@ export default function BakkahHomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════════
-          VIDEO SHOWCASE
+          VIDEO SHOWCASE — auto-plays when scrolled into view
+          Replace VIDEO_ID below with your YouTube detailing video ID
+          e.g. from https://www.youtube.com/watch?v=VIDEO_ID
       ══════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden px-5 py-24 lg:px-8">
         <div className="mx-auto max-w-5xl">
@@ -551,43 +565,56 @@ export default function BakkahHomePage() {
             </motion.p>
           </div>
 
-          <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl border border-gray-200 dark:border-white/[0.08] shadow-[0_20px_80px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.5)] aspect-video cursor-pointer group"
-            onClick={() => setVideoOpen(true)}>
-            {videoOpen ? (
+          <motion.div
+            ref={videoRef}
+            variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}
+            className="relative overflow-hidden rounded-3xl border border-gray-200 dark:border-white/[0.08] shadow-[0_20px_80px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.5)] aspect-video bg-black">
+
+            {/* Thumbnail shown before video loads */}
+            {!videoReady && (
+              <div className="absolute inset-0">
+                <img src="/images/detailing/service-paint-correction.jpg"
+                  alt="Car detailing process" className="w-full h-full object-cover opacity-60" />
+                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-4">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FF7F0A] shadow-[0_0_50px_rgba(255,127,10,0.6)] border-4 border-white/20 animate-pulse">
+                    <Play className="h-8 w-8 text-black fill-black ml-1" />
+                  </div>
+                  <p className="text-white/70 text-sm">Scroll down a little — video auto-plays</p>
+                </div>
+              </div>
+            )}
+
+            {/* YouTube iframe — loads & auto-plays when section is 45% visible */}
+            {videoReady && (
               <iframe
-                src="https://www.youtube.com/embed/dU9mC9wKblI?autoplay=1&mute=0&rel=0&modestbranding=1"
-                title="Bakkah Auto Detailing"
+                src="https://www.youtube.com/embed/dU9mC9wKblI?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=dU9mC9wKblI"
+                title="Professional Car Detailing — Bakkah Auto Detailing Dubai"
                 className="absolute inset-0 w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
               />
-            ) : (
-              <>
-                <img
-                  src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&w=1280&q=80"
-                  alt="Car detailing video thumbnail"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors duration-300" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-5">
-                  <motion.div
-                    whileHover={{ scale: 1.12 }} whileTap={{ scale: 0.96 }}
-                    className="flex h-20 w-20 items-center justify-center rounded-full bg-[#FF7F0A] shadow-[0_0_50px_rgba(255,127,10,0.6)] border-4 border-white/20">
-                    <Play className="h-8 w-8 text-black fill-black ml-1" />
-                  </motion.div>
-                  <div className="text-center">
-                    <p className="text-white font-bold text-lg">Watch Our Detailing Process</p>
-                    <p className="text-white/60 text-sm mt-1">See a full car transformation from start to finish</p>
-                  </div>
-                </div>
-                {/* Corner badge */}
-                <div className="absolute top-4 left-4 rounded-full bg-[#FF7F0A]/90 px-3 py-1 text-[11px] font-bold text-black uppercase tracking-wider">
-                  🎬 Full Process Video
-                </div>
-              </>
             )}
+
+            {/* "Unmute" hint badge */}
+            {videoReady && (
+              <div className="absolute top-4 left-4 pointer-events-none">
+                <span className="rounded-full bg-black/60 backdrop-blur-sm px-3 py-1.5 text-[11px] font-semibold text-white/80 flex items-center gap-1.5">
+                  🔇 Use player controls to unmute
+                </span>
+              </div>
+            )}
+
+            <div className="absolute top-4 right-4 pointer-events-none">
+              <span className="rounded-full bg-[#FF7F0A]/90 px-3 py-1 text-[11px] font-bold text-black uppercase tracking-wider">
+                🎬 Auto Detailing
+              </span>
+            </div>
           </motion.div>
+
+          <motion.p variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true }}
+            className="mt-4 text-center text-xs text-gray-400 dark:text-white/25">
+            Professional car detailing — ceramic coating, paint correction & interior deep clean
+          </motion.p>
         </div>
       </section>
 
