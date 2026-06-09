@@ -1,15 +1,10 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import { en } from './translations/en'
-import { ar } from './translations/ar'
-import { ur } from './translations/ur'
-import { fr } from './translations/fr'
-import { hi } from './translations/hi'
-import { ta } from './translations/ta'
-import { ml } from './translations/ml'
+import { getAITranslations } from './aiTranslate'
 
-export type Lang = 'en' | 'ar' | 'ur' | 'fr' | 'hi' | 'ta' | 'ml'
+export type Lang = 'en' | 'ar' | 'ur' | 'fr' | 'hi' | 'ta'
 export type AppTranslations = typeof en
 
 const RTL_LANGS = new Set<Lang>(['ar', 'ur'])
@@ -21,41 +16,61 @@ export const LANG_META: Record<Lang, { label: string; code: string; flag: string
   fr: { label: 'Français',   code: 'FR', flag: '🇫🇷' },
   hi: { label: 'हिंदी',      code: 'HI', flag: '🇮🇳' },
   ta: { label: 'தமிழ்',      code: 'TA', flag: '🇮🇳' },
-  ml: { label: 'മലയാളം',     code: 'ML', flag: '🇮🇳' },
 }
-
-const TRANSLATIONS: Record<Lang, AppTranslations> = { en, ar, ur, fr, hi, ta, ml }
 
 interface I18nCtx {
   lang: Lang
   t: AppTranslations
   setLang: (l: Lang) => void
   isRTL: boolean
+  translating: boolean
 }
 
 const I18nContext = createContext<I18nCtx>({
-  lang: 'en', t: en, setLang: () => {}, isRTL: false,
+  lang: 'en', t: en, setLang: () => {}, isRTL: false, translating: false,
 })
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('en')
+  const [translations, setTranslations] = useState<AppTranslations>(en)
+  const [translating, setTranslating] = useState(false)
 
-  useEffect(() => {
-    const saved = localStorage.getItem('lang') as Lang | null
-    if (saved && TRANSLATIONS[saved]) {
-      setLangState(saved)
-      applyToDOM(saved)
+  const loadTranslations = useCallback(async (l: Lang) => {
+    setLangState(l)
+    applyToDOM(l)
+    if (l === 'en') {
+      setTranslations(en)
+      return
+    }
+    setTranslating(true)
+    try {
+      const translated = await getAITranslations(en, l)
+      setTranslations(translated as AppTranslations)
+    } catch {
+      setTranslations(en)
+    } finally {
+      setTranslating(false)
     }
   }, [])
 
-  function setLang(l: Lang) {
-    setLangState(l)
+  useEffect(() => {
+    const saved = localStorage.getItem('lang') as Lang | null
+    if (saved && saved in LANG_META) loadTranslations(saved)
+  }, [loadTranslations])
+
+  async function setLang(l: Lang) {
     localStorage.setItem('lang', l)
-    applyToDOM(l)
+    await loadTranslations(l)
   }
 
   return (
-    <I18nContext.Provider value={{ lang, t: TRANSLATIONS[lang], setLang, isRTL: RTL_LANGS.has(lang) }}>
+    <I18nContext.Provider value={{
+      lang,
+      t: translations,
+      setLang,
+      isRTL: RTL_LANGS.has(lang),
+      translating,
+    }}>
       {children}
     </I18nContext.Provider>
   )

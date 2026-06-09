@@ -3,14 +3,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useT, LANG_META, type Lang } from '@/lib/i18n'
 import { cn } from '@/lib/utils/cn'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Loader2 } from 'lucide-react'
 
 interface LanguageSwitcherProps {
   variant?: 'website' | 'app'
 }
 
 export default function LanguageSwitcher({ variant = 'website' }: LanguageSwitcherProps) {
-  const { lang, setLang } = useT()
+  const { lang, setLang, translating } = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -32,8 +32,14 @@ export default function LanguageSwitcher({ variant = 'website' }: LanguageSwitch
           className="flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50 dark:hover:border-white/[0.15] dark:hover:text-white/80"
           title="Change language"
         >
-          <span>{current.flag}</span>
-          <span className="hidden sm:inline">{current.code}</span>
+          {translating ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <>
+              <span>{current.flag}</span>
+              <span className="hidden sm:inline">{current.code}</span>
+            </>
+          )}
           <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', open && 'rotate-180')} />
         </button>
         {open && (
@@ -68,8 +74,14 @@ export default function LanguageSwitcher({ variant = 'website' }: LanguageSwitch
         className="flex items-center gap-1.5 rounded-lg border border-white/[0.1] bg-white/[0.05] px-3 py-2 text-xs font-semibold text-white/60 transition hover:border-white/20 hover:bg-white/[0.08] hover:text-white"
         title="Change language"
       >
-        <span>{current.flag}</span>
-        <span>{current.code}</span>
+        {translating ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <>
+            <span>{current.flag}</span>
+            <span>{current.code}</span>
+          </>
+        )}
         <ChevronDown className={cn('h-3 w-3 transition-transform duration-200', open && 'rotate-180')} />
       </button>
       {open && (
