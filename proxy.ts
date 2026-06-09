@@ -8,7 +8,20 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   const isLoggedIn = !!req.auth
 
-  if (pathname === '/' || pathname.startsWith('/auth') || pathname.startsWith('/track')) return NextResponse.next()
+  // Public routes — no login required
+  if (
+    pathname === '/' ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/track') ||
+    pathname.startsWith('/invoice')
+  ) return NextResponse.next()
+
+  // Redirect unauthenticated users hitting the protected workshop invoice
+  // to the public invoice page instead of the login screen
+  const workshopInvoiceMatch = pathname.match(/^\/workshop\/job-cards\/([^/]+)\/invoice$/)
+  if (workshopInvoiceMatch && !isLoggedIn) {
+    return NextResponse.redirect(new URL(`/invoice/${workshopInvoiceMatch[1]}`, req.nextUrl))
+  }
 
   if (!isLoggedIn) {
     const url = req.nextUrl.clone()
