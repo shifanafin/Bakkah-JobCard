@@ -93,7 +93,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             <button onClick={load} className="btn-ghost text-xs px-3 py-2 h-auto">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <Link href={`/workshop/job-cards/${id}/invoice`} target="_blank" className="btn-ghost text-xs">
+            <Link href={`/invoice/${id}`} target="_blank" className="btn-ghost text-xs">
               <Printer className="h-3.5 w-3.5" /> Invoice
             </Link>
             {job.customer?.phone && (
@@ -246,13 +246,13 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         />
 
         {/* UAE RTA Vehicle Check */}
-        {job.vehicle?.plate_number && (
+        {/* {job.vehicle?.plate_number && (
           <RTACheck
             jobCardId={job.id}
             plateNumber={job.vehicle.plate_number}
             emirate="Dubai"
           />
-        )}
+        )} */}
       </div>
     </div>
   )

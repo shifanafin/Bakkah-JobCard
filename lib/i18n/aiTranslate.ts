@@ -1,13 +1,5 @@
 const CACHE_VERSION = 'v1'
-const SEP = ' ||| '
-
-const LANG_CODES: Record<string, string> = {
-  ar: 'ar',
-  hi: 'hi',
-  ur: 'ur',
-  ta: 'ta',
-  fr: 'fr',
-}
+const BATCH_SIZE = 100 // Google Translate supports up to 128 strings per request
 
 type FlatEntry = { path: string; text: string }
 
@@ -45,18 +37,15 @@ function setByPath(obj: Record<string, unknown>, path: string, value: string) {
   curr[parts[parts.length - 1]] = value
 }
 
-async function translateBatch(texts: string[], targetLang: string): Promise<string[]> {
-  const joined = texts.join(SEP)
-  try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(joined)}&langpair=en|${targetLang}`
-    const res = await fetch(url)
-    const data = await res.json()
-    if (data.responseStatus === 200) {
-      const parts = (data.responseData.translatedText as string).split(SEP)
-      if (parts.length === texts.length) return parts.map(p => p.trim())
-    }
-  } catch {}
-  return texts
+async function translateBatch(texts: string[], target: string): Promise<string[]> {
+  const res = await fetch('/api/translate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ texts, target }),
+  })
+  if (!res.ok) throw new Error(`Translation failed: ${res.status}`)
+  const data = await res.json() as { translations: string[] }
+  return data.translations
 }
 
 export async function getAITranslations(enObj: unknown, lang: string): Promise<unknown> {
@@ -70,29 +59,12 @@ export async function getAITranslations(enObj: unknown, lang: string): Promise<u
 
   const entries = flatten(enObj)
   const result = JSON.parse(JSON.stringify(enObj)) as Record<string, unknown>
-  const langCode = LANG_CODES[lang] ?? lang
 
-  // Batch strings keeping each batch under 400 chars to respect API limits
-  const batches: FlatEntry[][] = []
-  let current: FlatEntry[] = []
-  let len = 0
-
-  for (const entry of entries) {
-    const add = entry.text.length + SEP.length
-    if (len + add > 400 && current.length > 0) {
-      batches.push(current)
-      current = []
-      len = 0
-    }
-    current.push(entry)
-    len += add
-  }
-  if (current.length > 0) batches.push(current)
-
-  for (const batch of batches) {
-    const translated = await translateBatch(batch.map(e => e.text), langCode)
-    batch.forEach((entry, i) => setByPath(result, entry.path, translated[i] ?? entry.text))
-    await new Promise(r => setTimeout(r, 120))
+  // Send in batches of BATCH_SIZE (Google supports 128/request)
+  for (let i = 0; i < entries.length; i += BATCH_SIZE) {
+    const batch = entries.slice(i, i + BATCH_SIZE)
+    const translated = await translateBatch(batch.map(e => e.text), lang)
+    batch.forEach((entry, idx) => setByPath(result, entry.path, translated[idx] ?? entry.text))
   }
 
   try {
@@ -103,7 +75,6 @@ export async function getAITranslations(enObj: unknown, lang: string): Promise<u
 }
 
 export function clearTranslationCache() {
-  Object.keys(LANG_CODES).forEach(lang => {
-    localStorage.removeItem(`ai_t_${lang}_${CACHE_VERSION}`)
-  })
+  const langs = ['ar', 'hi', 'ur', 'ta', 'fr']
+  langs.forEach(lang => localStorage.removeItem(`ai_t_${lang}_${CACHE_VERSION}`))
 }
