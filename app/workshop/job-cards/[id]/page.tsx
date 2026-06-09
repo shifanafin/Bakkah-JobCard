@@ -7,6 +7,7 @@ import Header from '@/components/layout/Header'
 import StatusStepper from '@/components/job-card/StatusStepper'
 import LineItems from '@/components/job-card/LineItems'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
+import RTACheck from '@/components/job-card/RTACheck'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
@@ -243,6 +244,15 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           photos={job.photos ?? []}
           onPhotosChange={photos => setJob(j => j ? { ...j, photos } : j)}
         />
+
+        {/* UAE RTA Vehicle Check */}
+        {job.vehicle?.plate_number && (
+          <RTACheck
+            jobCardId={job.id}
+            plateNumber={job.vehicle.plate_number}
+            emirate="Dubai"
+          />
+        )}
       </div>
     </div>
   )
