@@ -6,9 +6,10 @@ import { motion, useInView } from 'framer-motion'
 import {
   Sparkles, Shield, Zap, Droplets, ClipboardCheck, Truck,
   MapPin, Phone, Mail, ChevronRight, Search, ArrowRight, Star, Car,
-  MessageCircle, CheckCircle, Quote, Globe,
+  MessageCircle, CheckCircle, Quote, Sun, Moon, FileText,
 } from 'lucide-react'
 import { useT } from '@/lib/i18n'
+import { useTheme } from '@/components/ThemeProvider'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 // ── Animated Counter ──────────────────────────────────────────
@@ -36,7 +37,7 @@ function StarRow({ rating }: { rating: number }) {
   return (
     <div className="flex gap-0.5">
       {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} className={`h-4 w-4 ${i <= rating ? 'fill-[#FF7F0A] text-[#FF7F0A]' : 'text-white/15'}`} />
+        <Star key={i} className={`h-4 w-4 ${i <= rating ? 'fill-[#FF7F0A] text-[#FF7F0A]' : 'text-gray-300 dark:text-white/15'}`} />
       ))}
     </div>
   )
@@ -58,6 +59,7 @@ type Review = { id: string; customer_name: string; rating: number; comment: stri
 
 export default function BakkahHomePage() {
   const { t } = useT()
+  const { theme, toggle } = useTheme()
   const [scrolled, setScrolled] = useState(false)
   const [reviews, setReviews] = useState<Review[]>([])
   const [reviewsLoaded, setReviewsLoaded] = useState(false)
@@ -96,7 +98,7 @@ export default function BakkahHomePage() {
   const HOW_IT_WORKS_EMOJIS = ['🚗', '✨', '🤩']
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#050507] text-gray-900 dark:text-white overflow-x-hidden">
 
       {/* ── Floating WhatsApp ──────────────────────────────── */}
       <motion.a
@@ -117,7 +119,9 @@ export default function BakkahHomePage() {
         initial={{ y: -72, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: easeOut }}
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/[0.06] shadow-[0_2px_30px_rgba(0,0,0,0.5)]' : ''
+          scrolled
+            ? 'bg-white/95 dark:bg-black/80 backdrop-blur-xl border-b border-gray-200 dark:border-white/[0.06] shadow-[0_2px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_2px_30px_rgba(0,0,0,0.5)]'
+            : ''
         }`}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
@@ -126,23 +130,31 @@ export default function BakkahHomePage() {
               <Car className="h-[18px] w-[18px] text-black" />
             </div>
             <div className="leading-none">
-              <p className="font-display text-xl tracking-[0.2em] text-white leading-none">BAKKAH</p>
-              <p className="text-[9px] tracking-[0.15em] text-white/30">AUTO DETAILING</p>
+              <p className="font-display text-xl tracking-[0.2em] text-gray-900 dark:text-white leading-none">BAKKAH</p>
+              <p className="text-[9px] tracking-[0.15em] text-gray-400 dark:text-white/30">AUTO DETAILING</p>
             </div>
           </a>
 
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/40">
-            <a href="#services" className="hover:text-white transition-colors">{l.nav.services}</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">{l.nav.howItWorks}</a>
-            <a href="#reviews" className="hover:text-white transition-colors">{l.nav.reviews}</a>
-            <a href="#contact" className="hover:text-white transition-colors">{l.nav.contact}</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500 dark:text-white/40">
+            <a href="#services" className="hover:text-gray-900 dark:hover:text-white transition-colors">{l.nav.services}</a>
+            <a href="#how-it-works" className="hover:text-gray-900 dark:hover:text-white transition-colors">{l.nav.howItWorks}</a>
+            <a href="#reviews" className="hover:text-gray-900 dark:hover:text-white transition-colors">{l.nav.reviews}</a>
+            <a href="#contact" className="hover:text-gray-900 dark:hover:text-white transition-colors">{l.nav.contact}</a>
           </div>
 
           <div className="flex items-center gap-2">
             <LanguageSwitcher variant="website" />
+            {/* Theme toggle */}
+            <button
+              onClick={toggle}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/40 transition hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-700 dark:hover:text-white"
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <Link
               href="/track"
-              className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-2 text-sm text-white/55 hover:border-[#FF7F0A]/30 hover:text-white transition-all duration-200"
+              className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03] px-4 py-2 text-sm text-gray-600 dark:text-white/55 hover:border-[#FF7F0A]/30 hover:text-[#FF7F0A] dark:hover:border-[#FF7F0A]/30 dark:hover:text-[#FF7F0A] transition-all duration-200"
             >
               <Search className="h-3.5 w-3.5" />{l.nav.trackVehicle}
             </Link>
@@ -162,12 +174,12 @@ export default function BakkahHomePage() {
           <img
             src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1920&q=60"
             alt="" aria-hidden="true"
-            className="h-full w-full object-cover opacity-[0.1] mix-blend-luminosity"
+            className="h-full w-full object-cover opacity-[0.07] dark:opacity-[0.1] mix-blend-luminosity dark:mix-blend-luminosity"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#050507]/80 via-[#050507]/20 to-[#050507]" />
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/20 to-white dark:from-[#050507]/80 dark:via-[#050507]/20 dark:to-[#050507]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.03)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,black,transparent)]" />
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="h-[320px] w-[320px] sm:h-[700px] sm:w-[700px] rounded-full bg-[#FF7F0A]/[0.06] blur-[60px] sm:blur-[140px] animate-pulse-slow" />
+            <div className="h-[320px] w-[320px] sm:h-[700px] sm:w-[700px] rounded-full bg-[#FF7F0A]/[0.04] dark:bg-[#FF7F0A]/[0.06] blur-[60px] sm:blur-[140px] animate-pulse-slow" />
           </div>
         </div>
 
@@ -188,7 +200,7 @@ export default function BakkahHomePage() {
                 initial={{ y: 110, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.7, delay: 0.2 + i * 0.1, ease: easeOut }}
                 className={`font-display leading-[0.88] tracking-[0.05em] text-[clamp(3.2rem,10.5vw,8.5rem)] ${
-                  i === 1 ? 'text-[#FF7F0A]' : 'text-white'
+                  i === 1 ? 'text-[#FF7F0A]' : 'text-gray-900 dark:text-white'
                 }`}
               >
                 {word}
@@ -199,10 +211,10 @@ export default function BakkahHomePage() {
           <motion.p
             initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.42 }}
-            className="mx-auto mt-8 max-w-lg text-[15px] leading-relaxed text-white/50 sm:text-base"
+            className="mx-auto mt-8 max-w-lg text-[15px] leading-relaxed text-gray-500 dark:text-white/50 sm:text-base"
           >
             {l.hero.subheadline}{' '}
-            <span className="text-white/80 font-semibold">{l.hero.subheadline2}</span>{' '}
+            <span className="text-gray-800 dark:text-white/80 font-semibold">{l.hero.subheadline2}</span>{' '}
             {l.hero.subheadline3}
           </motion.p>
 
@@ -228,7 +240,7 @@ export default function BakkahHomePage() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 0.65 }}
-            className="mt-14 flex flex-wrap items-center justify-center gap-5 text-xs text-white/30"
+            className="mt-14 flex flex-wrap items-center justify-center gap-5 text-xs text-gray-400 dark:text-white/30"
           >
             <div className="flex items-center gap-2">
               <div className="flex gap-0.5">
@@ -236,11 +248,11 @@ export default function BakkahHomePage() {
               </div>
               <span>{l.hero.trust_rating}</span>
             </div>
-            <div className="h-3 w-px bg-white/10" />
+            <div className="h-3 w-px bg-gray-300 dark:bg-white/10" />
             <span>{l.hero.trust_reviews}</span>
-            <div className="h-3 w-px bg-white/10" />
+            <div className="h-3 w-px bg-gray-300 dark:bg-white/10" />
             <span>{l.hero.trust_certified}</span>
-            <div className="h-3 w-px bg-white/10" />
+            <div className="h-3 w-px bg-gray-300 dark:bg-white/10" />
             <span>{l.hero.trust_location}</span>
           </motion.div>
         </div>
@@ -249,18 +261,18 @@ export default function BakkahHomePage() {
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
         >
-          <span className="text-[9px] uppercase tracking-[0.25em] text-white/20">{l.hero.scroll}</span>
+          <span className="text-[9px] uppercase tracking-[0.25em] text-gray-400 dark:text-white/20">{l.hero.scroll}</span>
           <div className="scroll-bob h-10 w-px bg-gradient-to-b from-[#FF7F0A]/40 to-transparent" />
         </motion.div>
       </section>
 
       {/* ── Service ticker ─────────────────────────────────── */}
-      <div className="overflow-hidden border-y border-[#FF7F0A]/10 bg-[#FF7F0A]/[0.03] py-4">
+      <div className="overflow-hidden border-y border-[#FF7F0A]/10 bg-orange-50/50 dark:bg-[#FF7F0A]/[0.03] py-4">
         <div className="flex animate-ticker whitespace-nowrap">
           {[...l.ticker, ...l.ticker].map((item, i) => (
             <span key={i} className="inline-flex shrink-0 items-center px-8">
-              <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#FF7F0A]/60">{item}</span>
-              <span className="ml-8 text-[#FF7F0A]/25 text-xs">◆</span>
+              <span className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#FF7F0A]/70 dark:text-[#FF7F0A]/60">{item}</span>
+              <span className="ml-8 text-[#FF7F0A]/30 dark:text-[#FF7F0A]/25 text-xs">◆</span>
             </span>
           ))}
         </div>
@@ -276,13 +288,13 @@ export default function BakkahHomePage() {
               {l.services.eyebrow}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}
-              className="font-display text-[clamp(2.2rem,5.5vw,4rem)] tracking-[0.05em] text-white">
+              className="font-display text-[clamp(2.2rem,5.5vw,4rem)] tracking-[0.05em] text-gray-900 dark:text-white">
               {l.services.title}
             </motion.h2>
             <motion.div variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}
               className="mx-auto mt-3 h-px w-20 bg-gradient-to-r from-transparent via-[#FF7F0A] to-transparent" />
             <motion.p variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}
-              className="mx-auto mt-5 max-w-md text-sm text-white/38 leading-relaxed">
+              className="mx-auto mt-5 max-w-md text-sm text-gray-500 dark:text-white/38 leading-relaxed">
               {l.services.subtitle}
             </motion.p>
           </div>
@@ -296,18 +308,18 @@ export default function BakkahHomePage() {
               <motion.div
                 key={s.title} variants={fadeUp}
                 whileHover={{ y: -8, transition: { duration: 0.22 } }}
-                className="group relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] p-7 cursor-default transition-all duration-300 hover:border-[#FF7F0A]/20 hover:bg-[#FF7F0A]/[0.03] hover:shadow-[0_12px_40px_rgba(255,127,10,0.07)]"
+                className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-7 cursor-default transition-all duration-300 hover:border-[#FF7F0A]/20 hover:bg-orange-50/50 dark:hover:border-[#FF7F0A]/20 dark:hover:bg-[#FF7F0A]/[0.03] hover:shadow-[0_12px_40px_rgba(255,127,10,0.07)] shadow-sm dark:shadow-none"
               >
                 <div className="pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full bg-[#FF7F0A]/0 group-hover:bg-[#FF7F0A]/[0.07] blur-2xl transition-all duration-500" />
                 <div className="mb-5 flex items-center justify-between">
                   <span className="rounded-full border border-[#FF7F0A]/20 bg-[#FF7F0A]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#FF7F0A]">{s.tag}</span>
                   <span className="text-2xl">{s.emoji}</span>
                 </div>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03] transition-all duration-300 group-hover:border-[#FF7F0A]/25 group-hover:bg-[#FF7F0A]/[0.07]">
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 dark:border-white/[0.07] bg-gray-50 dark:bg-white/[0.03] transition-all duration-300 group-hover:border-[#FF7F0A]/25 group-hover:bg-[#FF7F0A]/[0.07]">
                   <s.icon className="h-5 w-5 text-[#FF7F0A]" />
                 </div>
-                <h3 className="mb-2 text-[15px] font-bold text-white">{s.title}</h3>
-                <p className="text-sm text-white/40 leading-relaxed">{s.desc}</p>
+                <h3 className="mb-2 text-[15px] font-bold text-gray-900 dark:text-white">{s.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-white/40 leading-relaxed">{s.desc}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -324,18 +336,18 @@ export default function BakkahHomePage() {
               {l.beforeAfter.eyebrow}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-white">
+              className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-gray-900 dark:text-white">
               {l.beforeAfter.title}
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="mx-auto mt-4 max-w-md text-sm text-white/40">
+              className="mx-auto mt-4 max-w-md text-sm text-gray-500 dark:text-white/40">
               {l.beforeAfter.subtitle}
             </motion.p>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="relative overflow-hidden rounded-2xl border border-white/[0.06] group">
+              className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.06] group">
               <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=800&q=80"
                 alt="Vehicle before detailing"
                 className="w-full h-[260px] object-cover transition-transform duration-500 group-hover:scale-105 brightness-[0.65] saturate-50" loading="lazy" />
@@ -360,7 +372,7 @@ export default function BakkahHomePage() {
           <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true }}
             className="mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             {l.features.map(tag => (
-              <div key={tag} className="flex items-center gap-2 text-sm text-white/45">
+              <div key={tag} className="flex items-center gap-2 text-sm text-gray-500 dark:text-white/45">
                 <CheckCircle className="h-4 w-4 text-[#FF7F0A] shrink-0" />
                 <span>{tag}</span>
               </div>
@@ -370,7 +382,7 @@ export default function BakkahHomePage() {
       </section>
 
       {/* ── Stats ──────────────────────────────────────────── */}
-      <section id="why-bakkah" className="relative overflow-hidden border-y border-white/[0.05] px-5 py-24 lg:px-8">
+      <section id="why-bakkah" className="relative overflow-hidden border-y border-gray-100 dark:border-white/[0.05] px-5 py-24 lg:px-8 bg-gray-50/50 dark:bg-transparent">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(255,127,10,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,127,10,0.015)_1px,transparent_1px)] bg-[size:40px_40px]" />
         <div className="mx-auto max-w-5xl relative">
           <div className="mb-14 text-center">
@@ -379,11 +391,11 @@ export default function BakkahHomePage() {
               {l.stats.eyebrow}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-white">
+              className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-gray-900 dark:text-white">
               {l.stats.title}
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="mx-auto mt-4 max-w-sm text-sm text-white/38">
+              className="mx-auto mt-4 max-w-sm text-sm text-gray-500 dark:text-white/38">
               {l.stats.subtitle}
             </motion.p>
           </div>
@@ -396,8 +408,8 @@ export default function BakkahHomePage() {
                 <p className="font-display text-[clamp(2.8rem,5.5vw,4.5rem)] text-[#FF7F0A] leading-none tracking-wide">
                   <Counter value={STAT_VALUES[i]} suffix={STAT_SUFFIXES[i]} />
                 </p>
-                <p className="mt-2 text-sm font-bold text-white/70">{stat.label}</p>
-                <p className="mt-1 text-[11px] text-white/25">{stat.sub}</p>
+                <p className="mt-2 text-sm font-bold text-gray-700 dark:text-white/70">{stat.label}</p>
+                <p className="mt-1 text-[11px] text-gray-400 dark:text-white/25">{stat.sub}</p>
               </motion.div>
             ))}
           </div>
@@ -414,11 +426,11 @@ export default function BakkahHomePage() {
               {l.howItWorks.eyebrow}
             </motion.p>
             <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-white">
+              className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-gray-900 dark:text-white">
               {l.howItWorks.title}
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}
-              className="mx-auto mt-4 max-w-md text-sm text-white/38">
+              className="mx-auto mt-4 max-w-md text-sm text-gray-500 dark:text-white/38">
               {l.howItWorks.subtitle}
             </motion.p>
           </div>
@@ -428,13 +440,13 @@ export default function BakkahHomePage() {
             {l.howItWorks.steps.map((step, i) => (
               <motion.div key={i} variants={fadeUp} custom={i}
                 initial="hidden" whileInView="visible" viewport={{ once: true }}
-                className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 hover:border-[#FF7F0A]/20 hover:bg-[#FF7F0A]/[0.02] transition-all duration-300">
+                className="group relative rounded-2xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-8 hover:border-[#FF7F0A]/20 hover:bg-orange-50/40 dark:hover:border-[#FF7F0A]/20 dark:hover:bg-[#FF7F0A]/[0.02] transition-all duration-300 shadow-sm dark:shadow-none">
                 <div className="mb-6 flex items-center gap-4">
                   <span className="font-display text-[2.5rem] leading-none text-[#FF7F0A]/20 group-hover:text-[#FF7F0A]/40 transition-colors duration-300">0{i + 1}</span>
                   <span className="text-4xl">{HOW_IT_WORKS_EMOJIS[i]}</span>
                 </div>
-                <h3 className="mb-3 text-lg font-bold text-white">{step.title}</h3>
-                <p className="text-sm text-white/40 leading-relaxed">{step.desc}</p>
+                <h3 className="mb-3 text-lg font-bold text-gray-900 dark:text-white">{step.title}</h3>
+                <p className="text-sm text-gray-500 dark:text-white/40 leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -454,7 +466,7 @@ export default function BakkahHomePage() {
 
       {/* ── Reviews ────────────────────────────────────────── */}
       {reviewsLoaded && reviews.length > 0 && (
-        <section id="reviews" className="relative overflow-hidden px-5 py-28 lg:px-8">
+        <section id="reviews" className="relative overflow-hidden px-5 py-28 lg:px-8 bg-gray-50/50 dark:bg-transparent">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_50%,rgba(255,127,10,0.025),transparent)]" />
           <div className="mx-auto max-w-7xl relative">
             <div className="mb-14 text-center">
@@ -463,11 +475,11 @@ export default function BakkahHomePage() {
                 {l.reviews.eyebrow}
               </motion.p>
               <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-white">
+                className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-gray-900 dark:text-white">
                 {l.reviews.title}
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                className="mx-auto mt-4 max-w-md text-sm text-white/38">
+                className="mx-auto mt-4 max-w-md text-sm text-gray-500 dark:text-white/38">
                 {l.reviews.subtitle}
               </motion.p>
             </div>
@@ -477,19 +489,19 @@ export default function BakkahHomePage() {
               {reviews.slice(0, 6).map((r) => (
                 <motion.div key={r.id} variants={fadeUp}
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                  className="relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 hover:border-[#FF7F0A]/15 hover:bg-[#FF7F0A]/[0.02] transition-all duration-300">
+                  className="relative rounded-2xl border border-gray-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-6 hover:border-[#FF7F0A]/15 hover:bg-orange-50/30 dark:hover:border-[#FF7F0A]/15 dark:hover:bg-[#FF7F0A]/[0.02] transition-all duration-300 shadow-sm dark:shadow-none">
                   <Quote className="absolute top-4 right-4 h-8 w-8 text-[#FF7F0A]/10" />
                   <StarRow rating={r.rating} />
                   {r.comment && (
-                    <p className="mt-3 text-sm text-white/55 leading-relaxed line-clamp-4">&ldquo;{r.comment}&rdquo;</p>
+                    <p className="mt-3 text-sm text-gray-600 dark:text-white/55 leading-relaxed line-clamp-4">&ldquo;{r.comment}&rdquo;</p>
                   )}
                   <div className="mt-4 flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF7F0A]/15 text-sm font-bold text-[#FF7F0A] shrink-0">
                       {r.customer_name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white/80">{r.customer_name}</p>
-                      <p className="text-[11px] text-white/25">{l.reviews.verified}</p>
+                      <p className="text-sm font-semibold text-gray-800 dark:text-white/80">{r.customer_name}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-white/25">{l.reviews.verified}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -503,8 +515,8 @@ export default function BakkahHomePage() {
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-[#FF7F0A] text-[#FF7F0A]" />)}
                   </div>
-                  <span className="text-sm font-bold text-white">{avgRating} {l.reviews.average}</span>
-                  <span className="text-sm text-white/40">{l.reviews.from} {reviews.length} {reviews.length !== 1 ? l.reviews.reviews : l.reviews.review}</span>
+                  <span className="text-sm font-bold text-gray-900 dark:text-white">{avgRating} {l.reviews.average}</span>
+                  <span className="text-sm text-gray-500 dark:text-white/40">{l.reviews.from} {reviews.length} {reviews.length !== 1 ? l.reviews.reviews : l.reviews.review}</span>
                 </div>
               </motion.div>
             )}
@@ -527,22 +539,27 @@ export default function BakkahHomePage() {
                 <Search className="h-7 w-7 text-[#FF7F0A]" />
               </motion.div>
               <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                className="font-display text-[clamp(1.8rem,5vw,3rem)] tracking-[0.05em] text-white">
+                className="font-display text-[clamp(1.8rem,5vw,3rem)] tracking-[0.05em] text-gray-900 dark:text-white">
                 {l.trackCta.title}
               </motion.h2>
               <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                className="mx-auto mt-4 max-w-md text-sm text-white/45 leading-relaxed">
+                className="mx-auto mt-4 max-w-md text-sm text-gray-500 dark:text-white/45 leading-relaxed">
                 {l.trackCta.subtitle}
               </motion.p>
-              <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mt-8">
+              <motion.div variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <Link href="/track"
                   className="group inline-flex items-center gap-3 rounded-xl bg-[#FF7F0A] px-8 py-4 text-sm font-bold text-black shadow-[0_0_40px_rgba(255,127,10,0.25)] transition-all duration-300 hover:bg-[#FF9F3A] hover:shadow-[0_0_60px_rgba(255,127,10,0.4)] hover:scale-[1.03] active:scale-[0.97]">
                   {l.trackCta.cta}
                   <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1.5" />
                 </Link>
+                <Link href="/invoice"
+                  className="group inline-flex items-center gap-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] px-8 py-4 text-sm font-semibold text-gray-600 dark:text-white/60 transition-all duration-300 hover:border-[#FF7F0A]/30 hover:text-[#FF7F0A] dark:hover:border-[#FF7F0A]/30 dark:hover:text-[#FF7F0A]">
+                  <FileText className="h-4 w-4" />
+                  View Invoice
+                </Link>
               </motion.div>
               <motion.p variants={fadeUp} custom={4} initial="hidden" whileInView="visible" viewport={{ once: true }}
-                className="mt-5 text-xs text-white/25">
+                className="mt-5 text-xs text-gray-400 dark:text-white/25">
                 {l.trackCta.hint}
               </motion.p>
             </div>
@@ -551,7 +568,7 @@ export default function BakkahHomePage() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────── */}
-      <footer id="contact" className="border-t border-white/[0.06] px-5 py-16 lg:px-8">
+      <footer id="contact" className="border-t border-gray-100 dark:border-white/[0.06] px-5 py-16 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 mb-14">
             <div>
@@ -560,14 +577,14 @@ export default function BakkahHomePage() {
                   <Car className="h-[18px] w-[18px] text-black" />
                 </div>
                 <div className="leading-none">
-                  <p className="font-display text-xl tracking-[0.2em] text-white leading-none">BAKKAH</p>
-                  <p className="text-[9px] tracking-[0.15em] text-white/30">AUTO DETAILING</p>
+                  <p className="font-display text-xl tracking-[0.2em] text-gray-900 dark:text-white leading-none">BAKKAH</p>
+                  <p className="text-[9px] tracking-[0.15em] text-gray-400 dark:text-white/30">AUTO DETAILING</p>
                 </div>
               </div>
-              <p className="text-sm text-white/38 leading-relaxed max-w-xs">{l.footer.tagline}</p>
+              <p className="text-sm text-gray-500 dark:text-white/38 leading-relaxed max-w-xs">{l.footer.tagline}</p>
               <div className="mt-5 flex items-center gap-1">
                 {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-[#FF7F0A] text-[#FF7F0A]" />)}
-                <span className="ml-2 text-xs text-white/30">{l.footer.ratingText}</span>
+                <span className="ml-2 text-xs text-gray-400 dark:text-white/30">{l.footer.ratingText}</span>
               </div>
               <div className="mt-5">
                 <a href="https://wa.me/971589397610?text=Hi+Bakkah!+I'd+like+to+book+a+service"
@@ -580,10 +597,10 @@ export default function BakkahHomePage() {
             </div>
 
             <div>
-              <h4 className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-white/25">{l.footer.ourServices}</h4>
+              <h4 className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-400 dark:text-white/25">{l.footer.ourServices}</h4>
               <ul className="space-y-3">
                 {SERVICE_LIST.map(s => (
-                  <li key={s.title} className="flex items-center gap-2.5 text-sm text-white/38">
+                  <li key={s.title} className="flex items-center gap-2.5 text-sm text-gray-500 dark:text-white/38">
                     <span className="text-base shrink-0">{s.emoji}</span>
                     {s.title}
                   </li>
@@ -592,7 +609,7 @@ export default function BakkahHomePage() {
             </div>
 
             <div>
-              <h4 className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-white/25">{l.footer.getInTouch}</h4>
+              <h4 className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-400 dark:text-white/25">{l.footer.getInTouch}</h4>
               <ul className="space-y-4">
                 {[
                   { icon: MapPin, text: 'Al Qusais Industrial Area\nDubai, UAE 🇦🇪' },
@@ -603,24 +620,28 @@ export default function BakkahHomePage() {
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[#FF7F0A]/15 bg-[#FF7F0A]/10">
                       <Icon className="h-3.5 w-3.5 text-[#FF7F0A]" />
                     </div>
-                    <span className="text-sm text-white/38 leading-relaxed whitespace-pre-line">{text}</span>
+                    <span className="text-sm text-gray-500 dark:text-white/38 leading-relaxed whitespace-pre-line">{text}</span>
                   </li>
                 ))}
               </ul>
-              <div className="mt-6 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/25 mb-2">{l.footer.openingHours}</p>
-                <p className="text-sm text-white/50">{l.footer.monSat}</p>
-                <p className="text-sm text-white/50">{l.footer.sunday}</p>
+              <div className="mt-6 rounded-xl border border-gray-200 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-white/25 mb-2">{l.footer.openingHours}</p>
+                <p className="text-sm text-gray-500 dark:text-white/50">{l.footer.monSat}</p>
+                <p className="text-sm text-gray-500 dark:text-white/50">{l.footer.sunday}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col items-center justify-between gap-4 border-t border-white/[0.05] pt-8 sm:flex-row">
-            <p className="text-xs text-white/20">{l.footer.copyright}</p>
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-gray-100 dark:border-white/[0.05] pt-8 sm:flex-row">
+            <p className="text-xs text-gray-400 dark:text-white/20">{l.footer.copyright}</p>
             <div className="flex items-center gap-5">
-              <Link href="/track" className="text-xs text-white/20 hover:text-white/50 transition-colors">{l.footer.trackVehicle}</Link>
-              <span className="h-3 w-px bg-white/10" />
-              <Link href="/auth/login" className="inline-flex items-center gap-1 text-xs text-white/20 hover:text-white/50 transition-colors">
+              <Link href="/track" className="text-xs text-gray-400 dark:text-white/20 hover:text-gray-600 dark:hover:text-white/50 transition-colors">{l.footer.trackVehicle}</Link>
+              <span className="h-3 w-px bg-gray-200 dark:bg-white/10" />
+              <Link href="/invoice" className="text-xs text-gray-400 dark:text-white/20 hover:text-[#FF7F0A] transition-colors flex items-center gap-1">
+                <FileText className="h-3 w-3" /> View Invoice
+              </Link>
+              <span className="h-3 w-px bg-gray-200 dark:bg-white/10" />
+              <Link href="/auth/login" className="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-white/20 hover:text-gray-600 dark:hover:text-white/50 transition-colors">
                 {l.footer.staffLogin} <ChevronRight className="h-3 w-3" />
               </Link>
             </div>

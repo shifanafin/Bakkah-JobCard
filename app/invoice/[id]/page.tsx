@@ -4,7 +4,8 @@ import { useEffect, useState, use } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { JOB_TYPE_LABEL, JOB_STATUS_LABEL, type JobStatus, type JobType } from '@/types'
-import { Printer, Copy, MessageCircle, Check, Loader2, ArrowLeft, Car } from 'lucide-react'
+import { Printer, Copy, MessageCircle, Check, Loader2, ArrowLeft, Car, Sun, Moon } from 'lucide-react'
+import { useTheme } from '@/components/ThemeProvider'
 
 type InvoiceJob = {
   id: string
@@ -35,6 +36,7 @@ function fmtDate(s: string) {
 
 export default function PublicInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const { theme, toggle } = useTheme()
   const [job, setJob] = useState<InvoiceJob | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
@@ -94,7 +96,7 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
       `}</style>
 
       {/* Action bar */}
-      <div className="no-print fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-2 border-b border-gray-100 bg-white/95 px-4 py-3 backdrop-blur-sm shadow-sm flex-wrap">
+      <div className="no-print fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-2 border-b border-gray-100 dark:border-white/[0.06] bg-white/95 dark:bg-surface-900/95 px-4 py-3 backdrop-blur-sm shadow-sm flex-wrap">
         <Link
           href={trackUrl}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
@@ -125,11 +127,18 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
             {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
             <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy Link'}</span>
           </button>
+          <button
+            onClick={toggle}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 shadow hover:bg-gray-50 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 
       {/* Invoice — A4 paper */}
-      <div className="min-h-screen bg-gray-100 py-8 pt-20 print:pt-0">
+      <div className="min-h-screen bg-gray-100 dark:bg-surface-900 py-8 pt-20 print:pt-0">
         <div className="max-w-[210mm] mx-auto bg-white shadow-xl print:shadow-none">
           <div className="p-6 sm:p-10 text-gray-900 font-sans">
 
