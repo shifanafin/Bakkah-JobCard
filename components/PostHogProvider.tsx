@@ -8,7 +8,7 @@ import { useEffect, Suspense } from 'react'
 if (typeof window !== 'undefined') {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-    capture_pageview: false, // handled manually in PageView for SPA routing
+    capture_pageview: false,
     capture_pageleave: true,
   })
 }
