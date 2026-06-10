@@ -52,6 +52,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to create account' }, { status: 500 })
     }
 
+    // Create ba_account entry so Better Auth can verify credentials at sign-in
+    await sb.from('ba_account').insert({
+      account_id: user.email,
+      provider_id: 'credential',
+      user_id: user.id,
+      password: password_hash,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+
     return NextResponse.json({ ok: true, user })
   } catch (e) {
     console.error('[signup] error:', e)
