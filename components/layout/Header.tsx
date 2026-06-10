@@ -8,7 +8,6 @@ import { useTheme } from '@/components/ThemeProvider'
 import { useShell } from '@/components/layout/WorkshopShell'
 import { cn } from '@/lib/utils/cn'
 import { useT } from '@/lib/i18n'
-import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 interface HeaderProps { title: string; subtitle?: string }
 
@@ -61,9 +60,8 @@ export default function Header({ title, subtitle }: HeaderProps) {
         </div>
       </div>
 
-      {/* Right: language switcher, theme toggle, notifications, avatar */}
+      {/* Right: theme toggle, notifications, avatar */}
       <div className="flex items-center gap-2">
-        <LanguageSwitcher variant="app" />
         {/* Theme toggle */}
         <button
           onClick={toggle}

@@ -14,6 +14,7 @@ import { formatAED, formatDate } from '@/lib/utils/format'
 import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
+import { analytics } from '@/lib/analytics'
 
 function buildWhatsAppHref(job: JobCard): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
@@ -44,7 +45,11 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [isAssigning, startAssign] = useTransition()
 
   const load = useCallback(async () => {
-    try { setJob(await getJobCard(id)) }
+    try {
+      const data = await getJobCard(id)
+      setJob(data)
+      if (data) analytics.jobCardViewed(data.id, data.job_number, data.status)
+    }
     catch { toast.error('Failed to load job card') }
     finally { setLoading(false) }
   }, [id])
@@ -60,6 +65,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
       try {
         await assignTechnician(id, selectedTech)
         toast.success('Technician assigned')
+        if (job) analytics.technicianAssigned(id, job.job_number)
         await load()
         setSelectedTech('')
       } catch { toast.error('Failed to assign technician') }
@@ -93,7 +99,8 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             <button onClick={load} className="btn-ghost text-xs px-3 py-2 h-auto">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <Link href={`/invoice/${id}`} target="_blank" className="btn-ghost text-xs">
+            <Link href={`/invoice/${id}`} target="_blank" className="btn-ghost text-xs"
+              onClick={() => analytics.invoicePrinted(id, job.job_number)}>
               <Printer className="h-3.5 w-3.5" /> Invoice
             </Link>
             {job.customer?.phone && (
@@ -101,6 +108,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
                 href={buildWhatsAppHref(job)}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => analytics.whatsappSent(id, job.job_number)}
                 className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600 transition-colors h-auto"
               >
                 <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
