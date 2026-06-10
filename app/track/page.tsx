@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useTheme } from '@/components/ThemeProvider'
@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useT } from '@/lib/i18n'
-import LanguageSwitcher from '@/components/LanguageSwitcher'
+import { analytics } from '@/lib/analytics'
 
 type TrackResult = {
   id: string
@@ -59,14 +59,6 @@ const ANNOUNCEMENT_STYLE: Record<string, string> = {
   info:    'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20',
   warning: 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20',
   success: 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20',
-}
-
-function getOrCreateSessionId(): string {
-  if (typeof window === 'undefined') return ''
-  const key = 'bakkah_session_id'
-  let id = localStorage.getItem(key)
-  if (!id) { id = crypto.randomUUID(); localStorage.setItem(key, id) }
-  return id
 }
 
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
@@ -115,17 +107,7 @@ export default function TrackPage() {
   const [fbSubmitting, setFbSubmitting] = useState(false)
   const [fbDone, setFbDone] = useState(false)
 
-  const logEvent = useCallback(async (eventType: string, extra?: { job_number?: string; query_type?: string }) => {
-    try {
-      await fetch('/api/analytics', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event_type: eventType, session_id: getOrCreateSessionId(), ...extra }),
-      })
-    } catch { /* fire-and-forget */ }
-  }, [])
-
   useEffect(() => {
-    logEvent('page_view')
     async function loadAnnouncements() {
       try {
         const sb = createClient()
@@ -146,7 +128,7 @@ export default function TrackPage() {
     }
     loadAnnouncements()
     loadReviews()
-  }, [logEvent])
+  }, [])
 
   useEffect(() => {
     if (autoSearched.current) return
@@ -164,7 +146,7 @@ export default function TrackPage() {
     setLoading(true); setError(''); setResult(null); setSearched(true)
     setFbDone(false); setFbRating(0); setFbComment('')
     const queryType = q.toUpperCase().startsWith('JC-') ? 'job_number' : 'phone'
-    logEvent('track_search', { query_type: queryType })
+    analytics.jobSearched(queryType)
     try {
       const sb = createClient()
       const select = `id, job_number, status, date_in, date_out, total,
@@ -186,10 +168,10 @@ export default function TrackPage() {
         }
       }
       if (!data) {
-        logEvent('track_not_found', { query_type: queryType })
+        analytics.jobNotFound(queryType)
         setError(tr.errors.notFound)
       } else {
-        logEvent('track_found', { job_number: data.job_number, query_type: queryType })
+        analytics.jobFound(data.job_number, data.status)
         setResult(data)
         setFbName(data.customer?.name ?? '')
         if (localStorage.getItem(`fb_${data.job_number}`)) setFbDone(true)
@@ -213,7 +195,7 @@ export default function TrackPage() {
         body: JSON.stringify({ job_card_id: result.id, job_number: result.job_number, customer_name: fbName || result.customer?.name || 'Customer', rating: fbRating, comment: fbComment || null }),
       })
       if (!res.ok) throw new Error()
-      logEvent('feedback_submit', { job_number: result.job_number })
+      analytics.feedbackSubmitted(result.job_number, fbRating)
       setFbDone(true)
       localStorage.setItem(`fb_${result.job_number}`, '1')
     } catch { /* silent */ }
@@ -246,7 +228,6 @@ export default function TrackPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
-            <LanguageSwitcher variant="website" />
             <button onClick={toggle}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 dark:border-white/[0.08] dark:text-white/40 dark:hover:bg-white/[0.06]"
               aria-label="Toggle theme">

@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import { useT } from '@/lib/i18n'
 import { useTheme } from '@/components/ThemeProvider'
-import LanguageSwitcher from '@/components/LanguageSwitcher'
 
 // ── Animated Counter ──────────────────────────────────────────
 function Counter({ value, suffix }: { value: number; suffix: string }) {
@@ -224,7 +223,6 @@ export default function BakkahHomePage() {
             <a href="#contact" className="hover:text-gray-900 dark:hover:text-white transition-colors">{l.nav.contact}</a>
           </div>
           <div className="flex items-center gap-2">
-            <LanguageSwitcher variant="website" />
             <button onClick={toggle} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/40 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]" aria-label="Toggle theme">
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
