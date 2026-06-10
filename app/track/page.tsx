@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useT } from '@/lib/i18n'
-import { analytics } from '@/lib/analytics'
 
 type TrackResult = {
   id: string
@@ -146,7 +145,6 @@ export default function TrackPage() {
     setLoading(true); setError(''); setResult(null); setSearched(true)
     setFbDone(false); setFbRating(0); setFbComment('')
     const queryType = q.toUpperCase().startsWith('JC-') ? 'job_number' : 'phone'
-    analytics.jobSearched(queryType)
     try {
       const sb = createClient()
       const select = `id, job_number, status, date_in, date_out, total,
@@ -168,10 +166,8 @@ export default function TrackPage() {
         }
       }
       if (!data) {
-        analytics.jobNotFound(queryType)
         setError(tr.errors.notFound)
       } else {
-        analytics.jobFound(data.job_number, data.status)
         setResult(data)
         setFbName(data.customer?.name ?? '')
         if (localStorage.getItem(`fb_${data.job_number}`)) setFbDone(true)
@@ -195,7 +191,6 @@ export default function TrackPage() {
         body: JSON.stringify({ job_card_id: result.id, job_number: result.job_number, customer_name: fbName || result.customer?.name || 'Customer', rating: fbRating, comment: fbComment || null }),
       })
       if (!res.ok) throw new Error()
-      analytics.feedbackSubmitted(result.job_number, fbRating)
       setFbDone(true)
       localStorage.setItem(`fb_${result.job_number}`, '1')
     } catch { /* silent */ }

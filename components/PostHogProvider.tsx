@@ -9,33 +9,24 @@ import { useEffect, Suspense } from 'react'
 if (typeof window !== 'undefined') {
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
-
-    // ── Page tracking ────────────────────────────────────
-    capture_pageview: false,   // manual — fired in PageView below
-    capture_pageleave: true,   // capture when user leaves a page
-
-    // ── Auto-capture ────────────────────────────────────
-    autocapture: true,         // clicks, form submits, change events
-
-    // ── Performance / Web Vitals ────────────────────────
-    capture_performance: true, // LCP, CLS, FID, FCP, TTFB
-
-    // ── Session recording ───────────────────────────────
+    capture_pageview: false,
+    capture_pageleave: true,
+    autocapture: true,
+    capture_performance: true,
     disable_session_recording: false,
     session_recording: {
       maskAllInputs: false,
-      maskInputOptions: {
-        password: true,        // always mask passwords
-      },
+      maskInputOptions: { password: true },
       recordCrossOriginIframes: false,
     },
-
-    // ── Error / exception tracking ──────────────────────
-    capture_exceptions: true,  // unhandled JS exceptions + promise rejections
-
-    // ── Misc ────────────────────────────────────────────
+    capture_exceptions: true,
     persistence: 'localStorage+cookie',
-    bootstrap: {},
+  })
+
+  // Register timezone on every event so PostHog GeoIP + timezone give
+  // accurate country / city / region breakdowns in the dashboard
+  posthog.register({
+    $timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   })
 }
 

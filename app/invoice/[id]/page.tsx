@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import { JOB_TYPE_LABEL, JOB_STATUS_LABEL, type JobStatus, type JobType } from '@/types'
 import { Printer, Copy, MessageCircle, Check, Loader2, ArrowLeft, Car, Sun, Moon, AlertTriangle, Shield, FileCheck, Gauge } from 'lucide-react'
 import { useTheme } from '@/components/ThemeProvider'
-import { analytics } from '@/lib/analytics'
 
 type RtaCheck = {
   fines_count: number
@@ -99,7 +98,6 @@ export default function PublicInvoicePage({ params }: { params: Promise<{ id: st
       setJob(j)
       setRta(rtaData as RtaCheck | null)
       setLoading(false)
-      if (j) analytics.invoiceViewed(id, j.job_number)
     }
     load()
   }, [id])
