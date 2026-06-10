@@ -9,12 +9,13 @@ export const auth = betterAuth({
   emailAndPassword: { enabled: true },
   plugins: [username()],
   user: {
-    tableName: 'users',
+    modelName: 'users',           // modelName = actual SQL table name (not tableName)
     fields: {
-      image:         'avatar_url',
-      emailVerified: 'email_verified',
-      createdAt:     'created_at',
-      updatedAt:     'updated_at',
+      image:           'avatar_url',
+      emailVerified:   'email_verified',
+      createdAt:       'created_at',
+      updatedAt:       'updated_at',
+      displayUsername: 'display_username',
     },
     additionalFields: {
       role:   { type: 'string',  required: false, defaultValue: 'receptionist', input: true },
@@ -22,7 +23,7 @@ export const auth = betterAuth({
     },
   },
   session: {
-    tableName: 'ba_session',
+    modelName: 'ba_session',
     fields: {
       expiresAt: 'expires_at',
       createdAt: 'created_at',
@@ -33,7 +34,7 @@ export const auth = betterAuth({
     },
   },
   account: {
-    tableName: 'ba_account',
+    modelName: 'ba_account',
     fields: {
       accountId:             'account_id',
       providerId:            'provider_id',
@@ -48,7 +49,7 @@ export const auth = betterAuth({
     },
   },
   verification: {
-    tableName: 'ba_verification',
+    modelName: 'ba_verification',
     fields: {
       expiresAt: 'expires_at',
       createdAt: 'created_at',
