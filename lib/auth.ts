@@ -1,12 +1,26 @@
 import { betterAuth } from 'better-auth'
 import { username } from 'better-auth/plugins'
 import { Pool } from 'pg'
+import bcrypt from 'bcryptjs'
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL,
   secret: process.env.BETTER_AUTH_SECRET,
-  database: new Pool({ connectionString: process.env.DATABASE_URL }),
-  emailAndPassword: { enabled: true },
+  database: new Pool({
+    host:     process.env.DB_HOST,
+    port:     Number(process.env.DB_PORT ?? '5432'),
+    user:     process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME ?? 'postgres',
+    ssl:      { rejectUnauthorized: false },
+  }),
+  emailAndPassword: {
+    enabled: true,
+    password: {
+      hash:   (password) => bcrypt.hash(password, 10),
+      verify: ({ hash, password }) => bcrypt.compare(password, hash),
+    },
+  },
   plugins: [username()],
   user: {
     modelName: 'users',           // modelName = actual SQL table name (not tableName)
