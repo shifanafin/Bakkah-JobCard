@@ -119,21 +119,7 @@ function validateForm(f: FormState): Record<string, string> {
   return errors
 }
 
-// ─── UI sub-components ────────────────────────────────────────────────────────
 
-function Section({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
-  return (
-    <div className="card space-y-4">
-      <div className="flex items-center gap-2.5 border-b border-gray-100 pb-4 dark:border-white/[0.06]">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
-          <Icon className="h-3.5 w-3.5 text-brand" />
-        </div>
-        <h2 className="section-title">{title}</h2>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
-    </div>
-  )
-}
 
 function Field({
   label, required, children, full, error,
@@ -306,7 +292,7 @@ export default function NewJobCardPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="New Job Card" subtitle="Vehicle check-in" />
-      <div className="mx-auto max-w-4xl p-4 lg:p-6">
+      <div className="min-w-full p-4 lg:p-6">
 
         <div className="mb-4">
           <Link href="/workshop/job-cards" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70 w-fit">

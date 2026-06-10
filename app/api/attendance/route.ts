@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { auth } from '@/app/auth'
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 
@@ -14,7 +15,7 @@ function getSb() {
 
 // POST — manual check-in (idempotent: returns existing if already checked in today)
 export async function POST() {
-  const session = await auth()
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const role = (session?.user as { role?: string })?.role
@@ -47,7 +48,7 @@ export async function POST() {
 
 // PATCH — manual check-out
 export async function PATCH(req: NextRequest) {
-  const session = await auth()
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const role = (session?.user as { role?: string })?.role
@@ -72,7 +73,7 @@ export async function PATCH(req: NextRequest) {
 //   ?today=true  → current employee's own attendance for today (no admin required)
 //   ?date=YYYY-MM-DD → admin view of all staff for that date
 export async function GET(req: NextRequest) {
-  const session = await auth()
+  const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const url = new URL(req.url)

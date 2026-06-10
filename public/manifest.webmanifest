@@ -1,7 +1,7 @@
 {
-  "name": "AutoEdge Pro",
-  "short_name": "AutoEdge",
-  "description": "Automotive Workshop Management Platform — Al Qusais, Dubai",
+  "name": "Bakkah Auto Detailing",
+  "short_name": "Bakkah",
+  "description": "Professional Car Detailing & Workshop Management — Dubai",
   "start_url": "/auth/login",
   "scope": "/",
   "display": "standalone",

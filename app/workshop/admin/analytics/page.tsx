@@ -27,7 +27,7 @@ const GEO_PROPS = [
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-8 p-4 md:p-6 max-w-4xl">
+    <div className="space-y-8 p-4 md:p-6 min-w-full">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>

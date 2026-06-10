@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Users, Plus, Loader2, X, Check, RefreshCw, Key, ToggleLeft, ToggleRight, Copy } from 'lucide-react'
@@ -49,7 +49,7 @@ function generatePassword(): string {
 }
 
 export default function EmployeesPage() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
   const role = (session?.user as { role?: string })?.role
 
@@ -69,10 +69,10 @@ export default function EmployeesPage() {
 
   // Role guard
   useEffect(() => {
-    if (status === 'authenticated' && role !== 'admin') {
+    if (!isPending && session && role !== 'admin') {
       router.replace('/workshop/dashboard')
     }
-  }, [status, role, router])
+  }, [isPending, role, router])
 
   const load = useCallback(async () => {
     try {
@@ -153,7 +153,7 @@ export default function EmployeesPage() {
     }
   }
 
-  if (status === 'loading' || (status === 'authenticated' && role !== 'admin')) {
+  if (isPending || (!isPending && session && role !== 'admin')) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
@@ -165,7 +165,7 @@ export default function EmployeesPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Employees" subtitle="Manage workshop staff" />
 
-      <div className="p-4 space-y-5 max-w-6xl lg:p-6">
+      <div className="p-4 space-y-5 min-w-full lg:p-6">
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-white/40">{employees.length} employees</p>
@@ -298,7 +298,7 @@ export default function EmployeesPage() {
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   className="input-base w-full"
-                  placeholder="ahmed@autoedgepro.ae"
+                  placeholder="ahmed@bakkahgarage.com"
                   required
                 />
               </div>

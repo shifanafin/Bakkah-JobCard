@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
-import { useSession } from 'next-auth/react'
+import { signOut, useSession } from '@/lib/auth-client'
 import {
   LayoutDashboard, ClipboardList, Plus, Settings,
   LogOut, Zap, ChevronRight, X, Briefcase, Package,
@@ -50,7 +49,7 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
   const { data: session } = useSession()
   const { t } = useT()
   const nav = t.app.nav
-  const role = (session?.user as { role?: string })?.role ?? 'receptionist'
+  const role = (session?.user as { role?: string } | undefined)?.role ?? 'receptionist'
 
   const workshopNav: NavItem[] = []
   const adminNav: NavItem[] = []
@@ -102,7 +101,7 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
             <Zap className="h-4 w-4 text-brand" />
           </div>
           <div>
-            <p className="font-display text-lg leading-none tracking-wide text-gray-900 dark:text-white">AutoEdge</p>
+            <p className="font-display text-lg leading-none tracking-wide text-gray-900 dark:text-white">Bakkah</p>
             <p className="text-[10px] text-gray-400 leading-tight dark:text-white/30">{t.app.workshopPro}</p>
           </div>
         </div>
@@ -175,7 +174,7 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
           {nav.settings}
         </Link>
         <button
-          onClick={() => signOut({ callbackUrl: '/' })}
+          onClick={() => signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/' } } })}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all dark:text-white/40 dark:hover:bg-red-500/10 dark:hover:text-red-400"
         >
           <LogOut className="h-4 w-4" />

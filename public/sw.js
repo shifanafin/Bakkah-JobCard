@@ -1,5 +1,5 @@
 
-const CACHE = 'autoedge-v1'
+const CACHE = 'bakkah-v1'
 const OFFLINE_URLS = ['/', '/auth/login', '/track']
 
 self.addEventListener('install', (event) => {

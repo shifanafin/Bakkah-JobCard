@@ -10,15 +10,15 @@ import { cn } from '@/lib/utils/cn'
 
 const CATEGORIES: { value: PhotoCategory; label: string; emoji: string }[] = [
   { value: 'exterior_front', label: 'Exterior Front', emoji: '🚗' },
-  { value: 'exterior_rear',  label: 'Exterior Rear',  emoji: '🚙' },
-  { value: 'exterior_left',  label: 'Exterior Left',  emoji: '🚘' },
+  { value: 'exterior_rear', label: 'Exterior Rear', emoji: '🚙' },
+  { value: 'exterior_left', label: 'Exterior Left', emoji: '🚘' },
   { value: 'exterior_right', label: 'Exterior Right', emoji: '🚘' },
-  { value: 'interior',       label: 'Interior',       emoji: '🪑' },
-  { value: 'engine_bay',     label: 'Engine Bay',     emoji: '⚙️' },
-  { value: 'damage',         label: 'Damage',         emoji: '⚠️' },
-  { value: 'before_work',    label: 'Before Work',    emoji: '📸' },
-  { value: 'after_work',     label: 'After Work',     emoji: '✅' },
-  { value: 'other',          label: 'Other',          emoji: '📷' },
+  { value: 'interior', label: 'Interior', emoji: '🪑' },
+  { value: 'engine_bay', label: 'Engine Bay', emoji: '⚙️' },
+  { value: 'damage', label: 'Damage', emoji: '⚠️' },
+  { value: 'before_work', label: 'Before Work', emoji: '📸' },
+  { value: 'after_work', label: 'After Work', emoji: '✅' },
+  { value: 'other', label: 'Other', emoji: '📷' },
 ]
 
 export default function PhotoUpload({ jobCardId, photos, onPhotosChange }: {
@@ -40,7 +40,7 @@ export default function PhotoUpload({ jobCardId, photos, onPhotosChange }: {
   const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return
     try {
-      const results = await uploadMultiple(Array.from(files), `autoedge/job-cards/${jobCardId}`)
+      const results = await uploadMultiple(Array.from(files), `bakkah/job-cards/${jobCardId}`)
       const newPhotos: JobCardPhoto[] = []
       for (const r of results) {
         const p = await addPhoto({ job_card_id: jobCardId, cloudinary_url: r.url, cloudinary_id: r.public_id, category, caption: caption || undefined })
@@ -81,7 +81,7 @@ export default function PhotoUpload({ jobCardId, photos, onPhotosChange }: {
           <label className="label">Category</label>
           <div className="relative">
             <select value={category} onChange={e => setCategory(e.target.value as PhotoCategory)} className="input-base appearance-none pr-8">
-              {CATEGORIES.map(c => <option key={c.value} value={c.value} className="bg-zinc-900">{c.emoji} {c.label}</option>)}
+              {CATEGORIES?.map(c => <option key={c.value} value={c.value} className="bg-zinc-900">{c.emoji} {c.label}</option>)}
             </select>
             <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/30" />
           </div>
@@ -92,47 +92,22 @@ export default function PhotoUpload({ jobCardId, photos, onPhotosChange }: {
         </div>
       </div>
 
-      {/* Drop zone */}
-      <div
-        className={cn('cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-all',
-          dragging ? 'border-brand bg-brand/10' : 'border-white/10 hover:border-brand/40 hover:bg-brand/5'
-        )}
-        onClick={() => fileRef.current?.click()}
-        onDragOver={e => { e.preventDefault(); setDragging(true) }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={e => { e.preventDefault(); setDragging(false); handleFiles(e.dataTransfer.files) }}
-      >
-        {uploading ? (
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-brand" />
-            <p className="text-sm text-white/50">Uploading... {progress}%</p>
-            <div className="h-1.5 w-48 rounded-full bg-white/10 overflow-hidden">
-              <div className="h-full rounded-full bg-brand transition-all duration-300" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-2">
-            <ImagePlus className="h-8 w-8 text-white/20" />
-            <p className="text-sm text-white/40">Drop photos here or <span className="text-brand">click to select</span></p>
-            <p className="text-xs text-white/20">Multiple files · JPG, PNG, HEIC</p>
-          </div>
-        )}
-      </div>
+
 
       {/* Upload + Camera buttons */}
       <div className="grid grid-cols-2 gap-3">
         <button type="button" onClick={() => fileRef.current?.click()}
-          className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] py-2.5 text-sm text-white/40 transition hover:border-brand/30 hover:text-brand">
+          className="flex items-center justify-center gap-2 rounded-lg border  bg-white/[0.03] py-2.5 text-sm  transition border-brand/30 text-brand">
           <ImagePlus className="h-4 w-4" /> Upload Photos
         </button>
         <button type="button" onClick={() => cameraRef.current?.click()}
-          className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] py-2.5 text-sm text-white/40 transition hover:border-brand/30 hover:text-brand">
+          className="flex items-center justify-center gap-2 rounded-lg border  bg-white/[0.03] py-2.5 text-sm transition border-brand/30 text-brand">
           <Camera className="h-4 w-4" /> Take Photo
         </button>
       </div>
 
-      <input ref={fileRef}   type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
-      <input ref={cameraRef} type="file" accept="image/*"          className="hidden" onChange={e => handleFiles(e.target.files)} />
+      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
+      <input ref={cameraRef} type="file" accept="image/*" className="hidden" onChange={e => handleFiles(e.target.files)} />
 
       {/* Gallery */}
       {Object.keys(grouped).length > 0 && (

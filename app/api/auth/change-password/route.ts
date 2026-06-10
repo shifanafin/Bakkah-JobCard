@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
-import { auth } from '@/app/auth'
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 
@@ -15,7 +16,7 @@ function adminClient() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth()
+    const session = await auth.api.getSession({ headers: await headers() })
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
@@ -31,35 +32,38 @@ export async function POST(req: NextRequest) {
 
     const sb = adminClient()
 
-    // Fetch current user record
-    const { data: user, error } = await sb
-      .from('users')
-      .select('id, password_hash')
-      .eq('email', session.user.email)
-      .eq('active', true)
+    // Fetch the credential account for this user
+    const { data: account, error } = await sb
+      .from('ba_account')
+      .select('id, password')
+      .eq('user_id', session.user.id)
+      .eq('provider_id', 'credential')
       .single()
 
-    if (error || !user) {
+    if (error || !account) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Verify current password
-    const valid = await bcrypt.compare(currentPassword, user.password_hash)
+    const valid = await bcrypt.compare(currentPassword, account.password)
     if (!valid) {
       return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 })
     }
 
-    // Hash new password and update
-    const password_hash = await bcrypt.hash(newPassword, 10)
+    const newHash = await bcrypt.hash(newPassword, 10)
+    const now = new Date().toISOString()
+
     const { error: updateError } = await sb
-      .from('users')
-      .update({ password_hash, updated_at: new Date().toISOString() })
-      .eq('id', user.id)
+      .from('ba_account')
+      .update({ password: newHash, updated_at: now })
+      .eq('id', account.id)
 
     if (updateError) {
       console.error('[change-password] update error:', updateError.message)
       return NextResponse.json({ error: 'Failed to update password' }, { status: 500 })
     }
+
+    // Keep users.password_hash in sync for any legacy code
+    await sb.from('users').update({ password_hash: newHash, updated_at: now }).eq('id', session.user.id)
 
     return NextResponse.json({ ok: true })
   } catch (e) {

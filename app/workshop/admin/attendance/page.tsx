@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import {
@@ -39,7 +39,7 @@ function hoursWorked(checkin: string, checkout: string | null): string {
 }
 
 export default function AttendancePage() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
   const role = (session?.user as { role?: string })?.role
 
@@ -48,8 +48,8 @@ export default function AttendancePage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
-    if (status === 'authenticated' && role !== 'admin') router.replace('/workshop/dashboard')
-  }, [status, role, router])
+    if (!isPending && session && role !== 'admin') router.replace('/workshop/dashboard')
+  }, [isPending, role, router])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -67,7 +67,7 @@ export default function AttendancePage() {
 
   useEffect(() => { if (role === 'admin') load() }, [role, load])
 
-  if (status === 'loading' || (status === 'authenticated' && role !== 'admin')) {
+  if (isPending || (!isPending && session && role !== 'admin')) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-brand" /></div>
   }
 
@@ -80,7 +80,7 @@ export default function AttendancePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Attendance" subtitle="Manual check-in / check-out — GPS or WiFi verified" />
 
-      <div className="p-4 space-y-5 max-w-6xl lg:p-6">
+      <div className="p-4 space-y-5 min-w-full lg:p-6">
 
         {/* Controls */}
         <div className="flex flex-wrap items-center gap-3 justify-between">
