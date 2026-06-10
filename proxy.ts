@@ -1,12 +1,9 @@
-import NextAuth from 'next-auth'
-import { authConfig } from '@/auth.config'
-import { NextResponse } from 'next/server'
+import { betterFetch } from '@better-fetch/fetch'
+import { NextRequest, NextResponse } from 'next/server'
+import type { Session } from '@/lib/auth'
 
-const { auth } = NextAuth(authConfig)
-
-export default auth((req) => {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isLoggedIn = !!req.auth
 
   // Public routes — no login required
   if (
@@ -15,6 +12,16 @@ export default auth((req) => {
     pathname.startsWith('/track') ||
     pathname.startsWith('/invoice')
   ) return NextResponse.next()
+
+  const { data: sessionData } = await betterFetch<{ session: Session['session']; user: Session['user'] }>(
+    '/api/auth/get-session',
+    {
+      baseURL: req.nextUrl.origin,
+      headers: { cookie: req.headers.get('cookie') ?? '' },
+    }
+  )
+
+  const isLoggedIn = !!sessionData?.user
 
   // Redirect unauthenticated users hitting the protected workshop invoice
   // to the public invoice page instead of the login screen
@@ -31,9 +38,8 @@ export default auth((req) => {
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
-  // Exclude all static assets: Next.js internals, public folder files (images, fonts, icons, svg, webp, etc.)
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|images|fonts|icons|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2|ttf|otf)).*)'],
 }

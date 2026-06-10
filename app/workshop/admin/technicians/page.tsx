@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
@@ -34,7 +34,7 @@ type TechRow = {
 }
 
 export default function TechniciansPage() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
   const role = (session?.user as { role?: string })?.role
 
@@ -46,10 +46,10 @@ export default function TechniciansPage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (status === 'authenticated' && role !== 'admin') {
+    if (!isPending && session && role !== 'admin') {
       router.replace('/workshop/dashboard')
     }
-  }, [status, role, router])
+  }, [isPending, role, router])
 
   const load = useCallback(async () => {
     try {
@@ -94,7 +94,7 @@ export default function TechniciansPage() {
     }
   }
 
-  if (status === 'loading' || (status === 'authenticated' && role !== 'admin')) {
+  if (isPending || (!isPending && session && role !== 'admin')) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
@@ -106,7 +106,7 @@ export default function TechniciansPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Technicians" subtitle="Workshop technician roster" />
 
-      <div className="p-4 space-y-5 max-w-5xl lg:p-6">
+      <div className="p-4 space-y-5 min-w-full lg:p-6">
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-white/40">

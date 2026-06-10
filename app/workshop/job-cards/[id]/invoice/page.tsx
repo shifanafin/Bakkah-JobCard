@@ -434,7 +434,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             <div className="mt-8 border-t-2 border-orange-500 pt-4 text-center">
               <p className="text-xs text-gray-400">Bakkah · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
               <p className="mt-1 text-xs text-gray-400">This is a computer-generated invoice. Thank you for your business.</p>
-              <p className="mt-1 text-xs font-medium text-orange-500">+971 58 939 7610 · autoedgepro.ae</p>
+              <p className="mt-1 text-xs font-medium text-orange-500">+971 58 939 7610 · bakkahgarage.com</p>
             </div>
 
           </div>

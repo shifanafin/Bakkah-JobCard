@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -51,12 +51,12 @@ export default function SignUpPage() {
         return
       }
       toast.success('Account created! Signing you in…')
-      const login = await signIn('credentials', {
-        login: form.email,
+      const login = await signIn.email({
+        email: form.email,
         password: form.password,
-        redirect: false,
+        callbackURL: '/workshop/dashboard',
       })
-      if (login?.error) {
+      if (login.error) {
         toast.error('Account created but sign-in failed — please log in manually')
         router.push('/auth/login')
       } else {
@@ -111,7 +111,7 @@ export default function SignUpPage() {
                 <input
                   type="email" required
                   value={form.email} onChange={e => set('email', e.target.value)}
-                  placeholder="you@autoedgepro.ae"
+                  placeholder="you@bakkahgarage.com"
                   className="input-base pl-9"
                 />
               </div>

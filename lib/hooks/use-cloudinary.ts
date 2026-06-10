@@ -7,7 +7,7 @@ export function useCloudinaryUpload() {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
 
-  const uploadPhoto = useCallback(async (file: File, folder = 'autoedge/job-cards'): Promise<UploadResult> => {
+  const uploadPhoto = useCallback(async (file: File, folder = 'bakkah/job-cards'): Promise<UploadResult> => {
     setUploading(true)
     setProgress(10)
     try {

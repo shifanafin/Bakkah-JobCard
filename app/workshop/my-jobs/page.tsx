@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { createClient } from '@/lib/supabase/client'
 import { updateJobStatus } from '@/lib/queries'
 import Header from '@/components/layout/Header'
@@ -97,7 +97,7 @@ export default function MyJobsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="My Jobs" subtitle="Jobs assigned to you" />
 
-      <div className="p-4 space-y-4 max-w-4xl lg:p-6">
+      <div className="p-4 space-y-4 min-w-full lg:p-6">
 
         {jobs.length === 0 ? (
           <div className="card flex flex-col items-center justify-center py-20 text-center">

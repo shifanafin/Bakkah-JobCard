@@ -51,7 +51,7 @@ export default function RTAGuidePage() {
             </div>
           </div>
           <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed mb-4">
-            AutoEdge Pro can connect to three UAE government APIs to automatically check vehicle fines, Salik toll balance,
+            Bakkah can connect to three UAE government APIs to automatically check vehicle fines, Salik toll balance,
             registration (Mulkiya) status, insurance validity, and RTA inspection results — all from within a job card.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -240,7 +240,7 @@ export default function RTAGuidePage() {
           <Link href="/workshop/settings" className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-600 dark:hover:text-white/60 transition-colors">
             <ArrowLeft className="h-4 w-4" /> Back to Settings
           </Link>
-          <p className="text-xs text-gray-300 dark:text-white/20">AutoEdge Pro · UAE RTA Integration Guide</p>
+          <p className="text-xs text-gray-300 dark:text-white/20">Bakkah · UAE RTA Integration Guide</p>
         </div>
 
       </div>

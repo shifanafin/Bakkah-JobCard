@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { LogIn, LogOut, MapPin, Wifi, Loader2, CheckCircle, AlertTriangle, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 

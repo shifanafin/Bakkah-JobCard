@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Header from '@/components/layout/Header'
 import { useTheme } from '@/components/ThemeProvider'
 import { Sun, Moon, User, Building2, Lock, Loader2, Check, Eye, EyeOff, Shield, AlertCircle, CheckCircle2, ExternalLink } from 'lucide-react'

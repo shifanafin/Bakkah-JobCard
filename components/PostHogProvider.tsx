@@ -3,7 +3,7 @@
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider, usePostHog } from 'posthog-js/react'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useEffect, Suspense } from 'react'
 
 if (typeof window !== 'undefined') {
@@ -23,8 +23,6 @@ if (typeof window !== 'undefined') {
     persistence: 'localStorage+cookie',
   })
 
-  // Register timezone on every event so PostHog GeoIP + timezone give
-  // accurate country / city / region breakdowns in the dashboard
   posthog.register({
     $timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   })
@@ -45,23 +43,25 @@ function PageView() {
   return null
 }
 
-function UserIdentifier() {
-  const { data: session, status } = useSession()
+// Must only be rendered inside a SessionProvider (workshop layout).
+// Identifies the logged-in staff member in PostHog.
+export function PostHogUserIdentifier() {
+  const { data: session, isPending } = useSession()
   const ph = usePostHog()
 
   useEffect(() => {
     if (!ph) return
-    if (status === 'authenticated' && session?.user) {
+    if (!isPending && session?.user) {
       const user = session.user as { id?: string; email?: string; name?: string; role?: string }
       ph.identify(user.id ?? user.email ?? undefined, {
         email: user.email ?? undefined,
         name: user.name ?? undefined,
         role: user.role ?? undefined,
       })
-    } else if (status === 'unauthenticated') {
+    } else if (!isPending && !session) {
       ph.reset()
     }
-  }, [session, status, ph])
+  }, [session, isPending, ph])
 
   return null
 }
@@ -71,7 +71,6 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
     <PHProvider client={posthog}>
       <Suspense fallback={null}>
         <PageView />
-        <UserIdentifier />
       </Suspense>
       {children}
     </PHProvider>

@@ -13,12 +13,12 @@ const geist = Geist({ subsets: ['latin'], variable: '--font-geist' })
 const cairo = Cairo({ subsets: ['arabic'], variable: '--font-cairo', display: 'swap' })
 
 export const metadata: Metadata = {
-  title: { default: 'AutoEdge Pro', template: '%s — AutoEdge Pro' },
+  title: { default: 'Bakkah Auto Detailing', template: '%s — Bakkah' },
   description: 'Automotive Workshop Management Platform — Al Qusais, Dubai',
   manifest: '/manifest.webmanifest',
   icons: { icon: '/icons/icon.svg', apple: '/icons/icon.svg' },
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'AutoEdge Pro' },
-  applicationName: 'AutoEdge Pro',
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Bakkah' },
+  applicationName: 'Bakkah Auto Detailing',
 }
 
 export const viewport: Viewport = {

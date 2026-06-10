@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Loader2, RefreshCw, Check, X, Star, Trash2, MessageSquare } from 'lucide-react'
@@ -35,7 +35,7 @@ function StarRow({ rating }: { rating: number }) {
 }
 
 export default function FeedbackPage() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
   const role = (session?.user as { role?: string })?.role
 
@@ -45,8 +45,8 @@ export default function FeedbackPage() {
   const [processingId, setProcessingId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'authenticated' && role !== 'admin') router.replace('/workshop/dashboard')
-  }, [status, role, router])
+    if (!isPending && session && role !== 'admin') router.replace('/workshop/dashboard')
+  }, [isPending, role, router])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -101,7 +101,7 @@ export default function FeedbackPage() {
     }
   }
 
-  if (status === 'loading' || (status === 'authenticated' && role !== 'admin')) {
+  if (isPending || (!isPending && session && role !== 'admin')) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-brand" /></div>
   }
 
@@ -121,7 +121,7 @@ export default function FeedbackPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Customer Feedback" subtitle="Review and publish customer feedback" />
 
-      <div className="p-4 space-y-5 max-w-5xl lg:p-6">
+      <div className="p-4 space-y-5 min-w-full lg:p-6">
 
         {/* Summary */}
         <div className="grid grid-cols-3 gap-4">

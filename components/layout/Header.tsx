@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import Link from 'next/link'
 import { Bell, Sun, Moon, Menu, X, Check } from 'lucide-react'
 import { useTheme } from '@/components/ThemeProvider'
@@ -134,7 +134,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-semibold text-gray-800 dark:text-white/80">{session?.user?.name ?? 'Admin'}</p>
-            <p className="text-[10px] text-gray-400 capitalize dark:text-white/30">{(session?.user as { role?: string })?.role ?? 'admin'}</p>
+            <p className="text-[10px] text-gray-400 capitalize dark:text-white/30">{(session?.user as { role?: string } | undefined)?.role ?? 'admin'}</p>
           </div>
         </Link>
       </div>

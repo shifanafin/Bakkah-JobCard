@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { auth } from '@/app/auth'
+import { headers } from 'next/headers'
+import { auth } from '@/lib/auth'
 
 export const runtime = 'nodejs'
 
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
 
   if (!approvedOnly) {
     // Admin-only: require auth
-    const session = await auth()
+    const session = await auth.api.getSession({ headers: await headers() })
     const role = (session?.user as { role?: string })?.role
     if (role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
 
 // PATCH — admin: approve or reject
 export async function PATCH(req: NextRequest) {
-  const session = await auth()
+  const session = await auth.api.getSession({ headers: await headers() })
   const role = (session?.user as { role?: string })?.role
   if (role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -76,7 +77,7 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE — admin: remove feedback
 export async function DELETE(req: NextRequest) {
-  const session = await auth()
+  const session = await auth.api.getSession({ headers: await headers() })
   const role = (session?.user as { role?: string })?.role
   if (role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 

@@ -51,7 +51,7 @@ export default function PwaInstallBanner() {
         <Download className="h-5 w-5 text-amber-400" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold leading-tight">Install AutoEdge Pro</p>
+        <p className="text-sm font-semibold leading-tight">Install Bakkah</p>
         <p className="text-xs text-gray-400 leading-tight mt-0.5">Add to home screen for quick access</p>
       </div>
       <button

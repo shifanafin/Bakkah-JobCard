@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useState, useTransition } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, authClient } from '@/lib/auth-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -21,12 +21,28 @@ function LoginForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     startTransition(async () => {
-      const res = await signIn('credentials', {
-        login: form.login.trim(),
-        password: form.password,
-        redirect: false,
-      })
-      if (res?.error) {
+      // Detect login type: contains "@" → email, else → username
+      const login = form.login.trim()
+      const isEmail = login.includes('@')
+
+      let error: string | null = null
+      if (isEmail) {
+        const res = await signIn.email({
+          email: login,
+          password: form.password,
+          callbackURL: params.get('callbackUrl') || '/workshop/dashboard',
+        })
+        error = res.error?.message ?? null
+      } else {
+        const res = await authClient.signIn.username({
+          username: login,
+          password: form.password,
+          callbackURL: params.get('callbackUrl') || '/workshop/dashboard',
+        })
+        error = res.error?.message ?? null
+      }
+
+      if (error) {
         toast.error(a.errors.invalid)
       } else {
         toast.success(a.errors.welcome)
@@ -52,7 +68,7 @@ function LoginForm() {
               autoComplete="username"
               value={form.login}
               onChange={e => setForm(f => ({ ...f, login: e.target.value }))}
-              placeholder="admin@autoedgepro.ae or admin"
+              placeholder="admin@bakkahgarage.com or admin"
               className="input-base pl-9"
             />
           </div>

@@ -71,7 +71,7 @@ export default function JobCardsPage() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Job Cards')
     XLSX.utils.book_append_sheet(wb, ws2, 'VAT Summary')
-    XLSX.writeFile(wb, `AutoEdge_Jobs_${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.writeFile(wb, `Bakkah_Jobs_${new Date().toISOString().split('T')[0]}.xlsx`)
   }
 
   const counts = TABS.reduce<Record<string, number>>((acc, tab) => {

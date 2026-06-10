@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { createClient } from '@/lib/supabase/client'
@@ -41,7 +41,7 @@ const TYPE_STYLES: Record<string, string> = {
 }
 
 export default function AnnouncementsPage() {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const router = useRouter()
   const role = (session?.user as { role?: string })?.role
 
@@ -55,10 +55,10 @@ export default function AnnouncementsPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (status === 'authenticated' && role !== 'admin') {
+    if (!isPending && session && role !== 'admin') {
       router.replace('/workshop/dashboard')
     }
-  }, [status, role, router])
+  }, [isPending, role, router])
 
   const load = useCallback(async () => {
     try {
@@ -160,7 +160,7 @@ export default function AnnouncementsPage() {
     }
   }
 
-  if (status === 'loading' || (status === 'authenticated' && role !== 'admin')) {
+  if (isPending || (!isPending && session && role !== 'admin')) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
@@ -172,7 +172,7 @@ export default function AnnouncementsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Announcements" subtitle="Customer-facing messages" />
 
-      <div className="p-4 space-y-5 max-w-4xl lg:p-6">
+      <div className="p-4 space-y-5 min-w-full lg:p-6">
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-white/40">{announcements.length} announcements</p>
