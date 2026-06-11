@@ -185,7 +185,7 @@ export const ar: AppTranslations = {
       newJobCard: 'بطاقة عمل جديدة', inventory: 'المخزون', settings: 'الإعدادات',
       signOut: 'تسجيل الخروج', employees: 'الموظفون', technicians: 'الفنيون',
       attendance: 'الحضور', feedback: 'التقييمات',
-      announcements: 'الإعلانات', analytics: 'التحليلات',
+      announcements: 'الإعلانات', analytics: 'التحليلات', website: 'إدارة الموقع',
     },
     header: {
       notifications: 'الإشعارات',

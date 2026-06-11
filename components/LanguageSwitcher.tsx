@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { useT, LANG_META, type Lang } from '@/lib/i18n'
@@ -93,7 +93,7 @@ export default function LanguageSwitcher({ variant = 'website' }: LanguageSwitch
               className={cn(
                 'flex w-full items-center gap-3 px-3 py-2.5 text-sm transition-colors text-left',
                 l === lang
-                  ? 'bg-[#FF7F0A]/15 text-[#FF7F0A] font-semibold'
+                  ? 'bg-[#6B7A28]/15 text-[#6B7A28] font-semibold'
                   : 'text-white/60 hover:bg-white/[0.06] hover:text-white'
               )}
             >

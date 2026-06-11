@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/lib/auth-client'
@@ -16,7 +16,7 @@ const SPECIALTY_COLORS: Record<string, string> = {
   'Technician':      'bg-brand/15 text-brand',
   'Inspector':       'bg-blue-500/15 text-blue-400',
   'Detailer':        'bg-purple-500/15 text-purple-400',
-  'Body Technician': 'bg-orange-500/15 text-orange-400',
+  'Body Technician': 'bg-golden/15 text-golden',
   'Painter':         'bg-pink-500/15 text-pink-400',
   'Electrician':     'bg-yellow-500/15 text-yellow-400',
 }

@@ -6,7 +6,7 @@ import { signOut, useSession } from '@/lib/auth-client'
 import {
   LayoutDashboard, ClipboardList, Plus, Settings,
   LogOut, Zap, ChevronRight, X, Briefcase, Package,
-  Users, Megaphone, Wrench, Clock, MessageSquare, BarChart2,
+  Users, Megaphone, Wrench, Clock, MessageSquare, BarChart2, Globe,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useShell } from '@/components/layout/WorkshopShell'
@@ -89,6 +89,7 @@ function SidebarContent({ path, onClose, showClose }: { path: string; onClose: (
       { href: '/workshop/admin/feedback', icon: MessageSquare, label: nav.feedback },
       { href: '/workshop/admin/announcements', icon: Megaphone, label: nav.announcements },
       { href: '/workshop/admin/analytics', icon: BarChart2, label: nav.analytics },
+      { href: '/workshop/admin/website', icon: Globe, label: nav.website },
     )
   }
 

@@ -185,7 +185,7 @@ export const ur: AppTranslations = {
       newJobCard: 'نیا جاب کارڈ', inventory: 'انوینٹری', settings: 'ترتیبات',
       signOut: 'لاگ آؤٹ', employees: 'ملازمین', technicians: 'ٹیکنیشنز',
       attendance: 'حاضری', feedback: 'جائزے',
-      announcements: 'اعلانات', analytics: 'تجزیات',
+      announcements: 'اعلانات', analytics: 'تجزیات', website: 'ویب سائٹ CMS',
     },
     header: {
       notifications: 'اطلاعات',

@@ -183,7 +183,7 @@ export const en = {
       newJobCard: 'New Job Card', inventory: 'Inventory', settings: 'Settings',
       signOut: 'Sign Out', employees: 'Employees', technicians: 'Technicians',
       attendance: 'Attendance', feedback: 'Feedback',
-      announcements: 'Announcements', analytics: 'Analytics',
+      announcements: 'Announcements', analytics: 'Analytics', website: 'Website CMS',
     },
     header: {
       notifications: 'Notifications',

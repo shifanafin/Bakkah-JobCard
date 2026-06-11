@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
@@ -58,7 +58,7 @@ export default function RTAGuidePage() {
             {[
               { name: 'MOI Smart Services', scope: 'Federal traffic fines (all emirates)', color: 'bg-red-50 border-red-100 dark:bg-red-500/10 dark:border-red-500/20', dot: 'bg-red-400' },
               { name: 'Dubai Police API', scope: 'Dubai traffic fines + violations', color: 'bg-blue-50 border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20', dot: 'bg-blue-400' },
-              { name: 'RTA Smart Integration', scope: 'Mulkiya · Insurance · Inspection · Salik', color: 'bg-orange-50 border-orange-100 dark:bg-orange-500/10 dark:border-orange-500/20', dot: 'bg-brand' },
+              { name: 'RTA Smart Integration', scope: 'Mulkiya · Insurance · Inspection · Salik', color: 'bg-brand-50 border-brand-100 dark:bg-brand/10 dark:border-brand/20', dot: 'bg-brand' },
             ].map(s => (
               <div key={s.name} className={`rounded-xl border p-3 ${s.color}`}>
                 <div className={`h-2 w-2 rounded-full ${s.dot} mb-2`} />
