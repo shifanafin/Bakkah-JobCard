@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -53,14 +54,22 @@ export async function POST(req: NextRequest) {
     }
 
     // Create ba_account entry so Better Auth can verify credentials at sign-in
-    await sb.from('ba_account').insert({
-      account_id: user.email,
+    const { error: accountError } = await sb.from('ba_account').insert({
+      id: randomUUID(),
+      account_id: user.id,
       provider_id: 'credential',
       user_id: user.id,
       password: password_hash,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
+
+    if (accountError) {
+      console.error('[signup] ba_account insert error:', accountError.message)
+      // Roll back user creation
+      await sb.from('users').delete().eq('id', user.id)
+      return NextResponse.json({ error: 'Failed to create account credentials' }, { status: 500 })
+    }
 
     return NextResponse.json({ ok: true, user })
   } catch (e) {
