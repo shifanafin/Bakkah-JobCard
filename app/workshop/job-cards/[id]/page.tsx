@@ -11,7 +11,8 @@ import RTACheck from '@/components/job-card/RTACheck'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp } from 'lucide-react'
+import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -43,10 +44,23 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [selectedTech, setSelectedTech] = useState('')
   const [isAssigning, startAssign] = useTransition()
 
+  type HistoryEntry = { id: string; old_status: string | null; new_status: string; changed_by: string | null; notes: string | null; created_at: string }
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [historyOpen, setHistoryOpen] = useState(false)
+
   const load = useCallback(async () => {
     try {
-      const data = await getJobCard(id)
+      const { createClient } = await import('@/lib/supabase/client')
+      const [data, histRes] = await Promise.all([
+        getJobCard(id),
+        createClient()
+          .from('job_card_history')
+          .select('id, old_status, new_status, changed_by, notes, created_at')
+          .eq('job_card_id', id)
+          .order('created_at', { ascending: true }),
+      ])
       setJob(data)
+      setHistory((histRes.data ?? []) as HistoryEntry[])
     }
     catch { toast.error('Failed to load job card') }
     finally { setLoading(false) }
@@ -205,6 +219,12 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
                 <Car className="h-3.5 w-3.5 text-brand" />
               </div>
               <h3 className="section-title">Vehicle</h3>
+              {job.vehicle_id && (
+                <Link href={`/workshop/vehicles/${job.vehicle_id}`}
+                  className="ml-auto flex items-center gap-1 text-xs text-brand hover:underline font-medium">
+                  <History className="h-3.5 w-3.5" /> History
+                </Link>
+              )}
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-gray-400 dark:text-white/40">Plate</span><span className="font-mono font-bold text-gray-900 tracking-wider dark:text-white">{job.vehicle?.plate_number}</span></div>
@@ -249,6 +269,88 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           photos={job.photos ?? []}
           onPhotosChange={photos => setJob(j => j ? { ...j, photos } : j)}
         />
+
+        {/* Status History Timeline */}
+        {history.length > 0 && (
+          <div className="card">
+            <button
+              className="flex w-full items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]"
+              onClick={() => setHistoryOpen(o => !o)}
+            >
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-purple-500/15">
+                <History className="h-3.5 w-3.5 text-purple-400" />
+              </div>
+              <h3 className="section-title">Status History</h3>
+              <span className="ml-1 rounded-full bg-gray-100 dark:bg-white/[0.06] px-2 py-0.5 text-xs text-gray-500 dark:text-white/40">
+                {history.length}
+              </span>
+              <span className="ml-auto text-gray-300 dark:text-white/20">
+                {historyOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </span>
+            </button>
+
+            {historyOpen && (
+              <div className="mt-4 space-y-0">
+                {history.map((entry, i) => {
+                  const STATUS_LABEL: Record<string, string> = {
+                    pending: 'Pending', assigned: 'Assigned', received: 'Received',
+                    in_progress: 'In Progress', qc_check: 'Quality Check',
+                    ready: 'Ready for Collection', delivered: 'Delivered', cancelled: 'Cancelled',
+                  }
+                  const dotColors: Record<string, string> = {
+                    pending: 'bg-amber-500', assigned: 'bg-blue-500', received: 'bg-blue-400',
+                    in_progress: 'bg-brand', qc_check: 'bg-purple-500',
+                    ready: 'bg-emerald-500', delivered: 'bg-gray-400', cancelled: 'bg-red-500',
+                  }
+                  const isLast = i === history.length - 1
+                  const isDelivered = entry.new_status === 'delivered'
+                  const isCancelled = entry.new_status === 'cancelled'
+                  return (
+                    <div key={entry.id} className="flex gap-3">
+                      <div className="flex flex-col items-center">
+                        <div className={cn(
+                          'flex h-7 w-7 items-center justify-center rounded-full border-2 shrink-0',
+                          isDelivered ? 'border-emerald-500 bg-emerald-500 text-white'
+                            : isCancelled ? 'border-red-400 bg-red-400 text-white'
+                              : isLast ? 'border-brand bg-brand text-black'
+                                : 'border-gray-200 bg-white dark:border-white/15 dark:bg-surface-800'
+                        )}>
+                          {isDelivered ? <Check className="h-3.5 w-3.5" />
+                            : isCancelled ? <X className="h-3.5 w-3.5" />
+                              : <span className={cn('h-2 w-2 rounded-full', dotColors[entry.new_status] ?? 'bg-gray-400')} />}
+                        </div>
+                        {!isLast && <div className="flex-1 w-0.5 bg-gray-200 dark:bg-white/[0.06] my-1" style={{ minHeight: 16 }} />}
+                      </div>
+                      <div className={cn('pt-0.5', isLast ? 'pb-0' : 'pb-4')}>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                          {STATUS_LABEL[entry.new_status] ?? entry.new_status}
+                        </p>
+                        <div className="flex flex-wrap gap-x-3 mt-0.5">
+                          <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-white/40">
+                            <Clock className="h-3 w-3" /> {formatDateTime(entry.created_at)}
+                          </span>
+                          {entry.changed_by && (
+                            <span className="text-xs text-gray-500 dark:text-white/50">
+                              by <span className="font-medium text-gray-700 dark:text-white/70">{entry.changed_by}</span>
+                            </span>
+                          )}
+                        </div>
+                        {entry.notes && (
+                          <p className="text-xs italic text-gray-400 dark:text-white/30 mt-0.5">{entry.notes}</p>
+                        )}
+                        {entry.old_status && (
+                          <p className="text-[10px] text-gray-300 dark:text-white/20 mt-0.5">
+                            {STATUS_LABEL[entry.old_status] ?? entry.old_status} → {STATUS_LABEL[entry.new_status] ?? entry.new_status}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* UAE RTA Vehicle Check */}
         {/* {job.vehicle?.plate_number && (

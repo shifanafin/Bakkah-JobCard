@@ -142,7 +142,7 @@ function SetupBanner() {
       .catch(() => {});
   }, []);
 
-  // if (!needsSetup) return null
+  if (!needsSetup) return null;
 
   return (
     <Link
