@@ -4,7 +4,8 @@
 
 @layer base {
   :root {
-    --brand: #ff7f0a;
+    --brand: #6B7A28;
+    --golden: #C9A227;
   }
 
   * { box-sizing: border-box; }
@@ -28,7 +29,7 @@
   * { scrollbar-width: thin; scrollbar-color: #d1d5db transparent; }
   .dark * { scrollbar-color: #2a2a2a transparent; }
 
-  ::selection { background: rgba(255,127,10,0.25); color: inherit; }
+  ::selection { background: rgba(107,122,40,0.25); color: inherit; }
 }
 
 @layer components {
@@ -49,8 +50,8 @@
            text-sm font-bold text-black transition-all duration-200
            hover:bg-brand/90 active:scale-[0.97]
            disabled:cursor-not-allowed disabled:opacity-40
-           shadow-[0_2px_12px_rgba(255,127,10,0.25)]
-           hover:shadow-[0_4px_20px_rgba(255,127,10,0.35)];
+           shadow-[0_2px_12px_rgba(107,122,40,0.30)]
+           hover:shadow-[0_4px_20px_rgba(201,162,39,0.40)];
   }
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5
@@ -97,7 +98,7 @@
 
   /* ── Gradient text utility ──────────────────────────── */
   .gradient-brand {
-    @apply bg-gradient-to-r from-brand to-orange-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-brand to-golden bg-clip-text text-transparent;
   }
 }
 

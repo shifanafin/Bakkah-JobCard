@@ -185,7 +185,7 @@ export const ta: AppTranslations = {
       newJobCard: 'புதிய வேலை அட்டை', inventory: 'சரக்கு', settings: 'அமைப்புகள்',
       signOut: 'வெளியேறு', employees: 'பணியாளர்கள்', technicians: 'தொழில்நுட்பவியலாளர்கள்',
       attendance: 'வருகை', feedback: 'மதிப்பீடுகள்',
-      announcements: 'அறிவிப்புகள்', analytics: 'பகுப்பாய்வு',
+      announcements: 'அறிவிப்புகள்', analytics: 'பகுப்பாய்வு', website: 'வலைதள CMS',
     },
     header: {
       notifications: 'அறிவிப்புகள்',

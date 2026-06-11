@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { ExternalLink, BarChart2, MousePointer2, Video, Zap, Globe, Bug, MapPin } from 'lucide-react'
 
@@ -43,7 +43,7 @@ export default function AnalyticsPage() {
           href={POSTHOG_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-black shadow-[0_2px_12px_rgba(255,127,10,0.3)] hover:bg-brand/90 transition-all"
+          className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-black shadow-[0_2px_12px_rgba(107,122,40,0.3)] hover:bg-brand/90 transition-all"
         >
           <ExternalLink className="h-4 w-4" />
           Open PostHog Dashboard

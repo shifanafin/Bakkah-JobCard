@@ -185,7 +185,7 @@ export const fr: AppTranslations = {
       newJobCard: 'Nouvelle fiche', inventory: 'Inventaire', settings: 'Paramètres',
       signOut: 'Se déconnecter', employees: 'Employés', technicians: 'Techniciens',
       attendance: 'Présences', feedback: 'Avis',
-      announcements: 'Annonces', analytics: 'Analytique',
+      announcements: 'Annonces', analytics: 'Analytique', website: 'CMS Site Web',
     },
     header: {
       notifications: 'Notifications',

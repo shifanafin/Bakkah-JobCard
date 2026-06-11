@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -84,7 +84,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center bg-white">
-      <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      <Loader2 className="h-8 w-8 animate-spin text-brand" />
     </div>
   )
 
@@ -115,7 +115,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
       <div className="no-print fixed right-4 top-4 z-50 flex gap-2 flex-wrap justify-end">
         <button
           onClick={() => window.print()}
-          className="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-lg hover:bg-orange-600 transition-colors"
+          className="flex items-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white shadow-lg hover:bg-brand/90 transition-colors"
         >
           <Printer className="h-4 w-4" /> Download PDF
         </button>
@@ -148,7 +148,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
           <div className="p-10 text-gray-900 font-sans">
 
             {/* Header */}
-            <div className="flex items-start justify-between border-b-4 border-orange-500 pb-6 mb-6">
+            <div className="flex items-start justify-between border-b-4 border-brand pb-6 mb-6">
               <div>
                 <h1 className="text-3xl font-black text-gray-900 tracking-tight">Bakkah</h1>
                 <p className="text-sm text-gray-500 mt-1">Al Qusais Industrial Area, Dubai, UAE</p>
@@ -156,7 +156,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 <p className="text-sm text-gray-500">TRN: 100 000 000 000 003</p>
               </div>
               <div className="text-right">
-                <div className="inline-block bg-orange-500 px-5 py-2.5 rounded-lg mb-3">
+                <div className="inline-block bg-brand px-5 py-2.5 rounded-lg mb-3">
                   <p className="text-white font-black text-xl tracking-widest">TAX INVOICE</p>
                 </div>
                 <p className="text-sm text-gray-500">Invoice #: <strong className="text-gray-800">{job.job_number}</strong></p>
@@ -165,7 +165,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 <div className="mt-2">
                   <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${job.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
                       job.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-                        job.status === 'in_progress' ? 'bg-orange-100 text-orange-700' :
+                        job.status === 'in_progress' ? 'bg-brand-100 text-brand-700' :
                           'bg-gray-100 text-gray-600'
                     }`}>
                     Status: {JOB_STATUS_LABEL[job.status]}
@@ -177,14 +177,14 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             {/* Customer + Vehicle */}
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-3">Bill To</h2>
+                <h2 className="text-xs font-black uppercase tracking-widest text-brand mb-3">Bill To</h2>
                 <p className="font-bold text-gray-900 text-base">{job.customer?.name}</p>
                 {job.customer?.company_name && <p className="text-sm text-gray-600">{job.customer.company_name}</p>}
                 <p className="text-sm text-gray-600">{job.customer?.phone}</p>
                 {job.customer?.email && <p className="text-sm text-gray-600">{job.customer.email}</p>}
               </div>
               <div className="rounded-lg bg-gray-50 p-4 border border-gray-100">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-3">Vehicle</h2>
+                <h2 className="text-xs font-black uppercase tracking-widest text-brand mb-3">Vehicle</h2>
                 <p className="font-bold font-mono text-gray-900 text-xl tracking-widest">{job.vehicle?.plate_number}</p>
                 <p className="text-sm text-gray-600">{job.vehicle?.make} {job.vehicle?.model} {job.vehicle?.year}</p>
                 {job.vehicle?.color && <p className="text-sm text-gray-600">Color: {job.vehicle.color}</p>}
@@ -197,10 +197,10 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             {/* Services */}
             {(job.services ?? []).length > 0 && (
               <div className="mb-5">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-2">Labour / Services</h2>
+                <h2 className="text-xs font-black uppercase tracking-widest text-brand mb-2">Labour / Services</h2>
                 <table className="w-full text-sm border-collapse">
                   <thead>
-                    <tr className="bg-orange-50 border border-orange-100">
+                    <tr className="bg-brand-50 border border-brand-100">
                       <th className="px-3 py-2.5 text-left font-bold text-gray-700">Description</th>
                       <th className="px-3 py-2.5 text-center font-bold text-gray-700 w-16">Qty</th>
                       <th className="px-3 py-2.5 text-right font-bold text-gray-700 w-28">Unit (AED)</th>
@@ -224,10 +224,10 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             {/* Parts */}
             {(job.parts ?? []).length > 0 && (
               <div className="mb-5">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-2">Parts / Materials</h2>
+                <h2 className="text-xs font-black uppercase tracking-widest text-brand mb-2">Parts / Materials</h2>
                 <table className="w-full text-sm border-collapse">
                   <thead>
-                    <tr className="bg-orange-50 border border-orange-100">
+                    <tr className="bg-brand-50 border border-brand-100">
                       <th className="px-3 py-2.5 text-left font-bold text-gray-700">Part Name</th>
                       <th className="px-3 py-2.5 text-left font-bold text-gray-700 w-28">Part #</th>
                       <th className="px-3 py-2.5 text-center font-bold text-gray-700 w-16">Qty</th>
@@ -269,7 +269,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 </div>
                 <div className="flex justify-between border-t-2 border-gray-900 pt-2 text-base font-black">
                   <span>TOTAL (AED)</span>
-                  <span className="tabular-nums text-orange-500">{job.total.toFixed(2)}</span>
+                  <span className="tabular-nums text-brand">{job.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -389,7 +389,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             {/* Photos */}
             {(beforePhotos.length > 0 || afterPhotos.length > 0 || damagePhotos.length > 0) && (
               <div className="border-t border-gray-200 pt-4">
-                <h2 className="text-xs font-black uppercase tracking-widest text-orange-500 mb-3">Vehicle Photos</h2>
+                <h2 className="text-xs font-black uppercase tracking-widest text-brand mb-3">Vehicle Photos</h2>
                 {damagePhotos.length > 0 && (
                   <div className="mb-3">
                     <p className="text-xs font-semibold text-gray-500 mb-2">Damage (pre-existing)</p>
@@ -431,10 +431,10 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             )}
 
             {/* Footer */}
-            <div className="mt-8 border-t-2 border-orange-500 pt-4 text-center">
+            <div className="mt-8 border-t-2 border-brand pt-4 text-center">
               <p className="text-xs text-gray-400">Bakkah · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
               <p className="mt-1 text-xs text-gray-400">This is a computer-generated invoice. Thank you for your business.</p>
-              <p className="mt-1 text-xs font-medium text-orange-500">+971 58 939 7610 · bakkahgarage.com</p>
+              <p className="mt-1 text-xs font-medium text-brand">+971 58 939 7610 · bakkahgarage.com</p>
             </div>
 
           </div>

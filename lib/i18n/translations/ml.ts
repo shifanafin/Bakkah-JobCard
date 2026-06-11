@@ -185,7 +185,7 @@ export const ml: AppTranslations = {
       newJobCard: 'പുതിയ ജോബ് കാർഡ്', inventory: 'ഇൻവെന്ററി', settings: 'ക്രമീകരണങ്ങൾ',
       signOut: 'സൈൻ ഔട്ട്', employees: 'ജീവനക്കാർ', technicians: 'ടെക്‌നീഷ്യൻമാർ',
       attendance: 'ഹാജർ', feedback: 'ഫീഡ്ബാക്ക്',
-      announcements: 'പ്രഖ്യാപനങ്ങൾ', analytics: 'അനലിറ്റിക്‌സ്',
+      announcements: 'പ്രഖ്യാപനങ്ങൾ', analytics: 'അനലിറ്റിക്‌സ്', website: 'വെബ്‌സൈറ്റ് CMS',
     },
     header: {
       notifications: 'അറിയിപ്പുകൾ',

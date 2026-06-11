@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import {
@@ -288,7 +288,7 @@ export default function RTACheck({ jobCardId, plateNumber, emirate = 'Dubai' }: 
             <button
               onClick={handleAPIFetch}
               disabled={fetching}
-              className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-black shadow-[0_2px_8px_rgba(255,127,10,0.2)] hover:bg-brand/90 transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-black shadow-[0_2px_8px_rgba(107,122,40,0.2)] hover:bg-brand/90 transition-colors disabled:opacity-50"
             >
               {fetching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
               {fetching ? 'Checking…' : 'Auto-Check'}
@@ -320,7 +320,7 @@ export default function RTACheck({ jobCardId, plateNumber, emirate = 'Dubai' }: 
 
       {/* Manual entry form */}
       {showManual && (
-        <div className="rounded-xl border border-brand/20 bg-orange-50/30 dark:bg-brand/[0.05] p-4 mb-4">
+        <div className="rounded-xl border border-brand/20 bg-brand-50/30 dark:bg-brand/[0.05] p-4 mb-4">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-bold text-gray-900 dark:text-white">Manual RTA Entry</h4>
             <button onClick={() => setShowManual(false)} className="text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60">
