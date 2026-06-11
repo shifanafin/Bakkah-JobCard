@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useTransition, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
 import { createJobCard, getTechnicians } from '@/lib/queries'
 import { JOB_TYPE_LABEL, type JobType } from '@/types'
-import { ArrowLeft, Car, User, Wrench, CheckCircle, Loader2, ChevronDown, Phone, AlertCircle, Check } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, CheckCircle, Loader2, ChevronDown, Phone, AlertCircle, Check, History, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/cn'
 
@@ -144,9 +144,9 @@ function Field({
 }
 
 function PhoneField({
-  value, onChange, error,
+  value, onChange, error, onAfterBlur,
 }: {
-  value: string; onChange: (v: string) => void; error?: string
+  value: string; onChange: (v: string) => void; error?: string; onAfterBlur?: (v: string) => void
 }) {
   const [touched, setTouched] = useState(false)
   const phoneErr = touched ? validatePhone(value) : error
@@ -160,9 +160,9 @@ function PhoneField({
 
   function handleBlur() {
     setTouched(true)
-    if (value.trim() && isValid) {
-      onChange(formatPhoneDisplay(value))
-    }
+    const formatted = (value.trim() && isValid) ? formatPhoneDisplay(value) : value
+    if (value.trim() && isValid) onChange(formatted)
+    onAfterBlur?.(formatted)
   }
 
   return (
@@ -220,6 +220,14 @@ function PhoneField({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+type LookupBanner = {
+  type: 'customer' | 'vehicle'
+  name: string
+  detail: string
+  visitCount?: number
+  vehicleId?: string
+}
+
 export default function NewJobCardPage() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -227,6 +235,11 @@ export default function NewJobCardPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
   const today = new Date().toISOString().split('T')[0]
+
+  // Auto-load lookup state
+  const [lookupBanners, setLookupBanners] = useState<LookupBanner[]>([])
+  const [lookingUp, setLookingUp] = useState<'phone' | 'plate' | null>(null)
+  const dismissedRef = useRef<Set<string>>(new Set())
 
   const [form, setForm] = useState<FormState>({
     customer_name: '', customer_phone: '', customer_email: '', customer_company: '', is_fleet: false,
@@ -236,6 +249,71 @@ export default function NewJobCardPage() {
   })
 
   useEffect(() => { getTechnicians().then(setTechnicians).catch(console.error) }, [])
+
+  async function lookupPhone(phone: string) {
+    const digits = normalizePhone(phone.trim()).replace(/\D/g, '')
+    if (!/^971\d{9}$/.test(digits)) return
+    if (dismissedRef.current.has(`phone:${digits}`)) return
+    setLookingUp('phone')
+    try {
+      const res = await fetch(`/api/lookup?phone=${encodeURIComponent(phone.trim())}`)
+      if (!res.ok) return
+      const { customer } = await res.json()
+      if (!customer) return
+      // Auto-fill empty fields only
+      setForm(f => ({
+        ...f,
+        customer_name: f.customer_name || customer.name || f.customer_name,
+        customer_email: f.customer_email || customer.email || '',
+        customer_company: f.customer_company || customer.company_name || '',
+        is_fleet: f.is_fleet || customer.is_fleet || false,
+      }))
+      setLookupBanners(b => [
+        ...b.filter(x => x.type !== 'customer'),
+        { type: 'customer', name: customer.name, detail: customer.company_name || customer.email || '' },
+      ])
+    } catch { /* silent */ }
+    finally { setLookingUp(null) }
+  }
+
+  async function lookupPlate(plate: string) {
+    const p = plate.trim().toUpperCase().replace(/\s+/g, '')
+    if (p.length < 2) return
+    if (dismissedRef.current.has(`plate:${p}`)) return
+    setLookingUp('plate')
+    try {
+      const res = await fetch(`/api/lookup?plate=${encodeURIComponent(p)}`)
+      if (!res.ok) return
+      const { vehicle, visitCount } = await res.json()
+      if (!vehicle) return
+      // Auto-fill empty vehicle fields only
+      setForm(f => ({
+        ...f,
+        make: f.make || vehicle.make || '',
+        model: f.model || vehicle.model || '',
+        year: f.year || (vehicle.year ? String(vehicle.year) : ''),
+        color: f.color || vehicle.color || '',
+        vin: f.vin || vehicle.vin || '',
+        // Also fill customer if not already filled from phone lookup
+        customer_name: f.customer_name || vehicle.customer?.name || '',
+        customer_phone: f.customer_phone || vehicle.customer?.phone || '',
+        customer_email: f.customer_email || vehicle.customer?.email || '',
+        customer_company: f.customer_company || vehicle.customer?.company_name || '',
+        is_fleet: f.is_fleet || vehicle.customer?.is_fleet || false,
+      }))
+      setLookupBanners(b => [
+        ...b.filter(x => x.type !== 'vehicle'),
+        {
+          type: 'vehicle',
+          name: `${vehicle.make} ${vehicle.model}${vehicle.year ? ` ${vehicle.year}` : ''}`,
+          detail: vehicle.color || '',
+          visitCount: visitCount || 0,
+          vehicleId: vehicle.id,
+        },
+      ])
+    } catch { /* silent */ }
+    finally { setLookingUp(null) }
+  }
 
   function set(k: keyof FormState, v: unknown) {
     setForm(f => ({ ...f, [k]: v }))
@@ -309,7 +387,28 @@ export default function NewJobCardPage() {
                 <User className="h-3.5 w-3.5 text-brand" />
               </div>
               <h2 className="section-title">Customer Details</h2>
+              {lookingUp === 'phone' && <Loader2 className="h-3.5 w-3.5 animate-spin text-brand ml-auto" />}
             </div>
+
+            {/* Returning customer banner */}
+            {lookupBanners.find(b => b.type === 'customer') && (() => {
+              const b = lookupBanners.find(b => b.type === 'customer')!
+              return (
+                <div className="flex items-start gap-3 rounded-xl bg-brand/8 border border-brand/20 dark:bg-brand/10 px-4 py-3">
+                  <UserCheck className="h-4 w-4 text-brand mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-brand">Returning Customer</p>
+                    <p className="text-xs text-gray-600 dark:text-white/60">{b.name}{b.detail ? ` · ${b.detail}` : ''} — details auto-filled</p>
+                  </div>
+                  <button type="button" onClick={() => {
+                    dismissedRef.current.add(`phone:${normalizePhone(form.customer_phone.trim()).replace(/\D/g, '')}`)
+                    setLookupBanners(bs => bs.filter(x => x.type !== 'customer'))
+                  }} className="text-gray-400 hover:text-gray-600 dark:hover:text-white/60">
+                    <History className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )
+            })()}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
               <Field label="Full Name" required error={e.customer_name}>
@@ -327,6 +426,7 @@ export default function NewJobCardPage() {
                 value={form.customer_phone}
                 onChange={v => set('customer_phone', v)}
                 error={e.customer_phone}
+                onAfterBlur={v => lookupPhone(v)}
               />
 
               <Field label="Email Address" error={e.customer_email}>
@@ -365,13 +465,43 @@ export default function NewJobCardPage() {
                 <Car className="h-3.5 w-3.5 text-brand" />
               </div>
               <h2 className="section-title">Vehicle Details</h2>
+              {lookingUp === 'plate' && <Loader2 className="h-3.5 w-3.5 animate-spin text-brand ml-auto" />}
             </div>
+
+            {/* Known vehicle banner */}
+            {lookupBanners.find(b => b.type === 'vehicle') && (() => {
+              const b = lookupBanners.find(b => b.type === 'vehicle')!
+              return (
+                <div className="flex items-start gap-3 rounded-xl bg-blue-50 border border-blue-200 dark:bg-blue-500/10 dark:border-blue-500/20 px-4 py-3">
+                  <Car className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-blue-700 dark:text-blue-300">Returning Vehicle</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-400/80">
+                      {b.name}{b.detail ? ` · ${b.detail}` : ''} — {b.visitCount ?? 0} previous visit{b.visitCount !== 1 ? 's' : ''}
+                    </p>
+                    {b.vehicleId && (
+                      <a href={`/workshop/vehicles/${b.vehicleId}`} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-blue-500 hover:underline inline-flex items-center gap-1 mt-0.5">
+                        <History className="h-3 w-3" /> View service history
+                      </a>
+                    )}
+                  </div>
+                  <button type="button" onClick={() => {
+                    dismissedRef.current.add(`plate:${form.plate_number.toUpperCase().replace(/\s+/g, '')}`)
+                    setLookupBanners(bs => bs.filter(x => x.type !== 'vehicle'))
+                  }} className="text-gray-400 hover:text-gray-600 dark:hover:text-white/60">
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )
+            })()}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
               <Field label="Plate Number" required error={e.plate_number}>
                 <input
                   value={form.plate_number}
                   onChange={ev => set('plate_number', ev.target.value.toUpperCase())}
+                  onBlur={() => lookupPlate(form.plate_number)}
                   placeholder="A 12345 or ABC 1234"
                   data-error={e.plate_number ? true : undefined}
                   className={cn('input-base w-full font-mono uppercase tracking-widest', e.plate_number && 'border-red-400 focus:border-red-400 focus:ring-red-400/20')}
