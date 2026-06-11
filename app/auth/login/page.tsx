@@ -28,16 +28,14 @@ function LoginForm() {
       let error: string | null = null
       if (isEmail) {
         const res = await signIn.email({
-          email: login,
+          email:    login,
           password: form.password,
-          callbackURL: params.get('callbackUrl') || '/workshop/dashboard',
         })
         error = res.error?.message ?? null
       } else {
         const res = await authClient.signIn.username({
           username: login,
           password: form.password,
-          callbackURL: params.get('callbackUrl') || '/workshop/dashboard',
         })
         error = res.error?.message ?? null
       }
