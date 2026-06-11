@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useTransition, useEffect } from 'react'
-import { signIn } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -9,9 +8,9 @@ import { Eye, EyeOff, Loader2, Zap, User, Lock, Mail, AtSign, ShieldCheck } from
 
 const ROLES = [
   { value: 'receptionist', label: 'Receptionist' },
-  { value: 'technician', label: 'Technician' },
-  { value: 'supervisor', label: 'Supervisor' },
-  { value: 'manager', label: 'Manager' },
+  { value: 'technician',   label: 'Technician'   },
+  { value: 'supervisor',   label: 'Supervisor'    },
+  { value: 'manager',      label: 'Manager'       },
 ]
 
 export default function SignUpPage() {
@@ -44,36 +43,32 @@ export default function SignUpPage() {
       toast.error('Passwords do not match')
       return
     }
+
     startTransition(async () => {
       const res = await fetch('/api/auth/signup', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.name,
-          email: form.email,
+          name:     form.name,
+          email:    form.email,
           username: form.username,
           password: form.password,
-          role: form.role,
+          role:     form.role,
         }),
       })
+
       const data = await res.json()
+
       if (!res.ok) {
         toast.error(data.error || 'Failed to create account')
         return
       }
-      toast.success('Account created! Signing you in…')
-      const login = await signIn.email({
-        email: form.email,
-        password: form.password,
-        callbackURL: '/workshop/dashboard',
-      })
-      if (login.error) {
-        toast.error('Account created but sign-in failed — please log in manually')
-        router.push('/auth/login')
-      } else {
-        router.push('/workshop/dashboard')
-        router.refresh()
-      }
+
+      // Better Auth created the user, ba_account, AND session in one step.
+      // The session cookie is already set — just navigate to the dashboard.
+      toast.success(needsSetup ? 'Admin account created! Welcome.' : 'Account created! Welcome.')
+      router.push('/workshop/dashboard')
+      router.refresh()
     })
   }
 
@@ -88,13 +83,11 @@ export default function SignUpPage() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gray-50 dark:bg-surface-900">
 
-      {/* Background */}
       <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-40 dark:opacity-100" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(255,127,10,0.12),transparent)]" />
 
       <div className="relative z-10 w-full max-w-sm px-4">
 
-        {/* Logo */}
         <div className="mb-8 text-center">
           <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/30 bg-brand/10">
             {needsSetup ? <ShieldCheck className="h-7 w-7 text-brand" /> : <Zap className="h-7 w-7 text-brand" />}
@@ -119,7 +112,6 @@ export default function SignUpPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Full Name */}
             <div>
               <label className="label">Full Name</label>
               <div className="relative">
@@ -133,7 +125,6 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Email */}
             <div>
               <label className="label">Email Address</label>
               <div className="relative">
@@ -147,21 +138,20 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Username */}
             <div>
               <label className="label">Username</label>
               <div className="relative">
                 <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/25" />
                 <input
                   type="text" required
-                  value={form.username} onChange={e => set('username', e.target.value.replace(/\s/g, '').toLowerCase())}
+                  value={form.username}
+                  onChange={e => set('username', e.target.value.replace(/\s/g, '').toLowerCase())}
                   placeholder="ahmed123"
                   className="input-base pl-9"
                 />
               </div>
             </div>
 
-            {/* Role — hidden in setup mode (forced to admin) */}
             {!needsSetup && (
               <div>
                 <label className="label">Role</label>
@@ -176,7 +166,6 @@ export default function SignUpPage() {
               </div>
             )}
 
-            {/* Password */}
             <div>
               <label className="label">Password</label>
               <div className="relative">
@@ -195,7 +184,6 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Confirm Password */}
             <div>
               <label className="label">Confirm Password</label>
               <div className="relative">
