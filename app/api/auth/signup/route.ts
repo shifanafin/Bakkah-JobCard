@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { auth } from '@/lib/auth'
+import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
+import { createServerSession, setSessionCookie } from '@/lib/server-session'
 
 export const runtime = 'nodejs'
+
+function adminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { persistSession: false } }
+  )
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,13 +25,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 })
     }
 
-    // Block admin creation unless no users exist yet (first-time setup)
+    const sb = adminClient()
+
+    // Block admin creation unless no users exist (first-time setup)
     if (role === 'admin') {
-      const sb = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        { auth: { persistSession: false } }
-      )
       const { count } = await sb.from('users').select('id', { count: 'exact', head: true })
       if (count !== 0) {
         return NextResponse.json(
@@ -31,39 +38,67 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Let Better Auth handle user + ba_account + session creation atomically.
-    // This ensures the credential account is stored in the exact format BA expects,
-    // so subsequent signIn calls work without any format mismatches.
-    const baRes = await auth.api.signUpEmail({
-      body: {
-        email:    email.trim().toLowerCase(),
-        password,
-        name:     name.trim(),
-        username: username.trim().toLowerCase(),
-        role:     role || 'receptionist',
-      },
-      headers:    req.headers,
-      asResponse: true,
-    })
+    const cleanEmail    = email.trim().toLowerCase()
+    const cleanUsername = username.trim().toLowerCase()
 
-    if (!baRes.ok) {
-      const err = await baRes.json().catch(() => ({})) as Record<string, string>
-      // Map BA's generic error message to something user-friendly
-      const message = err.message || err.error || ''
-      if (message.toLowerCase().includes('email') && message.toLowerCase().includes('exist')) {
-        return NextResponse.json({ error: 'Email is already registered' }, { status: 409 })
-      }
-      if (message.toLowerCase().includes('username') && message.toLowerCase().includes('exist')) {
-        return NextResponse.json({ error: 'Username is already taken' }, { status: 409 })
-      }
-      return NextResponse.json(
-        { error: message || 'Failed to create account' },
-        { status: baRes.status }
-      )
+    // Check duplicates
+    const { data: existingEmail } = await sb.from('users').select('id').eq('email', cleanEmail).maybeSingle()
+    if (existingEmail) return NextResponse.json({ error: 'Email is already registered' }, { status: 409 })
+
+    const { data: existingUser } = await sb.from('users').select('id').eq('username', cleanUsername).maybeSingle()
+    if (existingUser) return NextResponse.json({ error: 'Username is already taken' }, { status: 409 })
+
+    // Create user
+    const userId        = randomUUID()
+    const passwordHash  = await bcrypt.hash(password, 10)
+    const now           = new Date().toISOString()
+
+    const { error: userErr } = await sb.from('users').insert({
+      id:              userId,
+      name:            name.trim(),
+      email:           cleanEmail,
+      username:        cleanUsername,
+      password_hash:   passwordHash,
+      role:            role || 'receptionist',
+      active:          true,
+      email_verified:  false,
+      created_at:      now,
+      updated_at:      now,
+    })
+    if (userErr) {
+      console.error('[signup] user insert:', userErr.message)
+      return NextResponse.json({ error: 'Failed to create account' }, { status: 500 })
     }
 
-    // Return BA's response directly — it contains the session cookie and user data
-    return baRes
+    // Create credential account in ba_account
+    const { error: acctErr } = await sb.from('ba_account').insert({
+      id:          randomUUID(),
+      account_id:  userId,
+      provider_id: 'credential',
+      user_id:     userId,
+      password:    passwordHash,
+      created_at:  now,
+      updated_at:  now,
+    })
+    if (acctErr) {
+      console.error('[signup] ba_account insert:', acctErr.message)
+      await sb.from('users').delete().eq('id', userId)
+      return NextResponse.json({ error: 'Failed to create account credentials' }, { status: 500 })
+    }
+
+    // Create session and set cookie
+    const { token, expiresAt } = await createServerSession(
+      userId,
+      req.headers.get('user-agent'),
+      req.headers.get('x-forwarded-for'),
+    )
+
+    const res = NextResponse.json({
+      ok:   true,
+      user: { id: userId, email: cleanEmail, name: name.trim(), role: role || 'receptionist' },
+    })
+    setSessionCookie(res, token, expiresAt)
+    return res
 
   } catch (e) {
     console.error('[signup]', e)

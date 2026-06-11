@@ -1,5 +1,4 @@
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
+import { getServerSession } from '@/lib/server-session'
 import Header from '@/components/layout/Header'
 import { Car, ClipboardList, DollarSign, TrendingUp, Plus, ArrowRight, Clock, UserCheck, Wrench, ShieldCheck, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -70,7 +69,7 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getServerSession()
   const role = (session?.user as { role?: string })?.role ?? 'receptionist'
   const userId = session?.user?.id ?? ''
 

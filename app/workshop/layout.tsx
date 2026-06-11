@@ -1,12 +1,11 @@
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
+import { getServerSession } from '@/lib/server-session'
 import { redirect } from 'next/navigation'
 import Sidebar from '@/components/layout/Sidebar'
 import { WorkshopShell } from '@/components/layout/WorkshopShell'
 import { PostHogUserIdentifier } from '@/components/PostHogProvider'
 
 export default async function WorkshopLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getServerSession()
   if (!session) redirect('/auth/login')
 
   return (

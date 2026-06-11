@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/server-session'
 import { randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
@@ -18,7 +17,7 @@ function serviceClient() {
 // Admin-only. Safe to run multiple times (idempotent).
 export async function POST() {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
+    const session = await getServerSession()
     if (!session?.user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
