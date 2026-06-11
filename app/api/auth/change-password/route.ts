@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/server-session'
 
 export const runtime = 'nodejs'
 
@@ -16,7 +15,7 @@ function adminClient() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
+    const session = await getServerSession()
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
