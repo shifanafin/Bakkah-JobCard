@@ -1,11 +1,11 @@
 'use client'
 
-import { Suspense, useState, useTransition } from 'react'
+import { Suspense, useState, useTransition, useEffect } from 'react'
 import { signIn, authClient } from '@/lib/auth-client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Loader2, Zap, User, Lock } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Zap, User, Lock, ShieldCheck } from 'lucide-react'
 import { useT } from '@/lib/i18n'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
@@ -109,6 +109,30 @@ function LoginForm() {
   )
 }
 
+function SetupBanner() {
+  const [needsSetup, setNeedsSetup] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/auth/setup-status')
+      .then(r => r.json())
+      .then(d => setNeedsSetup(d.needsSetup))
+      .catch(() => {})
+  }, [])
+
+  if (!needsSetup) return null
+
+  return (
+    <Link href="/auth/signup"
+      className="mb-4 flex items-center gap-3 rounded-xl border border-brand/30 bg-brand/10 px-4 py-3 text-sm text-brand hover:bg-brand/15 transition-colors">
+      <ShieldCheck className="h-5 w-5 shrink-0" />
+      <div>
+        <p className="font-semibold">First-time setup</p>
+        <p className="text-xs opacity-70">No users found — click here to create your admin account</p>
+      </div>
+    </Link>
+  )
+}
+
 export default function LoginPage() {
   const { t } = useT()
   const a = t.auth
@@ -133,6 +157,8 @@ export default function LoginPage() {
           <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">{a.title}</h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-white/40">{a.subtitle}</p>
         </div>
+
+        <SetupBanner />
 
         <Suspense fallback={<div className="card border-gray-200 bg-white/80 dark:border-white/[0.08] dark:bg-surface-800/80 h-64 animate-pulse" />}>
           <LoginForm />
