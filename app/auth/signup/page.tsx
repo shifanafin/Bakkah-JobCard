@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { signIn } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { Eye, EyeOff, Loader2, Zap, User, Lock, Mail, AtSign } from 'lucide-react'
+import { Eye, EyeOff, Loader2, Zap, User, Lock, Mail, AtSign, ShieldCheck } from 'lucide-react'
 
 const ROLES = [
   { value: 'receptionist', label: 'Receptionist' },
@@ -19,9 +19,20 @@ export default function SignUpPage() {
   const [isPending, startTransition] = useTransition()
   const [showPw, setShowPw] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [needsSetup, setNeedsSetup] = useState<boolean | null>(null)
   const [form, setForm] = useState({
     name: '', email: '', username: '', password: '', confirm: '', role: 'receptionist',
   })
+
+  useEffect(() => {
+    fetch('/api/auth/setup-status')
+      .then(r => r.json())
+      .then(d => {
+        setNeedsSetup(d.needsSetup)
+        if (d.needsSetup) setForm(f => ({ ...f, role: 'admin' }))
+      })
+      .catch(() => setNeedsSetup(false))
+  }, [])
 
   function set(field: string, value: string) {
     setForm(f => ({ ...f, [field]: value }))
@@ -66,6 +77,14 @@ export default function SignUpPage() {
     })
   }
 
+  if (needsSetup === null) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
+        <Loader2 className="h-6 w-6 animate-spin text-brand" />
+      </div>
+    )
+  }
+
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gray-50 dark:bg-surface-900">
 
@@ -78,14 +97,25 @@ export default function SignUpPage() {
         {/* Logo */}
         <div className="mb-8 text-center">
           <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/30 bg-brand/10">
-            <Zap className="h-7 w-7 text-brand" />
+            {needsSetup ? <ShieldCheck className="h-7 w-7 text-brand" /> : <Zap className="h-7 w-7 text-brand" />}
           </div>
           <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">Bakkah</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-white/40">Create your account</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-white/40">
+            {needsSetup ? 'First-time setup — create your admin account' : 'Create your account'}
+          </p>
         </div>
 
+        {needsSetup && (
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-brand/30 bg-brand/10 px-4 py-3 text-sm text-brand">
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <span>No users found. This account will be created as <strong>Admin</strong>.</span>
+          </div>
+        )}
+
         <div className="card border-gray-200 bg-white/80 backdrop-blur-xl dark:border-white/[0.08] dark:bg-surface-800/80">
-          <h2 className="mb-6 text-lg font-bold text-gray-900 dark:text-white">Sign up</h2>
+          <h2 className="mb-6 text-lg font-bold text-gray-900 dark:text-white">
+            {needsSetup ? 'Create Admin Account' : 'Sign up'}
+          </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -131,18 +161,20 @@ export default function SignUpPage() {
               </div>
             </div>
 
-            {/* Role */}
-            <div>
-              <label className="label">Role</label>
-              <select
-                value={form.role} onChange={e => set('role', e.target.value)}
-                className="input-base"
-              >
-                {ROLES.map(r => (
-                  <option key={r.value} value={r.value} className="dark:bg-surface-800">{r.label}</option>
-                ))}
-              </select>
-            </div>
+            {/* Role — hidden in setup mode (forced to admin) */}
+            {!needsSetup && (
+              <div>
+                <label className="label">Role</label>
+                <select
+                  value={form.role} onChange={e => set('role', e.target.value)}
+                  className="input-base"
+                >
+                  {ROLES.map(r => (
+                    <option key={r.value} value={r.value} className="dark:bg-surface-800">{r.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Password */}
             <div>
@@ -184,8 +216,8 @@ export default function SignUpPage() {
 
             <button type="submit" disabled={isPending} className="btn-primary w-full py-3">
               {isPending
-                ? <><Loader2 className="h-4 w-4 animate-spin" /> Creating account…</>
-                : 'Create Account'
+                ? <><Loader2 className="h-4 w-4 animate-spin" /> {needsSetup ? 'Creating admin…' : 'Creating account…'}</>
+                : needsSetup ? 'Create Admin Account' : 'Create Account'
               }
             </button>
           </form>

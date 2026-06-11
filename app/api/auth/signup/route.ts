@@ -23,11 +23,15 @@ export async function POST(req: NextRequest) {
     if (password.length < 6) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 })
     }
-    if (role === 'admin') {
-      return NextResponse.json({ error: 'Admin accounts can only be created by an existing admin' }, { status: 403 })
-    }
-
     const sb = adminClient()
+
+    // Allow admin role only when no users exist (first-time setup)
+    if (role === 'admin') {
+      const { count } = await sb.from('users').select('id', { count: 'exact', head: true })
+      if (count !== 0) {
+        return NextResponse.json({ error: 'Admin accounts can only be created by an existing admin' }, { status: 403 })
+      }
+    }
 
     // Check email taken
     const { data: byEmail } = await sb.from('users').select('id').eq('email', email.trim().toLowerCase()).maybeSingle()
