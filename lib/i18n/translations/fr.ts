@@ -182,7 +182,7 @@ export const fr: AppTranslations = {
     nav: {
       workshop: 'Atelier', admin: 'Administration',
       dashboard: 'Tableau de bord', myJobs: 'Mes tâches', jobCards: 'Fiches de travail',
-      newJobCard: 'Nouvelle fiche', inventory: 'Inventaire', settings: 'Paramètres',
+      newJobCard: 'Nouvelle fiche', inventory: 'Inventaire', customers: 'Clients', settings: 'Paramètres',
       signOut: 'Se déconnecter', employees: 'Employés', technicians: 'Techniciens',
       attendance: 'Présences', feedback: 'Avis',
       announcements: 'Annonces', analytics: 'Analytique', website: 'CMS Site Web',

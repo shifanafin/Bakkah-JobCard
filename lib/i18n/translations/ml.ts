@@ -182,7 +182,7 @@ export const ml: AppTranslations = {
     nav: {
       workshop: 'വർക്ക്‌ഷോപ്പ്', admin: 'അഡ്മിൻ',
       dashboard: 'ഡാഷ്‌ബോർഡ്', myJobs: 'എന്റെ ജോലികൾ', jobCards: 'ജോബ് കാർഡുകൾ',
-      newJobCard: 'പുതിയ ജോബ് കാർഡ്', inventory: 'ഇൻവെന്ററി', settings: 'ക്രമീകരണങ്ങൾ',
+      newJobCard: 'പുതിയ ജോബ് കാർഡ്', inventory: 'ഇൻവെന്ററി', customers: 'ഉപഭോക്താക്കൾ', settings: 'ക്രമീകരണങ്ങൾ',
       signOut: 'സൈൻ ഔട്ട്', employees: 'ജീവനക്കാർ', technicians: 'ടെക്‌നീഷ്യൻമാർ',
       attendance: 'ഹാജർ', feedback: 'ഫീഡ്ബാക്ക്',
       announcements: 'പ്രഖ്യാപനങ്ങൾ', analytics: 'അനലിറ്റിക്‌സ്', website: 'വെബ്‌സൈറ്റ് CMS',

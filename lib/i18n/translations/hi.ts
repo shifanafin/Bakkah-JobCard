@@ -182,7 +182,7 @@ export const hi: AppTranslations = {
     nav: {
       workshop: 'वर्कशॉप', admin: 'एडमिन',
       dashboard: 'डैशबोर्ड', myJobs: 'मेरे काम', jobCards: 'जॉब कार्ड',
-      newJobCard: 'नया जॉब कार्ड', inventory: 'इन्वेंटरी', settings: 'सेटिंग्स',
+      newJobCard: 'नया जॉब कार्ड', inventory: 'इन्वेंटरी', customers: 'ग्राहक', settings: 'सेटिंग्स',
       signOut: 'साइन आउट', employees: 'कर्मचारी', technicians: 'तकनीशियन',
       attendance: 'उपस्थिति', feedback: 'समीक्षाएं',
       announcements: 'घोषणाएं', analytics: 'विश्लेषण', website: 'वेबसाइट CMS',

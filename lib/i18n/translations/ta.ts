@@ -182,7 +182,7 @@ export const ta: AppTranslations = {
     nav: {
       workshop: 'பட்டறை', admin: 'நிர்வாகம்',
       dashboard: 'டாஷ்போர்டு', myJobs: 'என் வேலைகள்', jobCards: 'வேலை அட்டைகள்',
-      newJobCard: 'புதிய வேலை அட்டை', inventory: 'சரக்கு', settings: 'அமைப்புகள்',
+      newJobCard: 'புதிய வேலை அட்டை', inventory: 'சரக்கு', customers: 'வாடிக்கையாளர்கள்', settings: 'அமைப்புகள்',
       signOut: 'வெளியேறு', employees: 'பணியாளர்கள்', technicians: 'தொழில்நுட்பவியலாளர்கள்',
       attendance: 'வருகை', feedback: 'மதிப்பீடுகள்',
       announcements: 'அறிவிப்புகள்', analytics: 'பகுப்பாய்வு', website: 'வலைதள CMS',

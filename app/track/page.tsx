@@ -8,7 +8,7 @@ import { JOB_STATUS_STEP, type JobStatus } from "@/types";
 import { formatAED, formatDate } from "@/lib/utils/format";
 import {
   Search, Sun, Moon, Car, User, Calendar, Check, Loader2, MessageCircle,
-  ExternalLink, ArrowLeft, X, Star, Send, Quote, FileText, MapPin, Clock,
+  ArrowLeft, X, Star, Send, Quote, MapPin, Clock,
   Wrench, Package, ChevronRight, Phone, Hash, Image as ImageIcon, History,
   ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, AlertTriangle,
 } from "lucide-react";
@@ -724,14 +724,10 @@ function JobCardDetail({
       )}
 
       {/* Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <a href={`/invoice/${job.id}`} target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2.5 rounded-2xl border-2 border-brand/20 bg-brand/5 px-4 py-3.5 text-sm font-bold text-brand hover:bg-brand/10 hover:border-brand/30 transition-all duration-200 dark:bg-brand/10 dark:border-brand/20 dark:hover:bg-brand/15">
-          <FileText className="h-4 w-4" /> View Invoice
-        </a>
+      <div>
         <a href={`https://wa.me/971545886999?text=Hi+Bakkah%2C+I+want+to+follow+up+on+job+${encodeURIComponent(job.job_number)}`}
           target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2.5 rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-white hover:bg-emerald-600 transition-all duration-200 shadow-[0_2px_12px_rgba(16,185,129,0.25)]">
+          className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-white hover:bg-emerald-600 transition-all duration-200 shadow-[0_2px_12px_rgba(16,185,129,0.25)]">
           <MessageCircle className="h-4 w-4" /> Contact Us
         </a>
       </div>
@@ -820,10 +816,6 @@ function HistoryCard({ job }: { job: JobSummary }) {
             </div>
             <div className="text-right">
               <p className="font-black text-brand text-lg">{formatAED(job.total)}</p>
-              <a href={`/invoice/${job.id}`} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-brand hover:underline flex items-center gap-1 justify-end mt-0.5">
-                <ExternalLink className="h-3 w-3" /> Invoice
-              </a>
             </div>
           </div>
         </div>
@@ -887,7 +879,7 @@ export default function TrackPage() {
   useEffect(() => {
     if (autoSearched.current) return;
     const params = new URLSearchParams(window.location.search);
-    const jobParam = params.get("job");
+    const jobParam = params.get("q") ?? params.get("job");
     if (jobParam) {
       autoSearched.current = true;
       setMode("job");
@@ -1074,10 +1066,6 @@ export default function TrackPage() {
               Enter your mobile number &amp; plate number to check your vehicle&apos;s service status and history.
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/invoice"
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:border-brand/30 hover:text-brand transition-all duration-200 shadow-sm dark:bg-white/[0.04] dark:border-white/10 dark:text-white/60 dark:hover:border-brand/30 dark:hover:text-brand">
-                <FileText className="h-4 w-4" /> View Invoice
-              </Link>
               <a href="https://wa.me/971545886999" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-100 transition-all duration-200 shadow-sm dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-400">
                 <MessageCircle className="h-4 w-4" /> Contact Us
@@ -1436,10 +1424,6 @@ export default function TrackPage() {
         <div className="mt-4 flex items-center justify-center gap-4 text-xs text-gray-400 dark:text-white/25">
           <Link href="/" className="hover:text-gray-600 dark:hover:text-white/50 transition-colors flex items-center gap-1">
             <ChevronRight className="h-3 w-3 rotate-180" /> Home
-          </Link>
-          <span className="h-3 w-px bg-gray-200 dark:bg-white/10" />
-          <Link href="/invoice" className="hover:text-brand transition-colors flex items-center gap-1">
-            <FileText className="h-3 w-3" /> View Invoice
           </Link>
           <span className="h-3 w-px bg-gray-200 dark:bg-white/10" />
           <Link href="/auth/login" className="hover:text-gray-600 dark:hover:text-white/50 transition-colors">

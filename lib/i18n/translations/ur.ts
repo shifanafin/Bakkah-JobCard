@@ -182,7 +182,7 @@ export const ur: AppTranslations = {
     nav: {
       workshop: 'ورکشاپ', admin: 'انتظامیہ',
       dashboard: 'ڈیش بورڈ', myJobs: 'میرے کام', jobCards: 'جاب کارڈز',
-      newJobCard: 'نیا جاب کارڈ', inventory: 'انوینٹری', settings: 'ترتیبات',
+      newJobCard: 'نیا جاب کارڈ', inventory: 'انوینٹری', customers: 'گاہک', settings: 'ترتیبات',
       signOut: 'لاگ آؤٹ', employees: 'ملازمین', technicians: 'ٹیکنیشنز',
       attendance: 'حاضری', feedback: 'جائزے',
       announcements: 'اعلانات', analytics: 'تجزیات', website: 'ویب سائٹ CMS',

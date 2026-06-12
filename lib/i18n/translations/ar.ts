@@ -182,7 +182,7 @@ export const ar: AppTranslations = {
     nav: {
       workshop: 'الورشة', admin: 'الإدارة',
       dashboard: 'لوحة التحكم', myJobs: 'مهامي', jobCards: 'بطاقات العمل',
-      newJobCard: 'بطاقة عمل جديدة', inventory: 'المخزون', settings: 'الإعدادات',
+      newJobCard: 'بطاقة عمل جديدة', inventory: 'المخزون', customers: 'العملاء', settings: 'الإعدادات',
       signOut: 'تسجيل الخروج', employees: 'الموظفون', technicians: 'الفنيون',
       attendance: 'الحضور', feedback: 'التقييمات',
       announcements: 'الإعلانات', analytics: 'التحليلات', website: 'إدارة الموقع',
