@@ -14,6 +14,8 @@ const SELECT_JOB = `
   photos:job_card_photos(id, cloudinary_url, category, caption, sort_order, created_at)
 `
 
+const ACTIVE_STATUSES = ['waiting_for_approval', 'pending', 'assigned', 'received', 'in_progress', 'qc_check', 'ready']
+
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '')
   if (digits.startsWith('971')) return digits
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
 
   const sb = createServiceClient()
 
-  // ── Search by Job Number ─────────────────────────────────────
+  // ── Search by Job Number ──────────────────────────────────────
   if (jobNumber) {
     const { data, error } = await sb
       .from('job_cards')
@@ -45,15 +47,46 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ mode: 'job', current: data, history: [] })
   }
 
-  // ── Search by Mobile + Plate ─────────────────────────────────
-  if (phone && plate) {
-    const normalizedPlate = plate.toUpperCase().replace(/\s+/g, '')
+  // ── Search by Phone Only (all customer jobs) ──────────────────
+  if (phone && !plate) {
     const normalizedPhone = normalizePhone(phone)
+    const last9 = normalizedPhone.slice(-9)
 
-    // Find vehicle by plate
+    // Find customer by phone suffix match
+    const { data: candidates } = await sb
+      .from('customers')
+      .select('id, name, phone')
+      .ilike('phone', `%${last9}`)
+      .limit(10)
+
+    const customer = candidates?.find(c => normalizePhone(c.phone).endsWith(last9))
+
+    if (!customer) {
+      return NextResponse.json({ error: 'No customer found with this phone number. Please check and try again.' }, { status: 404 })
+    }
+
+    const { data: jobs, error } = await sb
+      .from('job_cards')
+      .select(SELECT_JOB)
+      .eq('customer_id', customer.id)
+      .order('created_at', { ascending: false })
+
+    if (error) return NextResponse.json({ error: 'Failed to fetch records' }, { status: 500 })
+    if (!jobs || jobs.length === 0) {
+      return NextResponse.json({ error: 'No job cards found for this customer.' }, { status: 404 })
+    }
+
+    const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
+    return NextResponse.json({ mode: 'customer', current, history: jobs })
+  }
+
+  // ── Search by Plate Only (all vehicle jobs, no phone check) ───
+  if (!phone && plate) {
+    const normalizedPlate = plate.toUpperCase().replace(/\s+/g, '')
+
     const { data: vehicle } = await sb
       .from('vehicles')
-      .select('id, customer_id')
+      .select('id')
       .ilike('plate_number', normalizedPlate)
       .maybeSingle()
 
@@ -61,24 +94,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No records found for this vehicle plate. Please check and try again.' }, { status: 404 })
     }
 
-    // Verify customer phone
-    const { data: customer } = await sb
-      .from('customers')
-      .select('id, phone')
-      .eq('id', vehicle.customer_id)
-      .maybeSingle()
-
-    if (!customer) {
-      return NextResponse.json({ error: 'Customer record not found.' }, { status: 404 })
-    }
-
-    const storedPhone = normalizePhone(customer.phone)
-    // Match last 9 digits to handle country-code variations
-    if (!storedPhone.endsWith(normalizedPhone.slice(-9))) {
-      return NextResponse.json({ error: 'The mobile number does not match our records for this vehicle.' }, { status: 404 })
-    }
-
-    // Fetch all job cards for this vehicle
     const { data: jobs, error } = await sb
       .from('job_cards')
       .select(SELECT_JOB)
@@ -90,12 +105,54 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No job cards found for this vehicle.' }, { status: 404 })
     }
 
-    const activeStatuses = ['waiting_for_approval', 'pending', 'assigned', 'received', 'in_progress', 'qc_check', 'ready']
-    const current = jobs.find(j => activeStatuses.includes(j.status)) ?? jobs[0]
-    const history = jobs
-
-    return NextResponse.json({ mode: 'vehicle', current, history })
+    const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
+    return NextResponse.json({ mode: 'vehicle', current, history: jobs })
   }
 
-  return NextResponse.json({ error: 'Provide job_number or both phone and plate.' }, { status: 400 })
+  // ── Search by Mobile + Plate (verified) ───────────────────────
+  if (phone && plate) {
+    const normalizedPlate = plate.toUpperCase().replace(/\s+/g, '')
+    const normalizedPhone = normalizePhone(phone)
+
+    const { data: vehicle } = await sb
+      .from('vehicles')
+      .select('id, customer_id')
+      .ilike('plate_number', normalizedPlate)
+      .maybeSingle()
+
+    if (!vehicle) {
+      return NextResponse.json({ error: 'No records found for this vehicle plate. Please check and try again.' }, { status: 404 })
+    }
+
+    const { data: customer } = await sb
+      .from('customers')
+      .select('id, phone')
+      .eq('id', vehicle.customer_id)
+      .maybeSingle()
+
+    if (!customer) {
+      return NextResponse.json({ error: 'Customer record not found.' }, { status: 404 })
+    }
+
+    const storedPhone = normalizePhone(customer.phone)
+    if (!storedPhone.endsWith(normalizedPhone.slice(-9))) {
+      return NextResponse.json({ error: 'The mobile number does not match our records for this vehicle.' }, { status: 404 })
+    }
+
+    const { data: jobs, error } = await sb
+      .from('job_cards')
+      .select(SELECT_JOB)
+      .eq('vehicle_id', vehicle.id)
+      .order('created_at', { ascending: false })
+
+    if (error) return NextResponse.json({ error: 'Failed to fetch records' }, { status: 500 })
+    if (!jobs || jobs.length === 0) {
+      return NextResponse.json({ error: 'No job cards found for this vehicle.' }, { status: 404 })
+    }
+
+    const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
+    return NextResponse.json({ mode: 'vehicle', current, history: jobs })
+  }
+
+  return NextResponse.json({ error: 'Provide job_number, phone, plate, or phone+plate.' }, { status: 400 })
 }
