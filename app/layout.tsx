@@ -63,7 +63,7 @@ export default function RootLayout({
         <I18nProvider>
           <ThemeProvider>
             <PwaRegister />
-            <PwaInstallBanner />
+            {/* <PwaInstallBanner /> */}
             <PostHogProvider>{children}</PostHogProvider>
             <Toaster
               theme="system"
