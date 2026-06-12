@@ -1,43 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <defs>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D4AF50"/>
-      <stop offset="50%" stop-color="#C4A030"/>
-      <stop offset="100%" stop-color="#A08020"/>
-    </linearGradient>
-    <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E0C060"/>
-      <stop offset="100%" stop-color="#B89030"/>
-    </linearGradient>
-    <filter id="innerShadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.3"/>
-    </filter>
-  </defs>
+  <!-- Olive green background (matches the physical sign) -->
+  <rect width="400" height="400" fill="#566020"/>
 
-  <!-- Outermost gold ring -->
-  <circle cx="200" cy="200" r="198" fill="url(#goldGrad)" filter="url(#innerShadow)"/>
+  <!-- Outer thin gold ring -->
+  <circle cx="200" cy="200" r="188" fill="#C9A845"/>
+  <!-- Olive gap band -->
+  <circle cx="200" cy="200" r="180" fill="#566020"/>
+  <!-- Wider inner gold ring (main visible ring) -->
+  <circle cx="200" cy="200" r="170" fill="#C9A845"/>
+  <!-- Olive green center circle -->
+  <circle cx="200" cy="200" r="152" fill="#566020"/>
 
-  <!-- Dark olive green band -->
-  <circle cx="200" cy="200" r="185" fill="#1E2D0C"/>
-
-  <!-- Gold inner ring -->
-  <circle cx="200" cy="200" r="170" fill="url(#goldGrad2)"/>
-
-  <!-- Dark olive green center -->
-  <circle cx="200" cy="200" r="152" fill="#1E2D0C"/>
-
-  <!-- Horizontal stripe accent (top) -->
-  <rect x="48" y="155" width="304" height="18" fill="#1E2D0C" rx="9"/>
-  <!-- Horizontal stripe accent (bottom) -->
-  <rect x="48" y="228" width="304" height="18" fill="#1E2D0C" rx="9"/>
-
-  <!-- "B" letter — bold serif B -->
-  <!-- Stem -->
-  <rect x="118" y="98" width="36" height="204" rx="4" fill="url(#goldGrad)"/>
-
-  <!-- Top bowl -->
-  <path d="M154 98 Q230 98 230 152 Q230 200 154 200 L154 134 Q192 134 192 152 Q192 166 154 166 Z" fill="url(#goldGrad)"/>
-
-  <!-- Bottom bowl (slightly larger) -->
-  <path d="M154 200 Q240 200 240 258 Q240 302 154 302 L154 234 Q202 234 202 258 Q202 272 154 272 Z" fill="url(#goldGrad)"/>
+  <!--
+    Bold "B" letter — solid gold, matches logo image.
+    Path traces outer contour of B clockwise:
+    down the left stem → bottom bowl arc (right) → top bowl arc (right) → close
+  -->
+  <path fill="#C9A845" d="
+    M 108 104
+    L 108 296
+    L 160 296
+    C 325 296 325 206 160 206
+    L 160 200
+    C 320 200 320 104 160 104
+    Z
+  "/>
 </svg>

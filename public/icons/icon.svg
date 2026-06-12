@@ -1,38 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#D4AF50"/>
-      <stop offset="50%" stop-color="#C4A030"/>
-      <stop offset="100%" stop-color="#A08020"/>
-    </linearGradient>
-    <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#E0C060"/>
-      <stop offset="100%" stop-color="#B89030"/>
-    </linearGradient>
-  </defs>
+  <!-- Rounded square app icon background (olive) -->
+  <rect width="512" height="512" rx="96" fill="#566020"/>
 
-  <!-- Rounded square background (app icon shape) -->
-  <rect width="512" height="512" rx="96" fill="#1E2D0C"/>
+  <!-- Outer thin gold ring -->
+  <circle cx="256" cy="256" r="238" fill="#C9A845"/>
+  <!-- Olive gap -->
+  <circle cx="256" cy="256" r="228" fill="#566020"/>
+  <!-- Wider inner gold ring -->
+  <circle cx="256" cy="256" r="216" fill="#C9A845"/>
+  <!-- Olive center -->
+  <circle cx="256" cy="256" r="195" fill="#566020"/>
 
-  <!-- Outermost gold ring -->
-  <circle cx="256" cy="256" r="232" fill="url(#goldGrad)"/>
-
-  <!-- Dark olive green band -->
-  <circle cx="256" cy="256" r="218" fill="#1E2D0C"/>
-
-  <!-- Gold inner ring -->
-  <circle cx="256" cy="256" r="202" fill="url(#goldGrad2)"/>
-
-  <!-- Dark olive green center -->
-  <circle cx="256" cy="256" r="185" fill="#1E2D0C"/>
-
-  <!-- "B" letter -->
-  <!-- Stem -->
-  <rect x="146" y="120" width="44" height="272" rx="5" fill="url(#goldGrad)"/>
-
-  <!-- Top bowl -->
-  <path d="M190 120 Q288 120 288 186 Q288 248 190 248 L190 164 Q244 164 244 186 Q244 204 190 204 Z" fill="url(#goldGrad)"/>
-
-  <!-- Bottom bowl (slightly larger) -->
-  <path d="M190 248 Q302 248 302 320 Q302 372 190 372 L190 292 Q258 292 258 320 Q258 336 190 336 Z" fill="url(#goldGrad)"/>
+  <!-- B letter -->
+  <path fill="#C9A845" d="
+    M 136 130
+    L 136 382
+    L 203 382
+    C 418 382 418 262 203 262
+    L 203 254
+    C 410 254 410 130 203 130
+    Z
+  "/>
 </svg>
