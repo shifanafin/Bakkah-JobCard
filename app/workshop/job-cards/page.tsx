@@ -15,6 +15,7 @@ const PAGE_SIZE = 20
 
 const TABS: { value: JobStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
+  { value: 'waiting_for_approval', label: 'Awaiting Approval' },
   { value: 'received', label: 'Received' },
   { value: 'in_progress', label: 'In Progress' },
   { value: 'qc_check', label: 'QC Check' },

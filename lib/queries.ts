@@ -85,7 +85,7 @@ export async function createJobCard(input: {
     vehicleId = nv.id
   }
 
-  const initialStatus = input.technician_id ? 'assigned' : 'pending'
+  const initialStatus = 'waiting_for_approval'
 
   const { data: jc, error: je } = await sb.from('job_cards').insert({
     customer_id: customerId, vehicle_id: vehicleId, technician_id: input.technician_id || null,
@@ -166,6 +166,22 @@ export async function deletePhoto(id: string, cloudinaryId?: string) {
   }
   const { error } = await sb.from('job_card_photos').delete().eq('id', id)
   if (error) throw error
+}
+
+export async function approveJob(jobId: string, approvedBy?: string) {
+  const sb = createClient()
+  const { data: cur } = await sb.from('job_cards').select('status, technician_id').eq('id', jobId).single()
+  if (cur?.status !== 'waiting_for_approval') throw new Error('Job is not waiting for approval')
+  // If a technician is already assigned, skip pending and go straight to assigned
+  const newStatus: JobStatus = cur.technician_id ? 'assigned' : 'pending'
+  const { error } = await sb.from('job_cards').update({
+    status: newStatus, updated_at: new Date().toISOString(),
+  }).eq('id', jobId)
+  if (error) throw error
+  await sb.from('job_card_history').insert({
+    job_card_id: jobId, old_status: 'waiting_for_approval', new_status: newStatus,
+    changed_by: approvedBy, notes: 'Job approved',
+  })
 }
 
 export async function assignTechnician(jobId: string, technicianId: string, changedBy?: string) {
