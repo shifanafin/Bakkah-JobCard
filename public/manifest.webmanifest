@@ -1,38 +1,70 @@
 {
+  "id": "/",
   "name": "Bakkah Auto Detailing",
   "short_name": "Bakkah",
   "description": "Professional Car Detailing & Workshop Management — Dubai",
   "start_url": "/auth/login",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
   "background_color": "#0a0a0a",
   "theme_color": "#f59e0b",
   "categories": ["business", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
     {
       "src": "/icons/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
-    },
+    }
+  ],
+  "screenshots": [
     {
-      "src": "/icons/icon-maskable.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Bakkah Auto Detailing"
     }
   ],
   "shortcuts": [
     {
       "name": "My Jobs",
       "url": "/workshop/my-jobs",
-      "description": "View jobs assigned to me"
+      "description": "View jobs assigned to me",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "New Job Card",
       "url": "/workshop/job-cards/new",
-      "description": "Create a new job card"
+      "description": "Create a new job card",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
