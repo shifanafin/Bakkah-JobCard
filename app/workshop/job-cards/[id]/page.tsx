@@ -2,31 +2,28 @@
 
 import { useState, useEffect, useCallback, use, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import Header from '@/components/layout/Header'
 import StatusStepper from '@/components/job-card/StatusStepper'
-import LineItems from '@/components/job-card/LineItems'
 import QuotationSection from '@/components/job-card/QuotationSection'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
-import RTACheck from '@/components/job-card/RTACheck'
-import { getJobCard, getTechnicians, assignTechnician, approveJob } from '@/lib/queries'
+import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, MessageCircle, Mail, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2, Bell } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
 function buildWhatsAppHref(job: JobCard): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const trackUrl = `${origin}/track?job=${encodeURIComponent(job.job_number)}`
-  const invoiceUrl = `${origin}/invoice/${job.id}`
+  const trackUrl = `${origin}/track?q=${encodeURIComponent(job.job_number)}`
   const msg = [
     `Dear ${job.customer?.name ?? 'Customer'},`,
     `Your ${job.vehicle?.make ?? ''} ${job.vehicle?.model ?? ''} (${job.vehicle?.plate_number ?? ''}) — Job ${job.job_number} is now *${JOB_STATUS_LABEL[job.status]}*.`,
     ``,
     `Track your vehicle: ${trackUrl}`,
-    `View invoice: ${invoiceUrl}`,
     ``,
     `Bakkah Auto Premium Care | +971 54 588 6999`,
   ].join('\n')
@@ -35,6 +32,7 @@ function buildWhatsAppHref(job: JobCard): string {
 
 export default function JobCardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const router = useRouter()
   const { data: session } = useSession()
   const role = (session?.user as { role?: string })?.role ?? ''
   const userName = (session?.user as { name?: string })?.name ?? ''
@@ -49,6 +47,39 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   type HistoryEntry = { id: string; old_status: string | null; new_status: string; changed_by: string | null; notes: string | null; created_at: string }
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [notifying, setNotifying] = useState(false)
+
+  async function handleNotifyEmail() {
+    if (!job) return
+    setNotifying(true)
+    try {
+      const res = await fetch(`/api/job-cards/${id}/notify`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Failed to send email')
+      toast.success('Email sent to customer')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send email')
+    } finally {
+      setNotifying(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!job) return
+    const confirmed = window.confirm(
+      `Delete job card ${job.job_number}?\n\nThis will permanently remove the job card and all related records. This cannot be undone.`
+    )
+    if (!confirmed) return
+    try {
+      const res = await fetch(`/api/job-cards/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success(`Job card ${data.job_number} deleted`)
+      router.push('/workshop/job-cards')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Delete failed')
+    }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -112,18 +143,12 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             <button onClick={load} className="btn-ghost text-xs px-3 py-2 h-auto">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <Link href={`/invoice/${id}`} target="_blank" className="btn-ghost text-xs">
-              <Printer className="h-3.5 w-3.5" /> Invoice
-            </Link>
-            {job.customer?.phone && (
-              <a
-                href={buildWhatsAppHref(job)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-600 transition-colors h-auto"
-              >
-                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
-              </a>
+            {/* Delete — admin only, only for inspection/cancelled jobs */}
+            {(role === 'admin') && job && ['inspection', 'cancelled'].includes(job.status) && (
+              <button onClick={handleDelete}
+                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
+                <Trash2 className="h-3.5 w-3.5" /> Delete
+              </button>
             )}
           </div>
         </div>
@@ -290,14 +315,42 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         )}
 
         {/* Quotation */}
-        <QuotationSection
-          jobId={job.id}
-          jobNumber={job.job_number}
-          customerPhone={job.customer?.phone}
-        />
+        <QuotationSection jobId={job.id} />
 
-        {/* Services, Parts, Payment */}
-        <LineItems job={job} onUpdate={load} />
+        {/* Notify Customer */}
+        {job.customer?.phone || job.customer?.email ? (
+          <div className="card space-y-3">
+            <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15">
+                <Bell className="h-3.5 w-3.5 text-indigo-400" />
+              </div>
+              <h3 className="section-title">Notify Customer</h3>
+            </div>
+            <div className="flex gap-3">
+              {job.customer?.email && (
+                <button
+                  onClick={handleNotifyEmail}
+                  disabled={notifying}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+                >
+                  {notifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                  Send Email
+                </button>
+              )}
+              {job.customer?.phone && (
+                <a
+                  href={buildWhatsAppHref(job)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp Share
+                </a>
+              )}
+            </div>
+          </div>
+        ) : null}
 
         {/* Photos */}
         <PhotoUpload
@@ -390,14 +443,6 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {/* UAE RTA Vehicle Check */}
-        {/* {job.vehicle?.plate_number && (
-          <RTACheck
-            jobCardId={job.id}
-            plateNumber={job.vehicle.plate_number}
-            emirate="Dubai"
-          />
-        )} */}
       </div>
     </div>
   )

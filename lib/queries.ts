@@ -104,7 +104,7 @@ export async function createJobCard(input: {
     vehicleId = nv.id
   }
 
-  const initialStatus = 'waiting_for_approval'
+  const initialStatus = 'inspection'
 
   const { data: jc, error: je } = await sb.from('job_cards').insert({
     customer_id: customerId, vehicle_id: vehicleId, technician_id: input.technician_id || null,

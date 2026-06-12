@@ -9,7 +9,6 @@ import {
   Plus,
   Settings,
   LogOut,
-  Zap,
   ChevronRight,
   X,
   Briefcase,

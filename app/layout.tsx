@@ -4,7 +4,6 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { I18nProvider } from "@/lib/i18n";
 import PwaRegister from "@/components/PwaRegister";
-import PwaInstallBanner from "@/components/PwaInstallBanner";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import "./globals.css";
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle, MessageCircle } from 'lucide-react'
+import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle } from 'lucide-react'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -44,11 +44,9 @@ const ITEM_TYPE_CLS: Record<string, string> = {
 }
 
 export default function QuotationSection({
-  jobId, jobNumber, customerPhone,
+  jobId,
 }: {
   jobId: string
-  jobNumber: string
-  customerPhone?: string
 }) {
   // undefined = loading, null = no quotation
   const [quotation, setQuotation] = useState<Quotation | null | undefined>(undefined)
@@ -169,9 +167,10 @@ export default function QuotationSection({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'send' }),
         })
+        if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to save quotation'); return }
         const d = await res.json(); setQuotation(d.quotation)
-        toast.success('Quotation marked as sent — share via WhatsApp below')
-      } catch { toast.error('Failed to send quotation') }
+        toast.success('Quotation saved')
+      } catch { toast.error('Failed to save quotation') }
     })
   }
 
@@ -198,26 +197,6 @@ export default function QuotationSection({
         setQuotation(null); toast.success('Quotation deleted')
       } catch { toast.error('Failed to delete quotation') }
     })
-  }
-
-  function buildWhatsAppHref(): string {
-    if (!quotation || !customerPhone) return '#'
-    const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const trackUrl = `${origin}/track?job=${encodeURIComponent(jobNumber)}`
-    const msg = [
-      'Dear Customer,',
-      '',
-      `Your workshop quotation *${quotation.quotation_number}* is ready for review.`,
-      `Total: *AED ${quotation.total.toFixed(2)}* (incl. 5% VAT)`,
-      '',
-      'Please tap below to review and approve or decline:',
-      trackUrl,
-      '',
-      'Bakkah Auto Premium Care | +971 54 588 6999',
-    ].join('\n')
-    const digits = customerPhone.replace(/\D/g, '')
-    const intl = digits.startsWith('971') ? digits : `971${digits.slice(-9)}`
-    return `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`
   }
 
   const inputSm = 'flex-1 rounded-lg border px-2.5 py-2 text-sm focus:border-brand/50 focus:outline-none transition bg-white border-gray-200 text-gray-900 placeholder:text-gray-300 dark:bg-white/[0.04] dark:border-white/10 dark:text-white dark:placeholder:text-white/20'
@@ -414,31 +393,26 @@ export default function QuotationSection({
                 <button onClick={handleSend} disabled={isPending || quotation.items.length === 0}
                   className="btn-primary flex-1 disabled:opacity-40">
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Send to Customer
+                  Save Quotation
                 </button>
-                {quotation.items.length === 0 && (
-                  <button onClick={handleDelete} disabled={isPending}
-                    className="btn-ghost text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 flex-none">
-                    <Trash2 className="h-3.5 w-3.5" /> Delete
-                  </button>
-                )}
+                <button onClick={handleDelete} disabled={isPending || quotation.items.length > 0}
+                  className="btn-ghost text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 px-3 flex-none disabled:opacity-30 disabled:pointer-events-none">
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
               </>
             )}
 
             {quotation.status === 'sent' && (
-              <>
-                {customerPhone && (
-                  <a href={buildWhatsAppHref()} target="_blank" rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 transition-colors px-4 py-2.5 text-sm font-bold text-white flex-1">
-                    <MessageCircle className="h-4 w-4" /> Share via WhatsApp
-                  </a>
-                )}
+              <div className="flex w-full items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                  <Check className="h-4 w-4 shrink-0" /> Quotation saved
+                </div>
                 <button onClick={handleRevert} disabled={isPending}
-                  className="btn-ghost text-xs px-3 flex-none">
+                  className="btn-ghost text-xs px-3">
                   {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Edit2 className="h-3.5 w-3.5" />}
-                  Edit Draft
+                  Edit
                 </button>
-              </>
+              </div>
             )}
 
             {quotation.status === 'approved' && (

@@ -15,7 +15,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 function LoginForm() {
   const router = useRouter();
@@ -170,11 +169,6 @@ export default function LoginPage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(107,122,40,0.12),transparent)]" />
 
       <div className="relative z-10 w-full max-w-sm px-4">
-        {/* Language switcher */}
-        <div className="mb-4 flex justify-end">
-          <LanguageSwitcher variant="app" />
-        </div>
-
         <div className="mb-8 text-center">
           <div className="mb-3">
             <img src="/logo.svg" alt="Bakkah Logo" className="h-16 w-16 rounded-full mx-auto" />

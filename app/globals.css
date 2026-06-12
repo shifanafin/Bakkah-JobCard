@@ -30,6 +30,10 @@
   .dark * { scrollbar-color: #2a2a2a transparent; }
 
   ::selection { background: rgba(107,122,40,0.25); color: inherit; }
+
+  /* Dark mode native selects — use dark color scheme so OS renders popup dark */
+  .dark select { color-scheme: dark; }
+  .dark option  { background-color: #18181b; color: #fff; }
 }
 
 @layer components {

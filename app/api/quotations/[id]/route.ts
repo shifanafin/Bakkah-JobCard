@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { sendQuotationEmail } from '@/lib/email'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -49,6 +50,52 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // When quotation is sent: advance job to waiting_for_approval + email customer
+  if (body.action === 'send' && data) {
+    try {
+      // Advance job card status
+      await sb
+        .from('job_cards')
+        .update({ status: 'waiting_for_approval', updated_at: new Date().toISOString() })
+        .eq('id', data.job_card_id)
+        .in('status', ['inspection', 'draft'])
+
+      await sb.from('job_card_history').insert({
+        job_card_id: data.job_card_id,
+        new_status: 'waiting_for_approval',
+        notes: `Quotation ${data.quotation_number} sent to customer`,
+      })
+
+      // Fetch customer email for notification
+      const { data: job } = await sb
+        .from('job_cards')
+        .select('customer:customers(name, email), job_number')
+        .eq('id', data.job_card_id)
+        .single()
+
+      const customer = job?.customer as { name?: string; email?: string } | undefined
+      if (customer?.email) {
+        await sendQuotationEmail({
+          to: customer.email,
+          customerName: customer.name ?? 'Valued Customer',
+          jobNumber: job?.job_number ?? '',
+          quotationNumber: data.quotation_number,
+          items: data.items ?? [],
+          subtotal: data.subtotal,
+          discount: data.discount,
+          vat_amount: data.vat_amount,
+          total: data.total,
+          validDays: data.valid_days,
+          notes: data.notes,
+        })
+      }
+    } catch (emailErr) {
+      // Non-fatal: quotation is already sent, log but don't fail the response
+      console.error('Quotation email error:', emailErr)
+    }
+  }
+
   return NextResponse.json({ quotation: data })
 }
 
