@@ -1,12 +1,12 @@
-
-const CACHE = 'bakkah-v1'
+const CACHE = 'bakkah-v2'
 const OFFLINE_URLS = ['/', '/auth/login', '/track']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(OFFLINE_URLS))
+    caches.open(CACHE)
+      .then(cache => cache.addAll(OFFLINE_URLS))
+      .then(() => self.skipWaiting())
   )
-  self.skipWaiting()
 })
 
 self.addEventListener('message', (event) => {
@@ -15,31 +15,34 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+    Promise.all([
+      caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      ),
+      self.clients.claim(),
+    ])
   )
-  self.clients.claim()
 })
 
 self.addEventListener('fetch', (event) => {
   const { request } = event
-  // Only handle GET requests for navigation (HTML pages)
   if (request.method !== 'GET') return
+
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(res => {
-          // Cache navigated pages dynamically
           const clone = res.clone()
           caches.open(CACHE).then(c => c.put(request, clone))
           return res
         })
-        .catch(() => caches.match(request).then(r => r || caches.match('/')))
+        .catch(() =>
+          caches.match(request).then(r => r || caches.match('/auth/login'))
+        )
     )
     return
   }
-  // For static assets: cache-first
+
   if (request.destination === 'image' || request.destination === 'font') {
     event.respondWith(
       caches.match(request).then(cached => {
