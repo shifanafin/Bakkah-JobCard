@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No job cards found for this vehicle.' }, { status: 404 })
     }
 
-    const activeStatuses = ['pending', 'assigned', 'received', 'in_progress', 'qc_check', 'ready']
+    const activeStatuses = ['waiting_for_approval', 'pending', 'assigned', 'received', 'in_progress', 'qc_check', 'ready']
     const current = jobs.find(j => activeStatuses.includes(j.status)) ?? jobs[0]
     const history = jobs
 

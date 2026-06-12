@@ -8,7 +8,7 @@ import StatusStepper from '@/components/job-card/StatusStepper'
 import LineItems from '@/components/job-card/LineItems'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
 import RTACheck from '@/components/job-card/RTACheck'
-import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
+import { getJobCard, getTechnicians, assignTechnician, approveJob } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp } from 'lucide-react'
@@ -36,6 +36,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const { id } = use(params)
   const { data: session } = useSession()
   const role = (session?.user as { role?: string })?.role ?? ''
+  const userName = (session?.user as { name?: string })?.name ?? ''
   const canAssign = role === 'admin' || role === 'supervisor' || role === 'manager'
 
   const [job, setJob] = useState<JobCard | null>(null)
@@ -153,7 +154,9 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobId={job.id}
           currentStatus={job.status as JobStatus}
           hasTechnician={!!job.technician_id}
-          onUpdate={s => setJob(j => j ? { ...j, status: s } : j)}
+          userRole={role}
+          userName={userName}
+          onUpdate={s => { setJob(j => j ? { ...j, status: s } : j); load() }}
         />
 
         {/* Assign Technician — admin / supervisor / manager */}
@@ -293,11 +296,13 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
               <div className="mt-4 space-y-0">
                 {history.map((entry, i) => {
                   const STATUS_LABEL: Record<string, string> = {
+                    waiting_for_approval: 'Waiting for Approval',
                     pending: 'Pending', assigned: 'Assigned', received: 'Received',
                     in_progress: 'In Progress', qc_check: 'Quality Check',
                     ready: 'Ready for Collection', delivered: 'Delivered', cancelled: 'Cancelled',
                   }
                   const dotColors: Record<string, string> = {
+                    waiting_for_approval: 'bg-orange-500',
                     pending: 'bg-amber-500', assigned: 'bg-blue-500', received: 'bg-blue-400',
                     in_progress: 'bg-brand', qc_check: 'bg-purple-500',
                     ready: 'bg-emerald-500', delivered: 'bg-gray-400', cancelled: 'bg-red-500',

@@ -69,6 +69,7 @@ type ApprovedFeedback = { id: string; customer_name: string; rating: number; com
 const STEPS: JobStatus[] = ["received", "in_progress", "qc_check", "ready", "delivered"];
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
+  waiting_for_approval: { label: "Waiting for Approval", color: "text-orange-600 dark:text-orange-300", bg: "bg-orange-50 dark:bg-orange-500/10", border: "border-orange-200 dark:border-orange-500/20", dot: "bg-orange-500" },
   pending: { label: "Pending", color: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/20", dot: "bg-amber-500" },
   assigned: { label: "Assigned", color: "text-blue-600 dark:text-blue-300", bg: "bg-blue-50 dark:bg-blue-500/10", border: "border-blue-200 dark:border-blue-500/20", dot: "bg-blue-500" },
   received: { label: "Received", color: "text-blue-600 dark:text-blue-300", bg: "bg-blue-50 dark:bg-blue-500/10", border: "border-blue-200 dark:border-blue-500/20", dot: "bg-blue-500" },
@@ -174,6 +175,17 @@ function PhotoGallery({ photos, title, category }: { photos: Photo[]; title: str
 
 function StatusStepper({ status }: { status: JobStatus }) {
   if (status === "cancelled") return null;
+  if (status === "waiting_for_approval") {
+    return (
+      <div className="flex items-center gap-3 rounded-xl border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 px-4 py-3">
+        <ShieldCheck className="h-5 w-5 text-orange-500 shrink-0" />
+        <div>
+          <p className="text-sm font-bold text-orange-700 dark:text-orange-300">Waiting for Approval</p>
+          <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-0.5">Your job card is pending approval before work begins.</p>
+        </div>
+      </div>
+    );
+  }
   const curStep = JOB_STATUS_STEP[status] ?? 0;
   return (
     <div>
@@ -242,11 +254,36 @@ function StatusStepper({ status }: { status: JobStatus }) {
 // ── Job Card Detail (Customer View) ─────────────────────────────────────────
 
 function JobCardDetail({
-  job, showFull = true,
+  job, showFull = true, approvalData, onApproved,
 }: {
   job: JobSummary;
   showFull?: boolean;
+  approvalData?: { phone: string; plate: string };
+  onApproved?: () => void;
 }) {
+  const [approving, setApproving] = useState(false);
+  const [approveError, setApproveError] = useState("");
+
+  async function handleApprove() {
+    if (!approvalData) return;
+    setApproving(true);
+    setApproveError("");
+    try {
+      const res = await fetch("/api/approve-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job_id: job.id, phone: approvalData.phone, plate: approvalData.plate }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setApproveError(data.error || "Failed to approve job"); return; }
+      onApproved?.();
+    } catch {
+      setApproveError("Something went wrong. Please try again.");
+    } finally {
+      setApproving(false);
+    }
+  }
+
   const statusCfg = STATUS_CONFIG[job.status] ?? STATUS_CONFIG.received;
   const beforePhotos = (job.photos ?? []).filter(p => p.category === "before_work");
   const afterPhotos = (job.photos ?? []).filter(p => p.category === "after_work");
@@ -288,6 +325,22 @@ function JobCardDetail({
         </div>
 
         {showFull && <StatusStepper status={job.status as JobStatus} />}
+
+        {/* Customer Approve button */}
+        {job.status === "waiting_for_approval" && approvalData && (
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={handleApprove}
+              disabled={approving}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold text-white">
+              {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+              {approving ? "Approving..." : "Approve this Job"}
+            </button>
+            {approveError && (
+              <p className="text-xs text-red-500 text-center">{approveError}</p>
+            )}
+          </div>
+        )}
 
         <div className="flex flex-wrap gap-4 text-sm border-t border-gray-100 dark:border-white/[0.05] pt-4 mt-4">
           <div className="flex items-center gap-2 text-gray-500 dark:text-white/50">
@@ -964,7 +1017,17 @@ export default function TrackPage() {
                     <div className="h-px flex-1 bg-gray-200 dark:bg-white/[0.06]" />
                   </div>
                 )}
-                <JobCardDetail job={result.current} showFull />
+                <JobCardDetail
+                  job={result.current}
+                  showFull
+                  approvalData={result.mode === "vehicle" && mobileQuery && plateQuery
+                    ? { phone: mobileQuery, plate: plateQuery }
+                    : undefined}
+                  onApproved={() => {
+                    if (mode === "vehicle") runVehicleSearch(mobileQuery, plateQuery);
+                    else runJobSearch(jobQuery);
+                  }}
+                />
               </div>
             )}
 
