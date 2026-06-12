@@ -222,7 +222,7 @@ export default function BakkahHomePage() {
     fetch("/api/site-content")
       .then((r) => r.json())
       .then((d) => setCms(d as SiteContent))
-      .catch(() => {}); // silent — statics remain
+      .catch(() => { }); // silent — statics remain
   }, []);
   // All images come from CMS only — empty arrays when not yet loaded
   const HERO_IMAGES = cms.hero?.images?.length
@@ -332,11 +332,10 @@ export default function BakkahHomePage() {
         initial={{ y: -72, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: easeOut }}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled
             ? "bg-white/95 dark:bg-black/85 backdrop-blur-xl border-b border-gray-200 dark:border-white/[0.06] shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
             : ""
-        }`}
+          }`}
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
           <a href="#top" className="flex items-center gap-3 group select-none">
@@ -873,11 +872,10 @@ export default function BakkahHomePage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                 <div className="absolute bottom-3 left-3">
                   <span
-                    className={`rounded-lg backdrop-blur-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${
-                      item.type === "before"
+                    className={`rounded-lg backdrop-blur-sm px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${item.type === "before"
                         ? "bg-red-500/80 text-white"
                         : "bg-[#6B7A28]/90 text-black"
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </span>
@@ -1610,7 +1608,7 @@ export default function BakkahHomePage() {
                     icon: MapPin,
                     text: "Al Qusais Industrial Area\nDubai, UAE 🇦🇪",
                   },
-                  { icon: Phone, text: "+971 58 939 7610" },
+                  { icon: Phone, text: "+971 54 588 6999" },
                   { icon: Mail, text: "info@bakkah.ae" },
                 ].map(({ icon: Icon, text }) => (
                   <li key={text} className="flex items-start gap-3">

@@ -152,7 +152,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               <div>
                 <h1 className="text-3xl font-black text-gray-900 tracking-tight">Bakkah</h1>
                 <p className="text-sm text-gray-500 mt-1">Al Qusais Industrial Area, Dubai, UAE</p>
-                <p className="text-sm text-gray-500">Tel: +971 58 939 7610</p>
+                <p className="text-sm text-gray-500">Tel: +971 54 588 6999</p>
                 <p className="text-sm text-gray-500">TRN: 100 000 000 000 003</p>
               </div>
               <div className="text-right">
@@ -164,9 +164,9 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 {job.date_out && <p className="text-sm text-gray-500">Expected: <strong className="text-gray-800">{fmtDate(job.date_out)}</strong></p>}
                 <div className="mt-2">
                   <span className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${job.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
-                      job.status === 'ready' ? 'bg-blue-100 text-blue-700' :
-                        job.status === 'in_progress' ? 'bg-brand-100 text-brand-700' :
-                          'bg-gray-100 text-gray-600'
+                    job.status === 'ready' ? 'bg-blue-100 text-blue-700' :
+                      job.status === 'in_progress' ? 'bg-brand-100 text-brand-700' :
+                        'bg-gray-100 text-gray-600'
                     }`}>
                     Status: {JOB_STATUS_LABEL[job.status]}
                   </span>
@@ -277,7 +277,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             {/* Payment status */}
             <div className="mb-6 flex items-center gap-3 rounded-lg border border-gray-200 p-3">
               <div className={`h-3 w-3 rounded-full ${job.payment_status === 'paid' ? 'bg-green-500' :
-                  job.payment_status === 'partial' ? 'bg-amber-500' : 'bg-red-500'
+                job.payment_status === 'partial' ? 'bg-amber-500' : 'bg-red-500'
                 }`} />
               <span className="text-sm font-semibold capitalize">{job.payment_status}</span>
               {job.payment_method && <span className="text-sm text-gray-500">via {job.payment_method}</span>}
@@ -434,7 +434,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             <div className="mt-8 border-t-2 border-brand pt-4 text-center">
               <p className="text-xs text-gray-400">Bakkah · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
               <p className="mt-1 text-xs text-gray-400">This is a computer-generated invoice. Thank you for your business.</p>
-              <p className="mt-1 text-xs font-medium text-brand">+971 58 939 7610 · bakkahgarage.com</p>
+              <p className="mt-1 text-xs font-medium text-brand">+971 54 588 6999 · bakkahgarage.com</p>
             </div>
 
           </div>

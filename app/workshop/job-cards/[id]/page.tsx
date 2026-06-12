@@ -27,7 +27,7 @@ function buildWhatsAppHref(job: JobCard): string {
     `Track your vehicle: ${trackUrl}`,
     `View invoice: ${invoiceUrl}`,
     ``,
-    `Bakkah | +971 58 939 7610`,
+    `Bakkah | +971 54 588 6999`,
   ].join('\n')
   return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
 }
