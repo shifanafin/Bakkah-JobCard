@@ -54,7 +54,11 @@ export default function PwaInstallBanner() {
     if (!prompt) return
     await prompt.prompt()
     const { outcome } = await prompt.userChoice
-    if (outcome === 'accepted') setPrompt(null)
+    if (outcome === 'accepted') {
+      setPrompt(null)
+      // Navigate to login so the first PWA launch lands on the right page
+      window.location.href = '/auth/login'
+    }
   }
 
   if (dismissed) return null

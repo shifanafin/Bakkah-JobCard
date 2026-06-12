@@ -69,14 +69,14 @@ type ApprovedFeedback = { id: string; customer_name: string; rating: number; com
 const STEPS: JobStatus[] = ["received", "in_progress", "qc_check", "ready", "delivered"];
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; dot: string }> = {
-  pending:     { label: "Pending",       color: "text-amber-600 dark:text-amber-300",   bg: "bg-amber-50 dark:bg-amber-500/10",   border: "border-amber-200 dark:border-amber-500/20",   dot: "bg-amber-500"  },
-  assigned:    { label: "Assigned",      color: "text-blue-600 dark:text-blue-300",     bg: "bg-blue-50 dark:bg-blue-500/10",     border: "border-blue-200 dark:border-blue-500/20",     dot: "bg-blue-500"   },
-  received:    { label: "Received",      color: "text-blue-600 dark:text-blue-300",     bg: "bg-blue-50 dark:bg-blue-500/10",     border: "border-blue-200 dark:border-blue-500/20",     dot: "bg-blue-500"   },
-  in_progress: { label: "In Progress",   color: "text-brand dark:text-brand",           bg: "bg-brand-50 dark:bg-brand/10",       border: "border-brand-200 dark:border-brand/20",       dot: "bg-brand"      },
-  qc_check:    { label: "Quality Check", color: "text-purple-600 dark:text-purple-300", bg: "bg-purple-50 dark:bg-purple-500/10", border: "border-purple-200 dark:border-purple-500/20", dot: "bg-purple-500" },
-  ready:       { label: "Ready",         color: "text-emerald-600 dark:text-emerald-300",bg:"bg-emerald-50 dark:bg-emerald-500/10",border:"border-emerald-200 dark:border-emerald-500/20",dot:"bg-emerald-500"},
-  delivered:   { label: "Delivered",     color: "text-gray-500 dark:text-gray-400",     bg: "bg-gray-50 dark:bg-white/[0.04]",    border: "border-gray-200 dark:border-white/10",        dot: "bg-gray-400"   },
-  cancelled:   { label: "Cancelled",     color: "text-red-600 dark:text-red-400",       bg: "bg-red-50 dark:bg-red-500/10",       border: "border-red-200 dark:border-red-500/20",        dot: "bg-red-500"    },
+  pending: { label: "Pending", color: "text-amber-600 dark:text-amber-300", bg: "bg-amber-50 dark:bg-amber-500/10", border: "border-amber-200 dark:border-amber-500/20", dot: "bg-amber-500" },
+  assigned: { label: "Assigned", color: "text-blue-600 dark:text-blue-300", bg: "bg-blue-50 dark:bg-blue-500/10", border: "border-blue-200 dark:border-blue-500/20", dot: "bg-blue-500" },
+  received: { label: "Received", color: "text-blue-600 dark:text-blue-300", bg: "bg-blue-50 dark:bg-blue-500/10", border: "border-blue-200 dark:border-blue-500/20", dot: "bg-blue-500" },
+  in_progress: { label: "In Progress", color: "text-brand dark:text-brand", bg: "bg-brand-50 dark:bg-brand/10", border: "border-brand-200 dark:border-brand/20", dot: "bg-brand" },
+  qc_check: { label: "Quality Check", color: "text-purple-600 dark:text-purple-300", bg: "bg-purple-50 dark:bg-purple-500/10", border: "border-purple-200 dark:border-purple-500/20", dot: "bg-purple-500" },
+  ready: { label: "Ready", color: "text-emerald-600 dark:text-emerald-300", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/20", dot: "bg-emerald-500" },
+  delivered: { label: "Delivered", color: "text-gray-500 dark:text-gray-400", bg: "bg-gray-50 dark:bg-white/[0.04]", border: "border-gray-200 dark:border-white/10", dot: "bg-gray-400" },
+  cancelled: { label: "Cancelled", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-500/10", border: "border-red-200 dark:border-red-500/20", dot: "bg-red-500" },
 };
 
 const JOB_TYPE_LABEL: Record<string, string> = {
@@ -85,8 +85,8 @@ const JOB_TYPE_LABEL: Record<string, string> = {
 };
 
 const ANNOUNCEMENT_STYLE: Record<string, string> = {
-  promo:   "bg-gradient-to-r from-brand to-golden text-black border-golden-300",
-  info:    "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20",
+  promo: "bg-gradient-to-r from-brand to-golden text-black border-golden-300",
+  info: "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:border-blue-500/20",
   warning: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20",
   success: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20",
 };
@@ -1097,7 +1097,7 @@ export default function TrackPage() {
           </div>
           <a href="https://wa.me/971545886999" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-500 hover:text-emerald-600 transition">
-            <MessageCircle className="h-3.5 w-3.5" /> +971 58 939 7610
+            <MessageCircle className="h-3.5 w-3.5" /> +971 54 588 6999
           </a>
         </div>
 

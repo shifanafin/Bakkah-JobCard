@@ -339,7 +339,7 @@ export default function PublicInvoicePage({
                   <p className="text-sm text-gray-500">
                     Al Qusais Industrial Area, Dubai, UAE
                   </p>
-                  <p className="text-sm text-gray-500">Tel: +971 58 939 7610</p>
+                  <p className="text-sm text-gray-500">Tel: +971 54 588 6999</p>
                   <p className="text-sm text-gray-500">
                     TRN: 100 000 000 000 003
                   </p>
@@ -759,9 +759,9 @@ export default function PublicInvoicePage({
                             <td className="px-3 py-1.5 text-center text-gray-400">
                               {f.date
                                 ? new Date(f.date).toLocaleDateString("en-AE", {
-                                    day: "2-digit",
-                                    month: "short",
-                                  })
+                                  day: "2-digit",
+                                  month: "short",
+                                })
                                 : "—"}
                             </td>
                             <td className="px-3 py-1.5 text-right tabular-nums font-bold text-red-600">
@@ -836,71 +836,71 @@ export default function PublicInvoicePage({
             {(beforePhotos.length > 0 ||
               afterPhotos.length > 0 ||
               damagePhotos.length > 0) && (
-              <div className="border-t border-gray-100 pt-5 mb-7">
-                <h2 className="text-[10px] font-black uppercase tracking-widest text-[#6B7A28] mb-4">
-                  Vehicle Photos
-                </h2>
-                {damagePhotos.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-                      Damage (Pre-existing)
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {damagePhotos.map((p) => (
-                        <div key={p.id} className="overflow-hidden rounded-xl">
-                          <img
-                            src={p.cloudinary_url}
-                            alt={p.caption ?? "damage"}
-                            className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300"
-                          />
-                          {p.caption && (
-                            <p className="text-[9px] text-gray-400 mt-1 truncate px-0.5">
-                              {p.caption}
-                            </p>
-                          )}
-                        </div>
-                      ))}
+                <div className="border-t border-gray-100 pt-5 mb-7">
+                  <h2 className="text-[10px] font-black uppercase tracking-widest text-[#6B7A28] mb-4">
+                    Vehicle Photos
+                  </h2>
+                  {damagePhotos.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                        Damage (Pre-existing)
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {damagePhotos.map((p) => (
+                          <div key={p.id} className="overflow-hidden rounded-xl">
+                            <img
+                              src={p.cloudinary_url}
+                              alt={p.caption ?? "damage"}
+                              className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                            {p.caption && (
+                              <p className="text-[9px] text-gray-400 mt-1 truncate px-0.5">
+                                {p.caption}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {beforePhotos.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-                      Before Work
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {beforePhotos.map((p) => (
-                        <div key={p.id} className="overflow-hidden rounded-xl">
-                          <img
-                            src={p.cloudinary_url}
-                            alt="before"
-                            className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                      ))}
+                  )}
+                  {beforePhotos.length > 0 && (
+                    <div className="mb-4">
+                      <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                        Before Work
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {beforePhotos.map((p) => (
+                          <div key={p.id} className="overflow-hidden rounded-xl">
+                            <img
+                              src={p.cloudinary_url}
+                              alt="before"
+                              className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {afterPhotos.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-                      After Work
-                    </p>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {afterPhotos.map((p) => (
-                        <div key={p.id} className="overflow-hidden rounded-xl">
-                          <img
-                            src={p.cloudinary_url}
-                            alt="after"
-                            className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                      ))}
+                  )}
+                  {afterPhotos.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                        After Work
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {afterPhotos.map((p) => (
+                          <div key={p.id} className="overflow-hidden rounded-xl">
+                            <img
+                              src={p.cloudinary_url}
+                              alt="after"
+                              className="w-full aspect-[4/3] object-cover hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
 
             {/* Footer */}
             <div
@@ -916,7 +916,7 @@ export default function PublicInvoicePage({
                 Bakkah.
               </p>
               <p className="mt-1 text-xs font-bold text-[#6B7A28]">
-                +971 58 939 7610 · bakkahgarage.com
+                +971 54 588 6999 · bakkahgarage.com
               </p>
             </div>
           </div>
