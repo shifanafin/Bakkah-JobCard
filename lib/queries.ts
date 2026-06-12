@@ -58,30 +58,49 @@ export async function createJobCard(input: {
 
   // Upsert customer
   let customerId: string
-  const { data: ec } = await sb.from('customers').select('id').eq('phone', input.customer_phone).maybeSingle()
+  const { data: ec, error: ecErr } = await sb.from('customers').select('id').eq('phone', input.customer_phone).maybeSingle()
+  if (ecErr) throw new Error(`Customer lookup failed: ${ecErr.message}`)
+
   if (ec) {
     customerId = ec.id
+    // Keep customer details up-to-date
+    await sb.from('customers').update({
+      name: input.customer_name,
+      ...(input.customer_email ? { email: input.customer_email } : {}),
+      ...(input.customer_company ? { company_name: input.customer_company } : {}),
+      is_fleet: input.is_fleet,
+    }).eq('id', customerId)
   } else {
     const { data: nc, error } = await sb.from('customers').insert({
-      name: input.customer_name, phone: input.customer_phone, email: input.customer_email,
-      company_name: input.customer_company, is_fleet: input.is_fleet,
+      name: input.customer_name, phone: input.customer_phone,
+      email: input.customer_email || null, company_name: input.customer_company || null,
+      is_fleet: input.is_fleet,
     }).select('id').single()
-    if (error) throw error
+    if (error) throw new Error(`Failed to save customer: ${error.message}`)
     customerId = nc.id
   }
 
-  // Upsert vehicle
+  // Upsert vehicle — mileage_in lives on job_cards, not vehicles
   let vehicleId: string
   const plate = input.plate_number.toUpperCase().trim()
-  const { data: ev } = await sb.from('vehicles').select('id').eq('plate_number', plate).maybeSingle()
+  const { data: ev, error: evErr } = await sb.from('vehicles').select('id').eq('plate_number', plate).maybeSingle()
+  if (evErr) throw new Error(`Vehicle lookup failed: ${evErr.message}`)
+
   if (ev) {
     vehicleId = ev.id
+    // Keep vehicle details up-to-date
+    await sb.from('vehicles').update({
+      make: input.make, model: input.model,
+      ...(input.year ? { year: input.year } : {}),
+      ...(input.color ? { color: input.color } : {}),
+      ...(input.vin ? { vin: input.vin } : {}),
+    }).eq('id', vehicleId)
   } else {
     const { data: nv, error } = await sb.from('vehicles').insert({
       customer_id: customerId, plate_number: plate, make: input.make, model: input.model,
-      year: input.year, color: input.color, vin: input.vin, mileage_in: input.mileage_in,
+      year: input.year || null, color: input.color || null, vin: input.vin || null,
     }).select('id').single()
-    if (error) throw error
+    if (error) throw new Error(`Failed to save vehicle: ${error.message}`)
     vehicleId = nv.id
   }
 
@@ -90,10 +109,10 @@ export async function createJobCard(input: {
   const { data: jc, error: je } = await sb.from('job_cards').insert({
     customer_id: customerId, vehicle_id: vehicleId, technician_id: input.technician_id || null,
     job_type: input.job_type, date_in: input.date_in, date_out: input.date_out || null,
-    mileage_in: input.mileage_in, customer_complaint: input.customer_complaint,
-    work_instructions: input.work_instructions, status: initialStatus,
+    mileage_in: input.mileage_in || null, customer_complaint: input.customer_complaint || null,
+    work_instructions: input.work_instructions || null, status: initialStatus,
   }).select('id').single()
-  if (je) throw je
+  if (je) throw new Error(`Failed to create job card: ${je.message}`)
 
   await sb.from('job_card_history').insert({ job_card_id: jc.id, new_status: initialStatus, notes: 'Job card created' })
   return getJobCard(jc.id)
