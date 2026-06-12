@@ -19,7 +19,6 @@ import {
   CreditCard,
   Hash,
 } from "lucide-react";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function InvoiceLookupPage() {
   const router = useRouter();
@@ -111,7 +110,6 @@ export default function InvoiceLookupPage() {
             </div>
           </Link>
           <div className="flex items-center gap-2">
-            <LanguageSwitcher variant="website" />
             <button
               onClick={toggle}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-100 dark:border-white/[0.08] dark:text-white/40 dark:hover:bg-white/[0.06]"

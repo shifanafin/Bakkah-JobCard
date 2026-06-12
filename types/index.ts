@@ -2,7 +2,7 @@
 // Bakkah — Global Type Definitions
 // ============================================================
 
-export type JobStatus = 'waiting_for_approval' | 'pending' | 'assigned' | 'received' | 'in_progress' | 'qc_check' | 'ready' | 'delivered' | 'cancelled'
+export type JobStatus = 'inspection' | 'waiting_for_approval' | 'pending' | 'assigned' | 'received' | 'in_progress' | 'qc_check' | 'ready' | 'delivered' | 'cancelled'
 export type JobType = 'service' | 'inspection' | 'detailing' | 'repair' | 'rta_check' | 'valuation' | 'other'
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
 export type PhotoCategory = 'exterior_front' | 'exterior_rear' | 'exterior_left' | 'exterior_right' | 'interior' | 'engine_bay' | 'damage' | 'before_work' | 'after_work' | 'other'
@@ -74,6 +74,8 @@ export interface JobCard {
   payment_status: PaymentStatus
   payment_method?: string
   internal_notes?: string
+  customer_signature_url?: string
+  supervisor_signature_url?: string
   created_at: string
   updated_at: string
   customer?: Customer
@@ -119,7 +121,8 @@ export interface JobCardPhoto {
 // ── Display Maps ─────────────────────────────────────────────
 
 export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
-  waiting_for_approval: 'Waiting for Approval',
+  inspection: 'Inspection',
+  waiting_for_approval: 'Awaiting Approval',
   pending: 'Pending',
   assigned: 'Assigned',
   received: 'Received',
@@ -131,6 +134,7 @@ export const JOB_STATUS_LABEL: Record<JobStatus, string> = {
 }
 
 export const JOB_STATUS_COLOR: Record<JobStatus, string> = {
+  inspection: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/25 ring-cyan-500/20',
   waiting_for_approval: 'bg-orange-500/15 text-orange-400 border-orange-500/25 ring-orange-500/20',
   pending: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/25 ring-yellow-500/20',
   assigned: 'bg-blue-500/15 text-blue-300 border-blue-500/25 ring-blue-500/20',
@@ -143,8 +147,9 @@ export const JOB_STATUS_COLOR: Record<JobStatus, string> = {
 }
 
 export const JOB_STATUS_STEP: Record<JobStatus, number> = {
-  waiting_for_approval: 0,
-  pending: 1, received: 1, assigned: 2, in_progress: 3, qc_check: 4, ready: 5, delivered: 6, cancelled: -1,
+  inspection: 0,
+  waiting_for_approval: 1,
+  pending: 2, received: 2, assigned: 3, in_progress: 4, qc_check: 5, ready: 6, delivered: 7, cancelled: -1,
 }
 
 export const JOB_TYPE_LABEL: Record<JobType, string> = {
