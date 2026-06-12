@@ -47,9 +47,14 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true)
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
 
+  // Per-row attendance action loading state
+  const [attLoading, setAttLoading] = useState<string | null>(null)
+
   useEffect(() => {
-    if (!isPending && session && role !== 'admin') router.replace('/workshop/dashboard')
-  }, [isPending, role, router])
+    if (!isPending && session && role !== 'admin') {
+      router.replace('/workshop/dashboard')
+    }
+  }, [isPending, role, router, session])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -65,7 +70,50 @@ export default function AttendancePage() {
     }
   }, [date])
 
-  useEffect(() => { if (role === 'admin') load() }, [role, load])
+  useEffect(() => {
+    if (role === 'admin') load()
+  }, [role, load])
+
+  // ── Attendance overrides ────────────────────────────────────────────────────
+  const isToday = date === new Date().toISOString().split('T')[0]
+
+  async function handleCheckIn(record: AttendanceRecord) {
+    setAttLoading(record.id)
+    try {
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ forUserId: record.id }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      toast.success(`${record.name} checked in${json.alreadyIn ? ' (already in)' : ''}`)
+      await load()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Check-in failed')
+    } finally {
+      setAttLoading(null)
+    }
+  }
+
+  async function handleCheckOut(record: AttendanceRecord) {
+    setAttLoading(record.id)
+    try {
+      const res = await fetch('/api/attendance', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ forUserId: record.id }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      toast.success(`${record.name} checked out`)
+      await load()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Check-out failed')
+    } finally {
+      setAttLoading(null)
+    }
+  }
 
   if (isPending || (!isPending && session && role !== 'admin')) {
     return <div className="flex h-screen items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-brand" /></div>
@@ -78,7 +126,7 @@ export default function AttendancePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
-      <Header title="Attendance" subtitle="Manual check-in / check-out — GPS or WiFi verified" />
+      <Header title="Attendance" subtitle="Check-in / check-out tracking" />
 
       <div className="p-4 space-y-5 min-w-full lg:p-6">
 
@@ -101,10 +149,10 @@ export default function AttendancePage() {
         {/* Summary cards */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Checked In',        value: checkedIn.length,        icon: UserCheck,   color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-            { label: 'Checked Out',     value: checkedOut.length,       icon: LogOut,      color: 'text-gray-400',    bg: 'bg-gray-500/10' },
-            { label: 'Absent',          value: absent.length,           icon: UserX,       color: 'text-red-400',     bg: 'bg-red-500/10' },
-            { label: 'Jobs Closed Today', value: totalJobsClosedToday,  icon: CheckCircle, color: 'text-brand',       bg: 'bg-brand/10' },
+            { label: 'Checked In',          value: checkedIn.length,        icon: UserCheck,   color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+            { label: 'Checked Out',         value: checkedOut.length,       icon: LogOut,      color: 'text-gray-400',    bg: 'bg-gray-500/10' },
+            { label: 'Absent',              value: absent.length,           icon: UserX,       color: 'text-red-400',     bg: 'bg-red-500/10' },
+            { label: 'Jobs Closed Today',   value: totalJobsClosedToday,    icon: CheckCircle, color: 'text-brand',       bg: 'bg-brand/10' },
           ].map(({ label, value, icon: Icon, color, bg }) => (
             <div key={label} className="card cursor-default">
               <div className={cn('inline-flex h-9 w-9 items-center justify-center rounded-xl mb-3', bg)}>
@@ -129,8 +177,8 @@ export default function AttendancePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-white/[0.06]">
-                  {['Staff', 'Role', 'Check-in', 'Check-out', 'Hours', 'Closed Today', 'Active Jobs', 'Total Jobs'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">{h}</th>
+                  {['Staff', 'Role', 'Check-in', 'Check-out', 'Hours', 'Closed Today', 'Active Jobs', 'Total Jobs', ...(isToday ? ['Action'] : [])].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -139,6 +187,8 @@ export default function AttendancePage() {
                   const att = r.attendance
                   const isIn  = att && !att.checkout_at
                   const isOut = att && att.checkout_at
+                  const isActioning = attLoading === r.id
+
                   return (
                     <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
                       {/* Staff */}
@@ -197,20 +247,14 @@ export default function AttendancePage() {
 
                       {/* Jobs closed today */}
                       <td className="px-4 py-3">
-                        <span className={cn(
-                          'font-bold text-sm',
-                          r.jobs_closed_today > 0 ? 'text-emerald-500' : 'text-gray-400 dark:text-white/25'
-                        )}>
+                        <span className={cn('font-bold text-sm', r.jobs_closed_today > 0 ? 'text-emerald-500' : 'text-gray-400 dark:text-white/25')}>
                           {r.jobs_closed_today}
                         </span>
                       </td>
 
                       {/* Active jobs */}
                       <td className="px-4 py-3">
-                        <span className={cn(
-                          'font-bold text-sm',
-                          r.active_jobs > 0 ? 'text-brand' : 'text-gray-400 dark:text-white/25'
-                        )}>
+                        <span className={cn('font-bold text-sm', r.active_jobs > 0 ? 'text-brand' : 'text-gray-400 dark:text-white/25')}>
                           {r.active_jobs}
                         </span>
                       </td>
@@ -222,6 +266,33 @@ export default function AttendancePage() {
                           <span className="text-gray-700 dark:text-white/70 font-medium">{r.total_jobs}</span>
                         </div>
                       </td>
+
+                      {/* Action — today only */}
+                      {isToday && (
+                        <td className="px-4 py-3">
+                          {isOut ? (
+                            <span className="text-xs text-gray-400 dark:text-white/25 italic">Done</span>
+                          ) : isIn ? (
+                            <button
+                              onClick={() => handleCheckOut(r)}
+                              disabled={isActioning}
+                              className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50 whitespace-nowrap"
+                            >
+                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
+                              Check Out
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleCheckIn(r)}
+                              disabled={isActioning}
+                              className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50 whitespace-nowrap"
+                            >
+                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
+                              Check In
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   )
                 })}
@@ -232,10 +303,10 @@ export default function AttendancePage() {
 
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-4 text-xs text-gray-400 dark:text-white/30">
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Checked in (still at work)</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" /> Checked in</span>
           <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-gray-400" /> Checked out</span>
-          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Absent (no check-in)</span>
-          <span className="ml-2 italic">Staff check in/out manually via the button in their sidebar — requires GPS within 200 m of workshop or WiFi connection.</span>
+          <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-red-400" /> Absent</span>
+          {isToday && <span className="ml-2 italic">Action buttons only available for today's view.</span>}
         </div>
 
       </div>

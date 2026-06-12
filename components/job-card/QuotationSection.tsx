@@ -6,6 +6,8 @@ import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
+type CatalogService = { id: string; name: string; default_price: number; category: string }
+
 type QuotationItem = {
   id: string
   item_type: 'service' | 'part' | 'labor'
@@ -53,6 +55,8 @@ export default function QuotationSection({
   const [isPending, startTransition] = useTransition()
   const [creating, setCreating] = useState(false)
 
+  const [catalog, setCatalog] = useState<CatalogService[]>([])
+
   const [itemType, setItemType] = useState<'service' | 'part' | 'labor'>('service')
   const [itemDesc, setItemDesc] = useState('')
   const [itemQty, setItemQty] = useState('1')
@@ -79,6 +83,13 @@ export default function QuotationSection({
 
   useEffect(() => { load() }, [jobId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    fetch('/api/services')
+      .then(r => r.json())
+      .then(d => setCatalog(d.services ?? []))
+      .catch(() => {})
+  }, [])
+
   async function handleCreate() {
     setCreating(true)
     try {
@@ -92,6 +103,14 @@ export default function QuotationSection({
       toast.success('Quotation created')
     } catch { toast.error('Failed to create quotation') }
     finally { setCreating(false) }
+  }
+
+  function handleDescChange(val: string) {
+    setItemDesc(val)
+    if (itemType === 'service') {
+      const match = catalog.find(s => s.name.toLowerCase() === val.toLowerCase())
+      if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
+    }
   }
 
   function handleAddItem() {
@@ -307,9 +326,21 @@ export default function QuotationSection({
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               </div>
-              <input value={itemDesc} onChange={e => setItemDesc(e.target.value)} placeholder="Description"
+              <input
+                value={itemDesc}
+                onChange={e => handleDescChange(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                placeholder="Description"
+                list={itemType === 'service' ? 'svc-catalog' : undefined}
                 className={cn(inputSm, 'min-w-[150px]')}
-                onKeyDown={e => e.key === 'Enter' && handleAddItem()} />
+              />
+              {itemType === 'service' && catalog.length > 0 && (
+                <datalist id="svc-catalog">
+                  {catalog.map(s => (
+                    <option key={s.id} value={s.name} />
+                  ))}
+                </datalist>
+              )}
               <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
                 type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-16 flex-none')} />
               <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
