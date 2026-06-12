@@ -5,22 +5,26 @@ import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
+const iconsDir = join(root, 'public', 'icons')
 
-const regularSvg = readFileSync(join(root, 'public/icons/icon.svg'))
-const maskableSvg = readFileSync(join(root, 'public/icons/icon-maskable.svg'))
+const logoSvg     = readFileSync(join(root, 'public', 'logo.svg'))
+const iconSvg     = readFileSync(join(iconsDir, 'icon.svg'))
+const maskableSvg = readFileSync(join(iconsDir, 'icon-maskable.svg'))
 
-const sizes = [192, 512]
+const icons = [
+  { svg: iconSvg,     size: 192, out: 'icon-192.png' },
+  { svg: iconSvg,     size: 512, out: 'icon-512.png' },
+  { svg: logoSvg,     size: 180, out: 'apple-touch-icon.png' },
+  { svg: maskableSvg, size: 192, out: 'icon-maskable-192.png' },
+  { svg: maskableSvg, size: 512, out: 'icon-maskable-512.png' },
+]
 
-for (const size of sizes) {
-  await sharp(regularSvg).resize(size, size).png().toFile(join(root, `public/icons/icon-${size}.png`))
-  console.log(`Generated icon-${size}.png`)
-
-  await sharp(maskableSvg).resize(size, size).png().toFile(join(root, `public/icons/icon-maskable-${size}.png`))
-  console.log(`Generated icon-maskable-${size}.png`)
+for (const { svg, size, out } of icons) {
+  await sharp(svg, { density: 300 })
+    .resize(size, size)
+    .png()
+    .toFile(join(iconsDir, out))
+  console.log(`✓  ${out}  (${size}x${size})`)
 }
 
-// Also generate a 180x180 for Apple touch icon
-await sharp(regularSvg).resize(180, 180).png().toFile(join(root, 'public/icons/apple-touch-icon.png'))
-console.log('Generated apple-touch-icon.png')
-
-console.log('All icons generated successfully.')
+console.log('\nAll icons generated.')

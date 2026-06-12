@@ -1,28 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <!-- Olive green background (matches the physical sign) -->
-  <rect width="400" height="400" fill="#566020"/>
+  <!-- Olive green circle background -->
+  <circle cx="200" cy="200" r="200" fill="#566020"/>
+  <!-- Outer gold ring -->
+  <circle cx="200" cy="200" r="192" fill="#C9A845"/>
+  <!-- Thin inner olive gap -->
+  <circle cx="200" cy="200" r="182" fill="#566020"/>
+  <!-- Main bold gold ring -->
+  <circle cx="200" cy="200" r="174" fill="#C9A845"/>
+  <!-- Olive center -->
+  <circle cx="200" cy="200" r="158" fill="#566020"/>
 
-  <!-- Outer thin gold ring -->
-  <circle cx="200" cy="200" r="188" fill="#C9A845"/>
-  <!-- Olive gap band -->
-  <circle cx="200" cy="200" r="180" fill="#566020"/>
-  <!-- Wider inner gold ring (main visible ring) -->
-  <circle cx="200" cy="200" r="170" fill="#C9A845"/>
-  <!-- Olive green center circle -->
-  <circle cx="200" cy="200" r="152" fill="#566020"/>
-
-  <!--
-    Bold "B" letter — solid gold, matches logo image.
-    Path traces outer contour of B clockwise:
-    down the left stem → bottom bowl arc (right) → top bowl arc (right) → close
-  -->
+  <!-- Bold gold B — upper bowl narrower, lower bowl wider, thick stem -->
   <path fill="#C9A845" d="
     M 108 104
     L 108 296
-    L 160 296
-    C 325 296 325 206 160 206
-    L 160 200
-    C 320 200 320 104 160 104
+    L 162 296
+    C 332 296 332 198 162 198
+    L 162 186
+    C 316 186 316 104 162 104
     Z
   "/>
 </svg>

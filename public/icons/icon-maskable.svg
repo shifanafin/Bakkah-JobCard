@@ -1,24 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Full-bleed background (olive, no rounded corners for maskable icon) -->
+  <!-- Full-bleed square bg for maskable (safe zone is inner 80%) -->
   <rect width="512" height="512" fill="#566020"/>
-
-  <!-- Outer thin gold ring -->
-  <circle cx="256" cy="256" r="244" fill="#C9A845"/>
-  <!-- Olive gap -->
+  <!-- Outer gold ring -->
+  <circle cx="256" cy="256" r="246" fill="#C9A845"/>
+  <!-- Thin inner olive gap -->
   <circle cx="256" cy="256" r="234" fill="#566020"/>
-  <!-- Wider inner gold ring -->
+  <!-- Main bold gold ring -->
   <circle cx="256" cy="256" r="222" fill="#C9A845"/>
   <!-- Olive center -->
-  <circle cx="256" cy="256" r="200" fill="#566020"/>
+  <circle cx="256" cy="256" r="202" fill="#566020"/>
 
-  <!-- B letter -->
+  <!-- Bold gold B — within 80% safe zone -->
   <path fill="#C9A845" d="
-    M 140 134
-    L 140 378
-    L 206 378
-    C 420 378 420 260 206 260
-    L 206 252
-    C 414 252 414 134 206 134
+    M 138 133
+    L 138 379
+    L 207 379
+    C 425 379 425 254 207 254
+    L 207 238
+    C 404 238 404 133 207 133
     Z
   "/>
 </svg>
