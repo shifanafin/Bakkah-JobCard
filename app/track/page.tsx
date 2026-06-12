@@ -1147,9 +1147,7 @@ export default function TrackPage() {
         {/* ── Footer ───────────────────────────────────────── */}
         <div className="mt-12 rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-white dark:bg-surface-800 p-5 text-center space-y-3">
           <div className="flex items-center justify-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand shadow-[0_0_12px_rgba(107,122,40,0.3)]">
-              <Car className="h-3.5 w-3.5 text-black" />
-            </div>
+            <img src="/logo.svg" alt="Bakkah Logo" className="h-8 w-8 rounded-full shadow-[0_0_12px_rgba(107,122,40,0.3)]" />
             <span className="font-display tracking-[0.2em] text-gray-700 dark:text-white/70 text-sm">BAKKAH</span>
           </div>
           <div className="flex items-center justify-center gap-1.5 text-xs text-gray-400 dark:text-white/25">

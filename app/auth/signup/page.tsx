@@ -106,12 +106,8 @@ export default function SignUpPage() {
 
       <div className="relative z-10 w-full max-w-sm px-4">
         <div className="mb-8 text-center">
-          <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-brand/30 bg-brand/10">
-            {needsSetup ? (
-              <ShieldCheck className="h-7 w-7 text-brand" />
-            ) : (
-              <Zap className="h-7 w-7 text-brand" />
-            )}
+          <div className="mb-3">
+            <img src="/logo.svg" alt="Bakkah Logo" className="h-16 w-16 rounded-full mx-auto" />
           </div>
           <h1 className="font-display text-3xl tracking-wide text-gray-900 dark:text-white">
             Bakkah
