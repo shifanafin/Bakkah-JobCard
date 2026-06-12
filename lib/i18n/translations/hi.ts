@@ -118,7 +118,7 @@ export const hi: AppTranslations = {
     },
   },
   track: {
-    autoDetailing: 'ऑटो डिटेलिंग',
+    autoDetailing: 'ऑटो प्रीमियम केयर',
     staffLogin: 'स्टाफ लॉगिन →',
     hero: {
       title: 'अपना वाहन ट्रैक करें',

@@ -118,7 +118,7 @@ export const ur: AppTranslations = {
     },
   },
   track: {
-    autoDetailing: 'آٹو ڈیٹیلنگ',
+    autoDetailing: 'آٹو پریمیم کیئر',
     staffLogin: 'عملہ لاگ ان →',
     hero: {
       title: 'اپنی گاڑی ٹریک کریں',

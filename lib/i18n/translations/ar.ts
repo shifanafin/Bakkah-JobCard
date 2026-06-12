@@ -118,7 +118,7 @@ export const ar: AppTranslations = {
     },
   },
   track: {
-    autoDetailing: 'تلميع السيارات',
+    autoDetailing: 'العناية المتميزة',
     staffLogin: 'دخول الموظفين →',
     hero: {
       title: 'تتبع مركبتك',

@@ -118,7 +118,7 @@ export const ml: AppTranslations = {
     },
   },
   track: {
-    autoDetailing: 'ഓട്ടോ ഡീറ്റെയ്‌ലിംഗ്',
+    autoDetailing: 'ഓട്ടോ പ്രീമിയം കെയർ',
     staffLogin: 'ജീവനക്കാർ ലോഗിൻ →',
     hero: {
       title: 'നിങ്ങളുടെ വാഹനം ട്രാക്ക് ചെയ്യുക',

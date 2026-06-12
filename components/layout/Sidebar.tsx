@@ -168,9 +168,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-gray-200 px-5 dark:border-white/[0.06]">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/15 ring-1 ring-brand/30">
-            <Zap className="h-4 w-4 text-brand" />
-          </div>
+          <img src="/logo.svg" alt="Bakkah Logo" className="h-9 w-9 rounded-full ring-1 ring-brand/30" />
           <div>
             <p className="font-display text-lg leading-none tracking-wide text-gray-900 dark:text-white">
               Bakkah

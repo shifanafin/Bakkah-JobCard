@@ -112,13 +112,13 @@ export const fr: AppTranslations = {
       openingHours: "Heures d'ouverture",
       monSat: 'Lun – Sam : 8h00 – 20h00',
       sunday: 'Dimanche : 9h00 – 17h00',
-      copyright: '© 2025 Bakkah Auto Detailing LLC. Tous droits réservés. Fait avec ❤️ à Dubaï.',
+      copyright: '© 2025 Bakkah Auto Premium Care LLC. Tous droits réservés. Fait avec ❤️ à Dubaï.',
       trackVehicle: 'Suivre un véhicule',
       staffLogin: 'Connexion employés',
     },
   },
   track: {
-    autoDetailing: 'AUTO DETAILING',
+    autoDetailing: 'AUTO PREMIUM CARE',
     staffLogin: 'Connexion employés →',
     hero: {
       title: 'Suivre votre véhicule',
@@ -162,7 +162,7 @@ export const fr: AppTranslations = {
       trackAnother: 'Suivre un autre dossier',
     },
     reviews: { title: 'Ce que disent nos clients' },
-    footer: { location: 'Bakkah Auto Detailing · Al Qusais, Dubaï, EAU 🇦🇪' },
+    footer: { location: 'Bakkah Auto Premium Care · Al Qusais, Dubaï, EAU 🇦🇪' },
   },
   auth: {
     title: 'Bakkah',

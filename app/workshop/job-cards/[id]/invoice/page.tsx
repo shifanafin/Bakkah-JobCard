@@ -150,7 +150,13 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
             {/* Header */}
             <div className="flex items-start justify-between border-b-4 border-brand pb-6 mb-6">
               <div>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">Bakkah</h1>
+                <div className="flex items-center gap-3 mb-1">
+                  <img src="/logo.svg" alt="Bakkah Logo" className="h-12 w-12 rounded-full" />
+                  <div>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight leading-none">Bakkah</h1>
+                    <p className="text-[10px] tracking-widest text-gray-400 font-medium uppercase">Auto Premium Care</p>
+                  </div>
+                </div>
                 <p className="text-sm text-gray-500 mt-1">Al Qusais Industrial Area, Dubai, UAE</p>
                 <p className="text-sm text-gray-500">Tel: +971 54 588 6999</p>
                 <p className="text-sm text-gray-500">TRN: 100 000 000 000 003</p>

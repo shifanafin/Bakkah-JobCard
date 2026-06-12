@@ -110,13 +110,13 @@ export const en = {
       openingHours: 'Opening Hours',
       monSat: 'Mon – Sat: 8:00 AM – 8:00 PM',
       sunday: 'Sunday: 9:00 AM – 5:00 PM',
-      copyright: '© 2025 Bakkah Auto Detailing LLC. All rights reserved. Made with ❤️ in Dubai.',
+      copyright: '© 2025 Bakkah Auto Premium Care LLC. All rights reserved. Made with ❤️ in Dubai.',
       trackVehicle: 'Track Vehicle',
       staffLogin: 'Staff Login',
     },
   },
   track: {
-    autoDetailing: 'AUTO DETAILING',
+    autoDetailing: 'AUTO PREMIUM CARE',
     staffLogin: 'Staff Login →',
     hero: {
       title: 'Track Your Vehicle',
@@ -160,7 +160,7 @@ export const en = {
       trackAnother: 'Track Another Job',
     },
     reviews: { title: 'What Our Customers Say' },
-    footer: { location: 'Bakkah Auto Detailing · Al Qusais, Dubai, UAE 🇦🇪' },
+    footer: { location: 'Bakkah Auto Premium Care · Al Qusais, Dubai, UAE 🇦🇪' },
   },
   auth: {
     title: 'Bakkah',

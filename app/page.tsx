@@ -339,15 +339,13 @@ export default function BakkahHomePage() {
       >
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
           <a href="#top" className="flex items-center gap-3 group select-none">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6B7A28] shadow-[0_0_20px_rgba(107,122,40,0.4)] group-hover:shadow-[0_0_30px_rgba(107,122,40,0.6)] transition-all duration-300">
-              <Car className="h-[18px] w-[18px] text-black" />
-            </div>
+            <img src="/logo.svg" alt="Bakkah Logo" className="h-10 w-10 rounded-full shadow-[0_0_20px_rgba(107,122,40,0.4)] group-hover:shadow-[0_0_30px_rgba(107,122,40,0.6)] transition-all duration-300" />
             <div className="leading-none">
               <p className="font-display text-xl tracking-[0.2em] text-gray-900 dark:text-white leading-none">
                 BAKKAH
               </p>
               <p className="text-[9px] tracking-[0.15em] text-gray-400 dark:text-white/30">
-                AUTO DETAILING
+                AUTO PREMIUM CARE
               </p>
             </div>
           </a>
@@ -1086,7 +1084,7 @@ export default function BakkahHomePage() {
             {videoReady && (
               <iframe
                 src="https://www.youtube.com/embed/dU9mC9wKblI?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=dU9mC9wKblI"
-                title="Professional Car Detailing — Bakkah Auto Detailing Dubai"
+                title="Professional Car Detailing — Bakkah Auto Premium Care Dubai"
                 className="absolute inset-0 w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen
@@ -1542,15 +1540,13 @@ export default function BakkahHomePage() {
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 mb-14">
             <div>
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6B7A28] shadow-[0_0_20px_rgba(107,122,40,0.35)]">
-                  <Car className="h-[18px] w-[18px] text-black" />
-                </div>
+                <img src="/logo.svg" alt="Bakkah Logo" className="h-10 w-10 rounded-full shadow-[0_0_20px_rgba(107,122,40,0.35)]" />
                 <div className="leading-none">
                   <p className="font-display text-xl tracking-[0.2em] text-gray-900 dark:text-white leading-none">
                     BAKKAH
                   </p>
                   <p className="text-[9px] tracking-[0.15em] text-gray-400 dark:text-white/30">
-                    AUTO DETAILING
+                    AUTO PREMIUM CARE
                   </p>
                 </div>
               </div>
