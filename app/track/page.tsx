@@ -56,7 +56,7 @@ type JobSummary = {
 };
 
 type TrackResponse = {
-  mode: "job" | "vehicle";
+  mode: "job" | "vehicle" | "customer";
   current: JobSummary;
   history: JobSummary[];
 };
@@ -258,11 +258,14 @@ function JobCardDetail({
 }: {
   job: JobSummary;
   showFull?: boolean;
-  approvalData?: { phone: string; plate: string };
+  approvalData?: { phone: string; plate?: string };
   onApproved?: () => void;
 }) {
   const [approving, setApproving] = useState(false);
   const [approveError, setApproveError] = useState("");
+  const [showDecline, setShowDecline] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declining, setDeclining] = useState(false);
 
   async function handleApprove() {
     if (!approvalData) return;
@@ -272,7 +275,7 @@ function JobCardDetail({
       const res = await fetch("/api/approve-job", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: job.id, phone: approvalData.phone, plate: approvalData.plate }),
+        body: JSON.stringify({ job_id: job.id, phone: approvalData.phone, plate: approvalData.plate, action: "approve" }),
       });
       const data = await res.json();
       if (!res.ok) { setApproveError(data.error || "Failed to approve job"); return; }
@@ -281,6 +284,26 @@ function JobCardDetail({
       setApproveError("Something went wrong. Please try again.");
     } finally {
       setApproving(false);
+    }
+  }
+
+  async function handleDecline() {
+    if (!approvalData) return;
+    setDeclining(true);
+    setApproveError("");
+    try {
+      const res = await fetch("/api/approve-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ job_id: job.id, phone: approvalData.phone, plate: approvalData.plate, action: "decline", reason: declineReason }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setApproveError(data.error || "Failed to decline job"); return; }
+      onApproved?.();
+    } catch {
+      setApproveError("Something went wrong. Please try again.");
+    } finally {
+      setDeclining(false);
     }
   }
 
@@ -326,16 +349,60 @@ function JobCardDetail({
 
         {showFull && <StatusStepper status={job.status as JobStatus} />}
 
-        {/* Customer Approve button */}
+        {/* Customer Approve / Decline */}
         {job.status === "waiting_for_approval" && approvalData && (
-          <div className="mt-4 space-y-2">
-            <button
-              onClick={handleApprove}
-              disabled={approving}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold text-white">
-              {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-              {approving ? "Approving..." : "Approve this Job"}
-            </button>
+          <div className="mt-4 space-y-3">
+            <div className="rounded-xl border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 px-4 py-3">
+              <p className="text-sm font-bold text-orange-700 dark:text-orange-300">Workshop requires your approval</p>
+              <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-0.5">Please review the job details above, then approve or decline.</p>
+            </div>
+
+            {!showDecline ? (
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={handleApprove}
+                  disabled={approving || declining}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold text-white">
+                  {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                  {approving ? "Approving..." : "Approve"}
+                </button>
+                <button
+                  onClick={() => setShowDecline(true)}
+                  disabled={approving}
+                  className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 dark:border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold">
+                  <X className="h-4 w-4" /> Decline
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4">
+                <div>
+                  <label className="label mb-1.5 text-red-700 dark:text-red-400">Reason for declining (optional)</label>
+                  <textarea
+                    value={declineReason}
+                    onChange={e => setDeclineReason(e.target.value)}
+                    placeholder="Please let us know why you are declining..."
+                    className="input-base w-full min-h-[80px] resize-none"
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => { setShowDecline(false); setDeclineReason(""); }}
+                    disabled={declining}
+                    className="flex items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDecline}
+                    disabled={declining}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 transition-colors px-4 py-2.5 text-sm font-bold text-white">
+                    {declining ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                    {declining ? "Declining..." : "Confirm Decline"}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {approveError && (
               <p className="text-xs text-red-500 text-center">{approveError}</p>
             )}
@@ -664,7 +731,10 @@ export default function TrackPage() {
       if (!res.ok) { setError(data.error || "Job card not found."); return; }
       setResult(data);
       setFbName(data.current?.customer?.name ?? "");
-      if (data.current?.job_number && localStorage.getItem(`fb_${data.current.job_number}`)) setFbDone(true);
+      const deliveredJobSearch = data.current?.status === "delivered"
+        ? data.current
+        : (data.history ?? []).find((j: { status: string; job_number: string }) => j.status === "delivered");
+      if (deliveredJobSearch?.job_number && localStorage.getItem(`fb_${deliveredJobSearch.job_number}`)) setFbDone(true);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -673,7 +743,7 @@ export default function TrackPage() {
   }
 
   async function runVehicleSearch(phone: string, plate: string) {
-    if (!phone.trim() || !plate.trim()) return;
+    if (!phone.trim() && !plate.trim()) return;
     setLoading(true);
     setError("");
     setResult(null);
@@ -682,14 +752,22 @@ export default function TrackPage() {
     setFbRating(0);
 
     try {
-      const res = await fetch(
-        `/api/track?phone=${encodeURIComponent(phone.trim())}&plate=${encodeURIComponent(plate.trim())}`
-      );
+      let url: string;
+      if (phone.trim() && plate.trim()) {
+        url = `/api/track?phone=${encodeURIComponent(phone.trim())}&plate=${encodeURIComponent(plate.trim())}`;
+      } else if (phone.trim()) {
+        url = `/api/track?phone=${encodeURIComponent(phone.trim())}`;
+      } else {
+        url = `/api/track?plate=${encodeURIComponent(plate.trim())}`;
+      }
+      const res = await fetch(url);
       const data = await res.json();
       if (!res.ok) { setError(data.error || "No records found."); return; }
       setResult(data);
       setFbName(data.current?.customer?.name ?? "");
-      if (data.current?.job_number && localStorage.getItem(`fb_${data.current.job_number}`)) setFbDone(true);
+      // Check if any delivered job has already been rated
+      const deliveredJob = (data.history ?? []).find((j: { status: string; job_number: string }) => j.status === "delivered");
+      if (deliveredJob?.job_number && localStorage.getItem(`fb_${deliveredJob.job_number}`)) setFbDone(true);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -705,23 +783,28 @@ export default function TrackPage() {
 
   async function handleFeedbackSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!result?.current || fbRating === 0) return;
+    if (fbRating === 0) return;
+    // Target the most recent delivered job
+    const targetJob = result?.current?.status === "delivered"
+      ? result.current
+      : (result?.history ?? []).find(j => j.status === "delivered");
+    if (!targetJob) return;
     setFbSubmitting(true);
     try {
       const res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          job_card_id: result.current.id,
-          job_number: result.current.job_number,
-          customer_name: fbName || result.current.customer?.name || "Customer",
+          job_card_id: targetJob.id,
+          job_number: targetJob.job_number,
+          customer_name: fbName || targetJob.customer?.name || "Customer",
           rating: fbRating,
           comment: fbComment || null,
         }),
       });
       if (!res.ok) throw new Error();
       setFbDone(true);
-      localStorage.setItem(`fb_${result.current.job_number}`, "1");
+      localStorage.setItem(`fb_${targetJob.job_number}`, "1");
     } catch { /* silent */ } finally {
       setFbSubmitting(false);
     }
@@ -740,7 +823,11 @@ export default function TrackPage() {
   }
 
   const visibleAnnouncements = announcements.filter(a => !dismissedIds.has(a.id));
-  const showFeedback = result?.current?.status === "delivered";
+  // Show feedback whenever there is any delivered job in the result (current or history)
+  const feedbackJob = result?.current?.status === "delivered"
+    ? result.current
+    : (result?.history ?? []).find(j => j.status === "delivered");
+  const showFeedback = !!feedbackJob;
   const historyJobs = (result?.history ?? []).filter(j => j.id !== result?.current?.id);
 
   return (
@@ -846,7 +933,7 @@ export default function TrackPage() {
             {mode === "vehicle" ? (
               <div className="space-y-3">
                 <div>
-                  <label className="label mb-1.5">Registered Mobile Number</label>
+                  <label className="label mb-1.5">Mobile Number</label>
                   <div className="relative">
                     <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none" />
                     <input
@@ -861,7 +948,10 @@ export default function TrackPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="label mb-1.5">Vehicle Plate Number</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="label">Plate Number</label>
+                    <span className="text-[10px] text-gray-400 dark:text-white/30 font-medium">optional — filters to one vehicle</span>
+                  </div>
                   <div className="relative">
                     <Car className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none" />
                     <input
@@ -874,13 +964,13 @@ export default function TrackPage() {
                   </div>
                 </div>
                 <button type="submit"
-                  disabled={loading || !mobileQuery.trim() || !plateQuery.trim()}
+                  disabled={loading || (!mobileQuery.trim() && !plateQuery.trim())}
                   className="btn-primary w-full py-3">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                  {loading ? "Searching..." : "Track My Vehicle"}
+                  {loading ? "Searching..." : mobileQuery.trim() && !plateQuery.trim() ? "View All My Jobs" : "Track My Vehicle"}
                 </button>
                 <p className="text-xs text-gray-400 dark:text-white/30 text-center leading-relaxed">
-                  Use the mobile number registered at Bakkah
+                  Phone only → all your jobs · Phone + Plate → one vehicle · Plate only → vehicle history
                 </p>
               </div>
             ) : (
@@ -923,8 +1013,8 @@ export default function TrackPage() {
         {/* ── Results ───────────────────────────────────────── */}
         {result && (
           <div className="space-y-4">
-            {/* Customer + Vehicle header (vehicle mode) */}
-            {result.mode === "vehicle" && result.current?.customer && (
+            {/* Customer + Vehicle header (vehicle / customer mode) */}
+            {(result.mode === "vehicle" || result.mode === "customer") && result.current?.customer && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="card">
                   <div className="flex items-center gap-2 mb-3">
@@ -949,40 +1039,42 @@ export default function TrackPage() {
                     )}
                   </div>
                 </div>
-                <div className="card">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 dark:bg-brand/15">
-                      <Car className="h-4 w-4 text-brand" />
-                    </div>
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Vehicle</h3>
-                  </div>
-                  <div className="space-y-1.5 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 dark:text-white/40">Plate</span>
-                      <span className="font-mono font-black text-gray-900 dark:text-white tracking-widest">
-                        {result.current.vehicle?.plate_number}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-400 dark:text-white/40">Vehicle</span>
-                      <span className="text-gray-700 dark:text-white/70 font-medium">
-                        {result.current.vehicle?.make} {result.current.vehicle?.model}
-                        {result.current.vehicle?.year ? ` ${result.current.vehicle.year}` : ""}
-                      </span>
-                    </div>
-                    {result.current.vehicle?.color && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-400 dark:text-white/40">Color</span>
-                        <span className="text-gray-600 dark:text-white/60">{result.current.vehicle.color}</span>
+                {result.mode === "vehicle" && (
+                  <div className="card">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 dark:bg-brand/15">
+                        <Car className="h-4 w-4 text-brand" />
                       </div>
-                    )}
+                      <h3 className="text-sm font-bold text-gray-900 dark:text-white">Vehicle</h3>
+                    </div>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400 dark:text-white/40">Plate</span>
+                        <span className="font-mono font-black text-gray-900 dark:text-white tracking-widest">
+                          {result.current.vehicle?.plate_number}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400 dark:text-white/40">Vehicle</span>
+                        <span className="text-gray-700 dark:text-white/70 font-medium">
+                          {result.current.vehicle?.make} {result.current.vehicle?.model}
+                          {result.current.vehicle?.year ? ` ${result.current.vehicle.year}` : ""}
+                        </span>
+                      </div>
+                      {result.current.vehicle?.color && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-400 dark:text-white/40">Color</span>
+                          <span className="text-gray-600 dark:text-white/60">{result.current.vehicle.color}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
-            {/* Summary stats (vehicle mode with history) */}
-            {result.mode === "vehicle" && result.history.length > 1 && (
+            {/* Summary stats (vehicle / customer mode with history) */}
+            {(result.mode === "vehicle" || result.mode === "customer") && result.history.length > 1 && (
               <div className="grid grid-cols-3 gap-3">
                 <div className="card text-center py-3">
                   <p className="text-2xl font-black text-brand">{result.history.length}</p>
@@ -1006,7 +1098,7 @@ export default function TrackPage() {
             {/* Current / Active Job */}
             {result.current && (
               <div>
-                {result.mode === "vehicle" && (
+                {(result.mode === "vehicle" || result.mode === "customer") && (
                   <div className="flex items-center gap-2 mb-3">
                     <div className="h-px flex-1 bg-gray-200 dark:bg-white/[0.06]" />
                     <span className="text-xs font-bold text-brand uppercase tracking-wider px-2">
@@ -1018,8 +1110,8 @@ export default function TrackPage() {
                 <JobCardDetail
                   job={result.current}
                   showFull
-                  approvalData={result.mode === "vehicle" && mobileQuery && plateQuery
-                    ? { phone: mobileQuery, plate: plateQuery }
+                  approvalData={result.mode !== "job" && mobileQuery
+                    ? { phone: mobileQuery, plate: plateQuery || undefined }
                     : undefined}
                   onApproved={() => {
                     if (mode === "vehicle") runVehicleSearch(mobileQuery, plateQuery);
@@ -1078,7 +1170,7 @@ export default function TrackPage() {
                 <div className="flex items-center gap-2 mb-3">
                   <div className="h-px flex-1 bg-gray-200 dark:bg-white/[0.06]" />
                   <span className="flex items-center gap-1.5 text-xs font-bold text-gray-400 dark:text-white/30 uppercase tracking-wider px-2">
-                    <History className="h-3.5 w-3.5" /> Service History ({historyJobs.length})
+                    <History className="h-3.5 w-3.5" /> {result.mode === "customer" ? "All Jobs" : "Service History"} ({historyJobs.length})
                   </span>
                   <div className="h-px flex-1 bg-gray-200 dark:bg-white/[0.06]" />
                 </div>

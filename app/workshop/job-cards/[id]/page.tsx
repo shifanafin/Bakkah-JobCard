@@ -11,7 +11,7 @@ import RTACheck from '@/components/job-card/RTACheck'
 import { getJobCard, getTechnicians, assignTechnician, approveJob } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, Calendar, Printer, Loader2, RefreshCw, MessageCircle, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -148,6 +148,31 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
         </div>
+
+        {/* Customer decline banner */}
+        {(() => {
+          const declineEntry = history.find(h =>
+            h.new_status === 'cancelled' && h.notes?.startsWith('Declined by customer')
+          )
+          if (!declineEntry) return null
+          const reason = declineEntry.notes?.replace('Declined by customer: ', '').replace('Declined by customer', '').trim()
+          return (
+            <div className="card border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10">
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-500/20 shrink-0">
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-red-700 dark:text-red-400">Declined by Customer</p>
+                  {reason && (
+                    <p className="text-sm text-red-600/80 dark:text-red-400/70 mt-1 leading-relaxed">&ldquo;{reason}&rdquo;</p>
+                  )}
+                  <p className="text-xs text-red-500/60 dark:text-red-400/50 mt-1.5">{formatDateTime(declineEntry.created_at)}</p>
+                </div>
+              </div>
+            </div>
+          )
+        })()}
 
         {/* Status stepper */}
         <StatusStepper

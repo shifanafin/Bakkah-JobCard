@@ -10,15 +10,15 @@ function normalizePhone(raw: string): string {
 }
 
 // POST /api/approve-job
-// Body: { job_id, phone, plate }
-// Verifies phone+plate own the job, then approves it (waiting_for_approval → pending/assigned)
+// Body: { job_id, phone, plate?, action?: "approve"|"decline", reason? }
+// plate is optional — if omitted, only phone is verified
 export async function POST(request: NextRequest) {
-  let body: { job_id?: string; phone?: string; plate?: string }
+  let body: { job_id?: string; phone?: string; plate?: string; action?: string; reason?: string }
   try { body = await request.json() } catch { return NextResponse.json({ error: 'Invalid request' }, { status: 400 }) }
 
-  const { job_id, phone, plate } = body
-  if (!job_id || !phone || !plate) {
-    return NextResponse.json({ error: 'job_id, phone and plate are required' }, { status: 400 })
+  const { job_id, phone, plate, action = 'approve', reason } = body
+  if (!job_id || !phone) {
+    return NextResponse.json({ error: 'job_id and phone are required' }, { status: 400 })
   }
 
   const sb = createServiceClient()
@@ -33,29 +33,6 @@ export async function POST(request: NextRequest) {
   if (jobErr || !job) return NextResponse.json({ error: 'Job not found' }, { status: 404 })
   if (job.status !== 'waiting_for_approval') {
     return NextResponse.json({ error: 'Job is not waiting for approval' }, { status: 400 })
-  }
-
-  // Verify vehicle plate
-  const normalizedPlate = plate.toUpperCase().replace(/\s+/g, '')
-  const { data: vehicle } = await sb
-    .from('vehicles')
-    .select('id, customer_id')
-    .eq('id', job.vehicle_id)
-    .maybeSingle()
-
-  if (!vehicle || vehicle.id !== job.vehicle_id) {
-    return NextResponse.json({ error: 'Vehicle not found' }, { status: 404 })
-  }
-
-  const { data: vehicleByPlate } = await sb
-    .from('vehicles')
-    .select('id')
-    .ilike('plate_number', normalizedPlate)
-    .eq('id', job.vehicle_id)
-    .maybeSingle()
-
-  if (!vehicleByPlate) {
-    return NextResponse.json({ error: 'Plate number does not match this job' }, { status: 403 })
   }
 
   // Verify customer phone
@@ -73,7 +50,46 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Phone number does not match our records' }, { status: 403 })
   }
 
-  // Approve the job
+  // Verify plate if provided
+  if (plate) {
+    const normalizedPlate = plate.toUpperCase().replace(/\s+/g, '')
+    const { data: vehicleByPlate } = await sb
+      .from('vehicles')
+      .select('id')
+      .ilike('plate_number', normalizedPlate)
+      .eq('id', job.vehicle_id)
+      .maybeSingle()
+
+    if (!vehicleByPlate) {
+      return NextResponse.json({ error: 'Plate number does not match this job' }, { status: 403 })
+    }
+  }
+
+  // ── Decline ──────────────────────────────────────────────────
+  if (action === 'decline') {
+    const declineNote = reason?.trim()
+      ? `Declined by customer: ${reason.trim()}`
+      : 'Declined by customer'
+
+    const { error: updateErr } = await sb
+      .from('job_cards')
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+      .eq('id', job_id)
+
+    if (updateErr) return NextResponse.json({ error: 'Failed to decline job' }, { status: 500 })
+
+    await sb.from('job_card_history').insert({
+      job_card_id: job_id,
+      old_status: 'waiting_for_approval',
+      new_status: 'cancelled',
+      changed_by: 'Customer (via Track)',
+      notes: declineNote,
+    })
+
+    return NextResponse.json({ success: true, new_status: 'cancelled' })
+  }
+
+  // ── Approve ──────────────────────────────────────────────────
   const newStatus = job.technician_id ? 'assigned' : 'pending'
   const { error: updateErr } = await sb
     .from('job_cards')
