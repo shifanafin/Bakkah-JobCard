@@ -6,6 +6,7 @@ import { useSession } from '@/lib/auth-client'
 import Header from '@/components/layout/Header'
 import StatusStepper from '@/components/job-card/StatusStepper'
 import LineItems from '@/components/job-card/LineItems'
+import QuotationSection from '@/components/job-card/QuotationSection'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
 import RTACheck from '@/components/job-card/RTACheck'
 import { getJobCard, getTechnicians, assignTechnician, approveJob } from '@/lib/queries'
@@ -287,6 +288,13 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             )}
           </div>
         )}
+
+        {/* Quotation */}
+        <QuotationSection
+          jobId={job.id}
+          jobNumber={job.job_number}
+          customerPhone={job.customer?.phone}
+        />
 
         {/* Services, Parts, Payment */}
         <LineItems job={job} onUpdate={load} />

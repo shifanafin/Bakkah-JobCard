@@ -16,6 +16,18 @@ const SELECT_JOB = `
 
 const ACTIVE_STATUSES = ['waiting_for_approval', 'pending', 'assigned', 'received', 'in_progress', 'qc_check', 'ready']
 
+async function fetchQuotation(sb: ReturnType<typeof createServiceClient>, jobCardId: string) {
+  const { data } = await sb
+    .from('quotations')
+    .select('id, quotation_number, status, valid_days, notes, customer_notes, subtotal, discount, vat_amount, total, created_at, items:quotation_items(id, item_type, description, quantity, unit_price, total_price, sort_order)')
+    .eq('job_card_id', jobCardId)
+    .in('status', ['sent', 'approved', 'declined'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data ?? null
+}
+
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '')
   if (digits.startsWith('971')) return digits
@@ -44,7 +56,8 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ error: 'Database error' }, { status: 500 })
     if (!data) return NextResponse.json({ error: 'Job card not found' }, { status: 404 })
 
-    return NextResponse.json({ mode: 'job', current: data, history: [] })
+    const quotation = await fetchQuotation(sb, data.id)
+    return NextResponse.json({ mode: 'job', current: { ...data, quotation }, history: [] })
   }
 
   // ── Search by Phone Only (all customer jobs) ──────────────────
@@ -77,7 +90,8 @@ export async function GET(request: NextRequest) {
     }
 
     const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
-    return NextResponse.json({ mode: 'customer', current, history: jobs })
+    const quotation = await fetchQuotation(sb, current.id)
+    return NextResponse.json({ mode: 'customer', current: { ...current, quotation }, history: jobs })
   }
 
   // ── Search by Plate Only (all vehicle jobs, no phone check) ───
@@ -106,7 +120,8 @@ export async function GET(request: NextRequest) {
     }
 
     const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
-    return NextResponse.json({ mode: 'vehicle', current, history: jobs })
+    const quotation = await fetchQuotation(sb, current.id)
+    return NextResponse.json({ mode: 'vehicle', current: { ...current, quotation }, history: jobs })
   }
 
   // ── Search by Mobile + Plate (verified) ───────────────────────
@@ -151,7 +166,8 @@ export async function GET(request: NextRequest) {
     }
 
     const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
-    return NextResponse.json({ mode: 'vehicle', current, history: jobs })
+    const quotation = await fetchQuotation(sb, current.id)
+    return NextResponse.json({ mode: 'vehicle', current: { ...current, quotation }, history: jobs })
   }
 
   return NextResponse.json({ error: 'Provide job_number, phone, plate, or phone+plate.' }, { status: 400 })
