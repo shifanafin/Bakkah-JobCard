@@ -29,6 +29,30 @@ type Photo = {
 type Service = { id: string; description: string; total_price: number; completed?: boolean };
 type Part = { id: string; part_name: string; quantity: number; unit_price: number; total_price: number };
 
+type QuotationItem = {
+  id: string;
+  item_type: "service" | "part" | "labor";
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+};
+
+type Quotation = {
+  id: string;
+  quotation_number: string;
+  status: "sent" | "approved" | "declined";
+  valid_days: number;
+  notes: string | null;
+  customer_notes: string | null;
+  subtotal: number;
+  discount: number;
+  vat_amount: number;
+  total: number;
+  created_at: string;
+  items: QuotationItem[];
+};
+
 type JobSummary = {
   id: string;
   job_number: string;
@@ -53,6 +77,7 @@ type JobSummary = {
   services?: Service[];
   parts?: Part[];
   photos?: Photo[];
+  quotation?: Quotation | null;
 };
 
 type TrackResponse = {
@@ -275,18 +300,26 @@ function JobCardDetail({
   const effectivePhone = approvalData?.phone ?? verifiedPhone;
   const effectivePlate = approvalData?.plate;
 
+  const sentQuotation = job.quotation?.status === "sent" ? job.quotation : null;
+
   async function handleApprove() {
     if (!effectivePhone) return;
     setApproving(true);
     setApproveError("");
     try {
-      const res = await fetch("/api/approve-job", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "approve" }),
-      });
+      const res = sentQuotation
+        ? await fetch(`/api/quotations/${sentQuotation.id}/respond`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: effectivePhone, action: "approve" }),
+          })
+        : await fetch("/api/approve-job", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "approve" }),
+          });
       const data = await res.json();
-      if (!res.ok) { setApproveError(data.error || "Failed to approve job"); return; }
+      if (!res.ok) { setApproveError(data.error || "Failed to approve"); return; }
       onApproved?.();
     } catch {
       setApproveError("Something went wrong. Please try again.");
@@ -300,13 +333,19 @@ function JobCardDetail({
     setDeclining(true);
     setApproveError("");
     try {
-      const res = await fetch("/api/approve-job", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "decline", reason: declineReason }),
-      });
+      const res = sentQuotation
+        ? await fetch(`/api/quotations/${sentQuotation.id}/respond`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: effectivePhone, action: "decline", reason: declineReason }),
+          })
+        : await fetch("/api/approve-job", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "decline", reason: declineReason }),
+          });
       const data = await res.json();
-      if (!res.ok) { setApproveError(data.error || "Failed to decline job"); return; }
+      if (!res.ok) { setApproveError(data.error || "Failed to decline"); return; }
       onApproved?.();
     } catch {
       setApproveError("Something went wrong. Please try again.");
@@ -357,15 +396,99 @@ function JobCardDetail({
 
         {showFull && <StatusStepper status={job.status as JobStatus} />}
 
-        {/* Customer Approve / Decline — shown for all waiting_for_approval jobs */}
+        {/* Customer Approve / Decline — shown for waiting_for_approval jobs */}
         {job.status === "waiting_for_approval" && (
           <div className="mt-4 space-y-3">
-            <div className="rounded-xl border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 px-4 py-3">
-              <p className="text-sm font-bold text-orange-700 dark:text-orange-300">Workshop requires your approval</p>
-              <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-0.5">Please review the job details above, then approve or decline.</p>
-            </div>
+            {/* ── Quotation view (when staff has sent one) ── */}
+            {sentQuotation ? (
+              <>
+                <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-amber-700 dark:text-amber-300">Workshop Quotation</p>
+                    <span className="font-mono text-xs text-amber-600/70 dark:text-amber-400/60">{sentQuotation.quotation_number}</span>
+                  </div>
+                  <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-0.5">
+                    Please review the estimated costs below and approve or decline.
+                  </p>
+                </div>
 
-            {/* Phone verification — only needed when customer arrived via job-number search */}
+                {/* Items */}
+                {sentQuotation.items.length > 0 && (
+                  <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
+                    {(["service", "part", "labor"] as const).map(type => {
+                      const group = sentQuotation.items.filter(i => i.item_type === type);
+                      if (!group.length) return null;
+                      const TYPE_LABEL = { service: "Services", part: "Parts & Materials", labor: "Labor" };
+                      const TYPE_ICON_CLS = {
+                        service: "text-blue-500 dark:text-blue-400",
+                        part: "text-emerald-500 dark:text-emerald-400",
+                        labor: "text-purple-500 dark:text-purple-400",
+                      };
+                      return (
+                        <div key={type} className="border-b border-gray-100 dark:border-white/[0.06] last:border-0">
+                          <p className={cn("px-4 py-2 text-[10px] font-bold uppercase tracking-wider bg-gray-50 dark:bg-white/[0.02]", TYPE_ICON_CLS[type])}>
+                            {TYPE_LABEL[type]}
+                          </p>
+                          {group.map((item, i) => (
+                            <div key={item.id} className={cn("flex items-center justify-between px-4 py-2.5 text-sm",
+                              i < group.length - 1 && "border-b border-gray-50 dark:border-white/[0.03]")}>
+                              <span className="text-gray-700 dark:text-white/70 flex-1 pr-4">
+                                {item.description}
+                                {item.quantity !== 1 && <span className="text-gray-400 dark:text-white/30 ml-1">×{item.quantity}</span>}
+                              </span>
+                              <span className="font-semibold tabular-nums text-gray-900 dark:text-white shrink-0">{formatAED(item.total_price)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+
+                    {/* Totals */}
+                    <div className="px-4 py-3 bg-gray-50 dark:bg-white/[0.02] space-y-1.5">
+                      {sentQuotation.subtotal !== sentQuotation.total && (
+                        <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
+                          <span>Subtotal</span>
+                          <span className="tabular-nums">{formatAED(sentQuotation.subtotal)}</span>
+                        </div>
+                      )}
+                      {sentQuotation.discount > 0 && (
+                        <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                          <span>Discount</span>
+                          <span className="tabular-nums">−{formatAED(sentQuotation.discount)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
+                        <span>VAT (5%)</span>
+                        <span className="tabular-nums">{formatAED(sentQuotation.vat_amount)}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-1.5 border-t border-gray-200 dark:border-white/10">
+                        <span className="font-bold text-gray-900 dark:text-white">Total (incl. VAT)</span>
+                        <span className="font-black text-lg text-brand tabular-nums">{formatAED(sentQuotation.total)}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 dark:text-white/25 text-right">
+                        Prices in AED · Valid for {sentQuotation.valid_days} days
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Workshop notes */}
+                {sentQuotation.notes && (
+                  <div className="rounded-xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 mb-1">Workshop Notes</p>
+                    <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{sentQuotation.notes}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* No quotation — simple approval */
+              <div className="rounded-xl border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 px-4 py-3">
+                <p className="text-sm font-bold text-orange-700 dark:text-orange-300">Workshop requires your approval</p>
+                <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-0.5">Please review the job details, then approve or decline below.</p>
+              </div>
+            )}
+
+            {/* Phone verification — needed when arrived via job-number link */}
             {!effectivePhone && (
               <div className="space-y-2">
                 <label className="label text-gray-700 dark:text-white/70">
@@ -395,7 +518,7 @@ function JobCardDetail({
               </div>
             )}
 
-            {/* Approve / Decline buttons — visible once phone is known */}
+            {/* Approve / Decline buttons */}
             {effectivePhone && !showDecline && (
               <div className="grid grid-cols-2 gap-2">
                 <button
@@ -403,13 +526,13 @@ function JobCardDetail({
                   disabled={approving || declining}
                   className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold text-white">
                   {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  {approving ? "Approving..." : "Approve"}
+                  {approving ? "Approving..." : sentQuotation ? "Accept Quotation" : "Approve"}
                 </button>
                 <button
                   onClick={() => setShowDecline(true)}
                   disabled={approving}
                   className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 dark:border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold">
-                  <X className="h-4 w-4" /> Decline
+                  <X className="h-4 w-4" /> {sentQuotation ? "Decline Quotation" : "Decline"}
                 </button>
               </div>
             )}
@@ -418,11 +541,13 @@ function JobCardDetail({
             {effectivePhone && showDecline && (
               <div className="space-y-3 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4">
                 <div>
-                  <label className="label mb-1.5 text-red-700 dark:text-red-400">Reason for declining (optional)</label>
+                  <label className="label mb-1.5 text-red-700 dark:text-red-400">
+                    {sentQuotation ? "Reason for declining quotation (optional)" : "Reason for declining (optional)"}
+                  </label>
                   <textarea
                     value={declineReason}
                     onChange={e => setDeclineReason(e.target.value)}
-                    placeholder="Please let us know why you are declining..."
+                    placeholder={sentQuotation ? "e.g. Price too high, need a revised quotation..." : "Please let us know why you are declining..."}
                     className="input-base w-full min-h-[80px] resize-none"
                     rows={3}
                   />
@@ -448,6 +573,20 @@ function JobCardDetail({
             {approveError && (
               <p className="text-xs text-red-500 text-center">{approveError}</p>
             )}
+          </div>
+        )}
+
+        {/* Declined quotation banner — when customer declined, job stays in waiting_for_approval for revision */}
+        {job.quotation?.status === "declined" && job.status === "waiting_for_approval" && (
+          <div className="mt-4 flex items-start gap-3 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 px-4 py-3">
+            <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-bold text-red-700 dark:text-red-400">You declined the quotation</p>
+              {job.quotation.customer_notes && (
+                <p className="text-xs text-red-600/70 dark:text-red-400/60 mt-0.5 italic">&ldquo;{job.quotation.customer_notes}&rdquo;</p>
+              )}
+              <p className="text-xs text-red-600/60 dark:text-red-400/50 mt-1">The workshop will review and may send a revised quotation.</p>
+            </div>
           </div>
         )}
 
