@@ -20,11 +20,20 @@ import {
   MessageSquare,
   BarChart2,
   Globe,
+  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useShell } from "@/components/layout/WorkshopShell";
 import AttendanceWidget from "@/components/AttendanceWidget";
-import { useT } from "@/lib/i18n";
+
+const NAV = {
+  workshop: 'Workshop', admin: 'Admin',
+  dashboard: 'Dashboard', myJobs: 'My Jobs', jobCards: 'Job Cards',
+  newJobCard: 'New Job Card', inventory: 'Inventory', customers: 'Customers',
+  settings: 'Settings', signOut: 'Sign Out', employees: 'Employees',
+  technicians: 'Technicians', attendance: 'Attendance', feedback: 'Feedback',
+  announcements: 'Announcements', analytics: 'Analytics', website: 'Website CMS',
+}
 
 type NavItem = {
   href: string;
@@ -74,8 +83,7 @@ function SidebarContent({
   showClose: boolean;
 }) {
   const { data: session } = useSession();
-  const { t } = useT();
-  const nav = t.app.nav;
+  const nav = NAV;
   const role =
     (session?.user as { role?: string } | undefined)?.role ?? "receptionist";
 
@@ -114,6 +122,13 @@ function SidebarContent({
         label: nav.dashboard,
       },
       { href: "/workshop/job-cards", icon: ClipboardList, label: nav.jobCards },
+      {
+        href: "/workshop/job-cards/new",
+        icon: Plus,
+        label: nav.newJobCard,
+        highlight: true,
+      },
+      { href: "/workshop/customers", icon: UserRound, label: nav.customers },
       { href: "/workshop/inventory", icon: Package, label: nav.inventory },
     );
   } else {
@@ -131,6 +146,7 @@ function SidebarContent({
         label: nav.newJobCard,
         highlight: true,
       },
+      { href: "/workshop/customers", icon: UserRound, label: nav.customers },
       { href: "/workshop/inventory", icon: Package, label: nav.inventory },
     );
   }
@@ -173,7 +189,7 @@ function SidebarContent({
               Bakkah
             </p>
             <p className="text-[10px] text-gray-400 leading-tight dark:text-white/30">
-              {t.app.workshopPro}
+              Workshop Pro
             </p>
           </div>
         </div>
