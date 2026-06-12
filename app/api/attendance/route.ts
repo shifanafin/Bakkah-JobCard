@@ -12,15 +12,29 @@ function getSb() {
   )
 }
 
-// POST — manual check-in (idempotent: returns existing if already checked in today)
-export async function POST() {
+// POST — check-in
+//   Normal: uses session user (admin cannot self-check-in)
+//   Admin/supervisor override: body { forUserId } checks in a specific user
+export async function POST(req: NextRequest) {
   const session = await getServerSession()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const role = (session?.user as { role?: string })?.role
-  if (role === 'admin') return NextResponse.json({ error: 'Admins do not have attendance records' }, { status: 403 })
+  const role = session.user.role
 
-  const userId = session.user.id
+  let forUserId: string | undefined
+  try {
+    const body = await req.json()
+    forUserId = body?.forUserId
+  } catch { /* no body */ }
+
+  const isAdminOverride = !!forUserId && (role === 'admin' || role === 'supervisor')
+
+  // Block admin from self check-in (they can only override for others)
+  if (!isAdminOverride && role === 'admin') {
+    return NextResponse.json({ error: 'Admins do not have attendance records' }, { status: 403 })
+  }
+
+  const userId = isAdminOverride ? forUserId! : session.user.id
   const today = new Date().toISOString().split('T')[0]
   const sb = getSb()
 
@@ -45,19 +59,49 @@ export async function POST() {
   return NextResponse.json({ id: data.id, checkin_at: data.checkin_at }, { status: 201 })
 }
 
-// PATCH — manual check-out
+// PATCH — check-out
+//   Normal: body { id } — checks out session user's own record
+//   Admin/supervisor override: body { forUserId } — checks out a specific user's today record
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const role = (session?.user as { role?: string })?.role
-  if (role === 'admin') return NextResponse.json({ error: 'Admins do not have attendance records' }, { status: 403 })
+  const role = session.user.role
+  const body = await req.json()
+  const { id, forUserId } = body
 
-  const { id } = await req.json()
-  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+  const isAdminOverride = !!forUserId && (role === 'admin' || role === 'supervisor')
+
+  if (!isAdminOverride && role === 'admin') {
+    return NextResponse.json({ error: 'Admins do not have attendance records' }, { status: 403 })
+  }
 
   const now = new Date().toISOString()
   const sb = getSb()
+
+  if (isAdminOverride) {
+    const today = new Date().toISOString().split('T')[0]
+    const { data: att } = await sb
+      .from('attendance')
+      .select('id')
+      .eq('user_id', forUserId)
+      .eq('date', today)
+      .maybeSingle()
+
+    if (!att) return NextResponse.json({ error: 'No check-in found for today' }, { status: 404 })
+
+    const { error } = await sb
+      .from('attendance')
+      .update({ checkout_at: now })
+      .eq('id', att.id)
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true, checkout_at: now })
+  }
+
+  // Self checkout
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
   const { error } = await sb
     .from('attendance')
     .update({ checkout_at: now })
@@ -69,16 +113,16 @@ export async function PATCH(req: NextRequest) {
 }
 
 // GET — two modes:
-//   ?today=true  → current employee's own attendance for today (no admin required)
-//   ?date=YYYY-MM-DD → admin view of all staff for that date
+//   ?today=true  → current employee's own attendance for today
+//   ?date=YYYY-MM-DD → admin/supervisor view of all staff for that date
 export async function GET(req: NextRequest) {
   const session = await getServerSession()
   if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const url = new URL(req.url)
-  const role = (session?.user as { role?: string })?.role
+  const role = session.user.role
 
-  // ── Employee self-check ──────────────────────────────────────
+  // Employee self-check
   if (url.searchParams.get('today') === 'true') {
     const today = new Date().toISOString().split('T')[0]
     const sb = getSb()
@@ -91,8 +135,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ record: data ?? null })
   }
 
-  // ── Admin view ───────────────────────────────────────────────
-  if (role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  // Admin/supervisor view
+  if (role !== 'admin' && role !== 'supervisor') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
   const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
   const sb = getSb()

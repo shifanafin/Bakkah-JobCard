@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSession } from '@/lib/auth-client'
-import { LogIn, LogOut, MapPin, Wifi, Loader2, CheckCircle, AlertTriangle, Clock } from 'lucide-react'
+import { LogIn, LogOut, MapPin, Loader2, CheckCircle, AlertTriangle, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 // ── Workshop location config ───────────────────────────────────
@@ -23,13 +23,6 @@ function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number)
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
-function isOnWifi(): boolean {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const conn = (navigator as any).connection ?? (navigator as any).mozConnection ?? (navigator as any).webkitConnection
-  if (conn?.type) return conn.type === 'wifi'
-  return navigator.onLine // fallback: assume wifi if no API
-}
-
 async function getGpsPosition(): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) =>
     navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -40,34 +33,22 @@ async function getGpsPosition(): Promise<GeolocationPosition> {
   )
 }
 
-async function validatePresence(): Promise<{ ok: boolean; method: 'gps' | 'wifi' | null; message: string }> {
-  // 1. Try GPS first (most accurate)
-  if ('geolocation' in navigator) {
-    try {
-      const pos = await getGpsPosition()
-      const dist = haversineMeters(pos.coords.latitude, pos.coords.longitude, WORKSHOP_LAT, WORKSHOP_LNG)
-      if (dist <= ALLOWED_RADIUS_M) {
-        return { ok: true, method: 'gps', message: `${Math.round(dist)}m from workshop` }
-      }
-      return {
-        ok: false,
-        method: null,
-        message: `You're ${Math.round(dist)}m away. Must be within ${ALLOWED_RADIUS_M}m of the workshop.`,
-      }
-    } catch {
-      // GPS denied or unavailable — fall through to WiFi check
+async function validateLocation(): Promise<{ ok: boolean; message: string }> {
+  if (!('geolocation' in navigator)) {
+    return { ok: false, message: 'Location is not supported by your browser.' }
+  }
+  try {
+    const pos = await getGpsPosition()
+    const dist = haversineMeters(pos.coords.latitude, pos.coords.longitude, WORKSHOP_LAT, WORKSHOP_LNG)
+    if (dist <= ALLOWED_RADIUS_M) {
+      return { ok: true, message: `${Math.round(dist)}m from workshop` }
     }
-  }
-
-  // 2. Fallback: check WiFi connection
-  if (isOnWifi()) {
-    return { ok: true, method: 'wifi', message: 'Connected via WiFi' }
-  }
-
-  return {
-    ok: false,
-    method: null,
-    message: 'Enable location access or connect to workshop WiFi to check in.',
+    return {
+      ok: false,
+      message: `You're ${Math.round(dist)}m away. Must be within ${ALLOWED_RADIUS_M}m of the workshop.`,
+    }
+  } catch {
+    return { ok: false, message: 'Location access denied. Enable location permission to check in.' }
   }
 }
 
@@ -109,7 +90,7 @@ export default function AttendanceWidget() {
   const elapsed = useLiveTimer(record && !record.checkout_at ? record.checkin_at : null)
 
   // Only render for technicians and supervisors
-  if (!role || !['technician', 'supervisor', 'receptionist'].includes(role)) return null
+  if (!role || !['technician', 'supervisor'].includes(role)) return null
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
@@ -142,13 +123,13 @@ export default function AttendanceWidget() {
   async function handleCheckIn() {
     setBusy(true)
     setError('')
-    setHint('Checking location…')
+    setHint('Getting location…')
 
     try {
-      const { ok, method, message } = await validatePresence()
+      const { ok, message } = await validateLocation()
       if (!ok) { setError(message); setHint(''); setBusy(false); return }
 
-      setHint(method === 'gps' ? '📍 ' + message : '📶 ' + message)
+      setHint('📍 ' + message)
 
       const res = await fetch('/api/attendance', { method: 'POST' })
       const json = await res.json()
@@ -170,13 +151,13 @@ export default function AttendanceWidget() {
     if (!record) return
     setBusy(true)
     setError('')
-    setHint('Checking location…')
+    setHint('Getting location…')
 
     try {
-      const { ok, method, message } = await validatePresence()
+      const { ok, message } = await validateLocation()
       if (!ok) { setError(message); setHint(''); setBusy(false); return }
 
-      setHint(method === 'gps' ? '📍 ' + message : '📶 ' + message)
+      setHint('📍 ' + message)
 
       const res = await fetch('/api/attendance', {
         method: 'PATCH',
@@ -278,7 +259,7 @@ export default function AttendanceWidget() {
       {/* Location note */}
       <p className="mt-2 text-center text-[10px] text-gray-400/60 dark:text-white/20 leading-tight">
         <MapPin className="inline h-2.5 w-2.5 mr-0.5" />
-        Requires workshop location or WiFi
+        Requires workshop location
       </p>
     </div>
   )
