@@ -323,15 +323,13 @@ export default function PublicInvoicePage({
             >
               <div>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#6B7A28]">
-                    <Car className="h-5 w-5 text-black" />
-                  </div>
+                  <img src="/logo.svg" alt="Bakkah Logo" className="h-12 w-12 rounded-full" />
                   <div>
                     <h1 className="text-2xl font-black text-gray-900 tracking-tight leading-none">
                       Bakkah
                     </h1>
                     <p className="text-[10px] tracking-widest text-gray-400 font-medium uppercase">
-                      Auto Detailing
+                      Auto Premium Care
                     </p>
                   </div>
                 </div>
@@ -908,7 +906,7 @@ export default function PublicInvoicePage({
               style={{ borderTop: "2px solid #6B7A28", paddingTop: "1.25rem" }}
             >
               <p className="text-xs text-gray-400">
-                Bakkah Auto Detailing · Al Qusais Industrial Area, Dubai, UAE ·
+                Bakkah Auto Premium Care · Al Qusais Industrial Area, Dubai, UAE ·
                 TRN: 100 000 000 000 003
               </p>
               <p className="mt-1 text-xs text-gray-400">

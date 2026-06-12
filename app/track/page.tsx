@@ -749,12 +749,10 @@ export default function TrackPage() {
       <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur-md dark:border-white/[0.06] dark:bg-surface-900/90">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3.5">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#6B7A28] shadow-[0_0_16px_rgba(107,122,40,0.4)] group-hover:shadow-[0_0_24px_rgba(107,122,40,0.55)] transition-all duration-300">
-              <Car className="h-[18px] w-[18px] text-black" />
-            </div>
+            <img src="/logo.svg" alt="Bakkah Logo" className="h-10 w-10 rounded-full shadow-[0_0_16px_rgba(107,122,40,0.4)] group-hover:shadow-[0_0_24px_rgba(107,122,40,0.55)] transition-all duration-300" />
             <div className="leading-none">
               <p className="font-display text-lg tracking-[0.2em] text-gray-900 leading-none dark:text-white">BAKKAH</p>
-              <p className="text-[9px] tracking-[0.12em] text-gray-400 dark:text-white/30">AUTO DETAILING</p>
+              <p className="text-[9px] tracking-[0.12em] text-gray-400 dark:text-white/30">AUTO PREMIUM CARE</p>
             </div>
           </Link>
           <div className="flex items-center gap-2">

@@ -118,7 +118,7 @@ export const ta: AppTranslations = {
     },
   },
   track: {
-    autoDetailing: 'ஆட்டோ டிடெய்லிங்',
+    autoDetailing: 'ஆட்டோ பிரீமியம் கேர்',
     staffLogin: 'பணியாளர் உள்நுழைவு →',
     hero: {
       title: 'உங்கள் வாகனத்தை கண்காணியுங்கள்',
