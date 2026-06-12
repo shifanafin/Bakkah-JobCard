@@ -267,15 +267,23 @@ function JobCardDetail({
   const [declineReason, setDeclineReason] = useState("");
   const [declining, setDeclining] = useState(false);
 
+  // Inline phone verification for job-number mode (customer arrives via WhatsApp link)
+  const [phoneInput, setPhoneInput] = useState("");
+  const [verifiedPhone, setVerifiedPhone] = useState("");
+
+  // Effective auth: from search params, or from inline phone verification
+  const effectivePhone = approvalData?.phone ?? verifiedPhone;
+  const effectivePlate = approvalData?.plate;
+
   async function handleApprove() {
-    if (!approvalData) return;
+    if (!effectivePhone) return;
     setApproving(true);
     setApproveError("");
     try {
       const res = await fetch("/api/approve-job", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: job.id, phone: approvalData.phone, plate: approvalData.plate, action: "approve" }),
+        body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "approve" }),
       });
       const data = await res.json();
       if (!res.ok) { setApproveError(data.error || "Failed to approve job"); return; }
@@ -288,14 +296,14 @@ function JobCardDetail({
   }
 
   async function handleDecline() {
-    if (!approvalData) return;
+    if (!effectivePhone) return;
     setDeclining(true);
     setApproveError("");
     try {
       const res = await fetch("/api/approve-job", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: job.id, phone: approvalData.phone, plate: approvalData.plate, action: "decline", reason: declineReason }),
+        body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "decline", reason: declineReason }),
       });
       const data = await res.json();
       if (!res.ok) { setApproveError(data.error || "Failed to decline job"); return; }
@@ -349,15 +357,46 @@ function JobCardDetail({
 
         {showFull && <StatusStepper status={job.status as JobStatus} />}
 
-        {/* Customer Approve / Decline */}
-        {job.status === "waiting_for_approval" && approvalData && (
+        {/* Customer Approve / Decline — shown for all waiting_for_approval jobs */}
+        {job.status === "waiting_for_approval" && (
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 px-4 py-3">
               <p className="text-sm font-bold text-orange-700 dark:text-orange-300">Workshop requires your approval</p>
               <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-0.5">Please review the job details above, then approve or decline.</p>
             </div>
 
-            {!showDecline ? (
+            {/* Phone verification — only needed when customer arrived via job-number search */}
+            {!effectivePhone && (
+              <div className="space-y-2">
+                <label className="label text-gray-700 dark:text-white/70">
+                  Enter your registered mobile number to continue
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-white/30 pointer-events-none" />
+                    <input
+                      value={phoneInput}
+                      onChange={e => { setPhoneInput(e.target.value); setApproveError(""); }}
+                      onKeyDown={e => e.key === "Enter" && phoneInput.trim() && setVerifiedPhone(phoneInput.trim())}
+                      placeholder="+971 50 123 4567"
+                      type="tel"
+                      inputMode="tel"
+                      className="input-base pl-10 w-full"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { if (phoneInput.trim()) { setVerifiedPhone(phoneInput.trim()); setApproveError(""); } }}
+                    disabled={!phoneInput.trim()}
+                    className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white transition-colors shrink-0">
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Approve / Decline buttons — visible once phone is known */}
+            {effectivePhone && !showDecline && (
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={handleApprove}
@@ -373,7 +412,10 @@ function JobCardDetail({
                   <X className="h-4 w-4" /> Decline
                 </button>
               </div>
-            ) : (
+            )}
+
+            {/* Decline reason form */}
+            {effectivePhone && showDecline && (
               <div className="space-y-3 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4">
                 <div>
                   <label className="label mb-1.5 text-red-700 dark:text-red-400">Reason for declining (optional)</label>
