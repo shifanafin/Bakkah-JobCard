@@ -47,11 +47,18 @@ const ITEM_TYPE_CLS: Record<string, string> = {
 
 export default function QuotationSection({
   jobId,
+  onStatusChange,
 }: {
   jobId: string
+  onStatusChange?: (status: string | null) => void
 }) {
   // undefined = loading, null = no quotation
   const [quotation, setQuotation] = useState<Quotation | null | undefined>(undefined)
+
+  function applyQuotation(q: Quotation | null) {
+    setQuotation(q)
+    onStatusChange?.(q?.status ?? null)
+  }
   const [isPending, startTransition] = useTransition()
   const [creating, setCreating] = useState(false)
 
@@ -72,12 +79,14 @@ export default function QuotationSection({
       const data = await res.json()
       const q = data.quotation ?? null
       setQuotation(q)
+      onStatusChange?.(q?.status ?? null)
       if (q) {
         setDiscount(q.discount?.toString() ?? '0')
         setNotes(q.notes ?? '')
       }
     } catch {
       setQuotation(null)
+      onStatusChange?.(null)
     }
   }
 
@@ -121,7 +130,7 @@ export default function QuotationSection({
         })
         if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to add item'); return }
         const d = await res.json()
-        setQuotation(d.quotation)
+        applyQuotation(d.quotation)
         setItemDesc(''); setItemQty('1'); setItemPrice('')
         toast.success('Item added')
       } catch { toast.error('Failed to add item') }
@@ -148,7 +157,7 @@ export default function QuotationSection({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ discount: parseFloat(discount) || 0 }),
         })
-        const d = await res.json(); setQuotation(d.quotation)
+        const d = await res.json(); applyQuotation(d.quotation)
         toast.success('Discount applied')
       } catch { toast.error('Failed to apply discount') }
     })
@@ -163,7 +172,7 @@ export default function QuotationSection({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ notes }),
         })
-        const d = await res.json(); setQuotation(d.quotation); setEditingNotes(false)
+        const d = await res.json(); applyQuotation(d.quotation); setEditingNotes(false)
         toast.success('Notes saved')
       } catch { toast.error('Failed to save notes') }
     })
@@ -179,7 +188,7 @@ export default function QuotationSection({
           body: JSON.stringify({ action: 'send' }),
         })
         if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to save quotation'); return }
-        const d = await res.json(); setQuotation(d.quotation)
+        const d = await res.json(); applyQuotation(d.quotation)
         toast.success('Quotation saved')
       } catch { toast.error('Failed to save quotation') }
     })
@@ -194,7 +203,7 @@ export default function QuotationSection({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'draft' }),
         })
-        const d = await res.json(); setQuotation(d.quotation)
+        const d = await res.json(); applyQuotation(d.quotation)
         toast.success('Reverted to draft')
       } catch { toast.error('Failed to revert quotation') }
     })
@@ -205,7 +214,7 @@ export default function QuotationSection({
     startTransition(async () => {
       try {
         await fetch(`/api/quotations/${quotation.id}`, { method: 'DELETE' })
-        setQuotation(null); toast.success('Quotation deleted')
+        applyQuotation(null); toast.success('Quotation deleted')
       } catch { toast.error('Failed to delete quotation') }
     })
   }

@@ -170,13 +170,8 @@ export default function ProformaSection({
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
   }
 
-  if (proforma === undefined) {
-    return (
-      <div className="card flex items-center justify-center py-8">
-        <Loader2 className="h-5 w-5 animate-spin text-brand" />
-      </div>
-    )
-  }
+  if (proforma === undefined) return null  // still loading — don't flash a card
+  if (proforma === null) return null        // no proforma yet — hide the section
 
   return (
     <div className="card space-y-4">
@@ -197,15 +192,7 @@ export default function ProformaSection({
         )}
       </div>
 
-      {!proforma ? (
-        <div className="flex flex-col items-center gap-2 py-6 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-500/10">
-            <FileText className="h-6 w-6 text-blue-400" />
-          </div>
-          <p className="text-sm font-semibold text-gray-700 dark:text-white/70">No proforma invoice yet</p>
-          <p className="text-xs text-gray-400 dark:text-white/30">Auto-created when the quotation is approved</p>
-        </div>
-      ) : (
+      {!proforma ? null : (
         <>
           {/* Items table */}
           {proforma.items.length > 0 && (

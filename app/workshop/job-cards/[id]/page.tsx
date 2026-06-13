@@ -42,6 +42,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
+  const [quotationApproved, setQuotationApproved] = useState(false)
 
   async function handleNotifyEmail() {
     if (!job) return
@@ -309,15 +310,17 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         )}
 
         {/* Quotation */}
-        <QuotationSection jobId={job.id} />
+        <QuotationSection jobId={job.id} onStatusChange={s => setQuotationApproved(s === 'approved')} />
 
         {/* Proforma Invoice — shown once quotation is approved */}
-        <ProformaSection
-          jobId={job.id}
-          jobNumber={job.job_number}
-          jobStatus={job.status}
-          customerPhone={job.customer?.phone}
-        />
+        {quotationApproved && (
+          <ProformaSection
+            jobId={job.id}
+            jobNumber={job.job_number}
+            jobStatus={job.status}
+            customerPhone={job.customer?.phone}
+          />
+        )}
 
         {/* Tax Invoice — shown when job is delivered */}
         {job.status === 'delivered' && (
@@ -353,7 +356,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
                   href={buildWhatsAppHref(job)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:hover:bg-emerald-500/20"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30"
                 >
                   <MessageCircle className="h-4 w-4" />
                   WhatsApp Share
