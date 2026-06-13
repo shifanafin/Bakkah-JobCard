@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/server-session'
 
 type Params = { params: Promise<{ id: string }> }
 
 async function requireAdminOrSupervisor() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  const role = (session?.user as { role?: string })?.role
-  if (!session || (role !== 'admin' && role !== 'supervisor')) return null
+  const session = await getServerSession()
+  if (!session || (session.user.role !== 'admin' && session.user.role !== 'supervisor')) return null
   return session
 }
 

@@ -32,7 +32,7 @@ import {
   ThumbsUp,
   Eye,
 } from "lucide-react";
-import { useT } from "@/lib/i18n";
+import { useT, LANG_META, type Lang } from "@/lib/i18n";
 import { useTheme } from "@/components/ThemeProvider";
 
 // ── CMS content types ─────────────────────────────────────────────
@@ -207,9 +207,19 @@ type Review = {
 };
 
 export default function BakkahHomePage() {
-  const { t } = useT();
+  const { t, lang, setLang, translating } = useT();
   const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
+    }
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
   const [heroIdx, setHeroIdx] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef<HTMLDivElement>(null);
@@ -382,6 +392,34 @@ export default function BakkahHomePage() {
             </a>
           </div>
           <div className="flex items-center gap-2">
+            {/* Language switcher */}
+            <div className="relative" ref={langRef}>
+              <button
+                onClick={() => setLangOpen(o => !o)}
+                disabled={translating}
+                className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] px-2.5 text-xs font-bold text-gray-600 dark:text-white/50 transition hover:bg-gray-100 dark:hover:bg-white/[0.06] disabled:opacity-60"
+                aria-label="Change language"
+              >
+                <span>{LANG_META[lang].flag}</span>
+                <span>{LANG_META[lang].code}</span>
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1.5 w-40 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-[#111] z-50">
+                  {(Object.entries(LANG_META) as [Lang, typeof LANG_META[Lang]][]).map(([code, meta]) => (
+                    <button
+                      key={code}
+                      onClick={() => { setLang(code); setLangOpen(false); }}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition hover:bg-gray-50 dark:hover:bg-white/[0.05] ${lang === code ? 'font-bold text-[#6B7A28]' : 'text-gray-700 dark:text-white/60'}`}
+                    >
+                      <span>{meta.flag}</span>
+                      <span>{meta.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               onClick={toggle}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/40 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
