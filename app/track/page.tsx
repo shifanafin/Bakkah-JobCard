@@ -338,7 +338,7 @@ function QuotationApproval({ job, onDone }: { job: JobSummary; onDone: () => voi
       })
       const d = await res.json()
       if (!res.ok) { setError(d.error || 'Something went wrong. Please try again.'); return }
-      setDone(action)
+      setDone(action === 'approve' ? 'approved' : 'declined')
       setTimeout(() => onDone(), 1800)
     } catch {
       setError('Network error. Please check your connection and try again.')
