@@ -23,7 +23,6 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (body.name !== undefined) updates.name = body.name.trim()
     if (body.description !== undefined) updates.description = body.description?.trim() || null
     if (body.default_price !== undefined) updates.default_price = parseFloat(body.default_price) || 0
-    if (body.category !== undefined) updates.category = body.category?.trim() || 'general'
     if (body.active !== undefined) updates.active = body.active
     if (body.sort_order !== undefined) updates.sort_order = parseInt(body.sort_order) || 0
 
