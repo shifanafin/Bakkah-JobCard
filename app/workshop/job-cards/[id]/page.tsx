@@ -310,7 +310,13 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         )}
 
         {/* Quotation */}
-        <QuotationSection jobId={job.id} onStatusChange={s => setQuotationApproved(s === 'approved')} />
+        <QuotationSection
+          jobId={job.id}
+          jobNumber={job.job_number}
+          customerPhone={job.customer?.phone}
+          customerName={job.customer?.name}
+          onStatusChange={s => setQuotationApproved(s === 'approved')}
+        />
 
         {/* Proforma Invoice — shown once quotation is approved */}
         {quotationApproved && (

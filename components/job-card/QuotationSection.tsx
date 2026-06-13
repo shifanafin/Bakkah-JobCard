@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle } from 'lucide-react'
+import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle, MessageCircle } from 'lucide-react'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -47,9 +47,15 @@ const ITEM_TYPE_CLS: Record<string, string> = {
 
 export default function QuotationSection({
   jobId,
+  jobNumber,
+  customerPhone,
+  customerName,
   onStatusChange,
 }: {
   jobId: string
+  jobNumber?: string
+  customerPhone?: string
+  customerName?: string
   onStatusChange?: (status: string | null) => void
 }) {
   // undefined = loading, null = no quotation
@@ -220,6 +226,43 @@ export default function QuotationSection({
   }
 
   const inputSm = 'flex-1 rounded-lg border px-2.5 py-2 text-sm focus:border-brand/50 focus:outline-none transition bg-white border-gray-200 text-gray-900 placeholder:text-gray-300 dark:bg-white/[0.04] dark:border-white/10 dark:text-white dark:placeholder:text-white/20'
+
+  function buildWhatsAppHref(): string {
+    if (!customerPhone || !quotation) return '#'
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    const trackUrl = `${origin}/track?q=${encodeURIComponent(jobNumber ?? '')}`
+
+    const itemLines = quotation.items.map(i => {
+      const qty = i.quantity !== 1 ? ` ×${i.quantity}` : ''
+      return `  • ${i.description}${qty} — AED ${i.total_price.toFixed(2)}`
+    }).join('\n')
+
+    const lines = [
+      `Dear ${customerName ?? 'Valued Customer'},`,
+      ``,
+      `Your vehicle has been assessed at Bakkah Auto Premium Care.`,
+      `Here is your Quotation *${quotation.quotation_number}*${jobNumber ? ` for Job *${jobNumber}*` : ''}:`,
+      ``,
+      `━━━━━━━━━━━━━━━━━━`,
+      itemLines,
+      `━━━━━━━━━━━━━━━━━━`,
+      `Subtotal: AED ${quotation.subtotal.toFixed(2)}`,
+      ...(quotation.discount > 0 ? [`Discount: −AED ${quotation.discount.toFixed(2)}`] : []),
+      `VAT (5%): AED ${quotation.vat_amount.toFixed(2)}`,
+      `*Total: AED ${quotation.total.toFixed(2)}*`,
+      ``,
+      `✅ To *APPROVE* or ❌ *DECLINE* this quotation, tap the link below and enter your mobile number:`,
+      trackUrl,
+      ``,
+      `Questions? Call or WhatsApp us:`,
+      `📞 +971 54 588 6999`,
+      ``,
+      `Bakkah Auto Premium Care`,
+      `Al Qusais Industrial Area 5, Dubai`,
+    ]
+
+    return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(lines.join('\n'))}`
+  }
 
   if (quotation === undefined) {
     return (
@@ -455,24 +498,42 @@ export default function QuotationSection({
             )}
 
             {quotation.status === 'sent' && (
-              <div className="flex w-full items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
-                  <Check className="h-4 w-4 shrink-0" /> Quotation saved
+              <div className="flex w-full flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                    <Check className="h-4 w-4 shrink-0" /> Quotation saved — awaiting customer
+                  </div>
+                  <button onClick={handleRevert} disabled={isPending}
+                    className="btn-ghost text-xs px-3">
+                    {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Edit2 className="h-3.5 w-3.5" />}
+                    Edit
+                  </button>
                 </div>
-                <button onClick={handleRevert} disabled={isPending}
-                  className="btn-ghost text-xs px-3">
-                  {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Edit2 className="h-3.5 w-3.5" />}
-                  Edit
-                </button>
+                {customerPhone && (
+                  <a href={buildWhatsAppHref()} target="_blank" rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30">
+                    <MessageCircle className="h-4 w-4" />
+                    Share Quotation via WhatsApp
+                  </a>
+                )}
               </div>
             )}
 
             {quotation.status === 'approved' && (
-              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3 flex-1">
-                <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                  Customer Approved — Work Authorized
-                </span>
+              <div className="flex w-full flex-col gap-2">
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3 flex-1">
+                  <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                  <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                    Customer Approved — Work Authorized
+                  </span>
+                </div>
+                {customerPhone && (
+                  <a href={buildWhatsAppHref()} target="_blank" rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30">
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    Resend Quotation via WhatsApp
+                  </a>
+                )}
               </div>
             )}
 
