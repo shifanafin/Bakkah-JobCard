@@ -385,12 +385,18 @@ function JobCardDetail({
             </p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-2xl font-black text-brand">{formatAED(job.total)}</p>
-            <p className={cn("text-xs font-bold uppercase tracking-wide mt-0.5",
-              job.payment_status === "paid" ? "text-emerald-500"
-                : job.payment_status === "partial" ? "text-amber-500" : "text-red-400")}>
-              {job.payment_status}
+            <p className="text-2xl font-black text-brand">
+              {formatAED(job.quotation?.total || job.total)}
             </p>
+            {job.quotation ? (
+              <p className={cn("text-xs font-bold uppercase tracking-wide mt-0.5",
+                job.quotation.status === "approved" ? "text-emerald-500"
+                  : job.quotation.status === "declined" ? "text-red-400" : "text-amber-500")}>
+                {job.quotation.status === "approved" ? "Approved" : job.quotation.status === "declined" ? "Declined" : "Quotation"}
+              </p>
+            ) : job.payment_status === "paid" ? (
+              <p className="text-xs font-bold uppercase tracking-wide mt-0.5 text-emerald-500">Paid</p>
+            ) : null}
           </div>
         </div>
 
@@ -763,7 +769,7 @@ function HistoryCard({ job }: { job: JobSummary }) {
             {formatDate(job.date_in)} · {JOB_TYPE_LABEL[job.job_type] ?? job.job_type}
             {job.mileage_in ? ` · ${job.mileage_in.toLocaleString()} km` : ""}
           </p>
-          <p className="text-sm font-bold text-brand mt-1">{formatAED(job.total)}</p>
+          <p className="text-sm font-bold text-brand mt-1">{formatAED(job.quotation?.total || job.total)}</p>
         </div>
         <div className="ml-auto shrink-0 text-gray-300 dark:text-white/20">
           {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -815,7 +821,7 @@ function HistoryCard({ job }: { job: JobSummary }) {
               <p className="text-xs text-gray-400 dark:text-white/30">VAT (5%): {formatAED(job.vat_amount)}</p>
             </div>
             <div className="text-right">
-              <p className="font-black text-brand text-lg">{formatAED(job.total)}</p>
+              <p className="font-black text-brand text-lg">{formatAED(job.quotation?.total || job.total)}</p>
             </div>
           </div>
         </div>

@@ -6,7 +6,8 @@ import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
-type CatalogService = { id: string; name: string; default_price: number; category: string }
+type CatalogService = { id: string; name: string; default_price: number; category: string; category_id: string | null }
+type ServiceCategory = { id: string; name: string }
 
 type QuotationItem = {
   id: string
@@ -56,8 +57,10 @@ export default function QuotationSection({
   const [creating, setCreating] = useState(false)
 
   const [catalog, setCatalog] = useState<CatalogService[]>([])
+  const [categories, setCategories] = useState<ServiceCategory[]>([])
 
   const [itemType, setItemType] = useState<'service' | 'part' | 'labor'>('service')
+  const [selectedCategoryId, setSelectedCategoryId] = useState('')
   const [itemDesc, setItemDesc] = useState('')
   const [itemQty, setItemQty] = useState('1')
   const [itemPrice, setItemPrice] = useState('')
@@ -88,6 +91,10 @@ export default function QuotationSection({
       .then(r => r.json())
       .then(d => setCatalog(d.services ?? []))
       .catch(() => {})
+    fetch('/api/services/categories')
+      .then(r => r.json())
+      .then(d => setCategories(d.categories ?? []))
+      .catch(() => {})
   }, [])
 
   async function handleCreate() {
@@ -103,14 +110,6 @@ export default function QuotationSection({
       toast.success('Quotation created')
     } catch { toast.error('Failed to create quotation') }
     finally { setCreating(false) }
-  }
-
-  function handleDescChange(val: string) {
-    setItemDesc(val)
-    if (itemType === 'service') {
-      const match = catalog.find(s => s.name.toLowerCase() === val.toLowerCase())
-      if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
-    }
   }
 
   function handleAddItem() {
@@ -317,30 +316,72 @@ export default function QuotationSection({
           {/* Add item — draft only */}
           {quotation.status === 'draft' && (
             <div className="flex gap-2 flex-wrap">
+              {/* Type */}
               <div className="relative">
-                <select value={itemType} onChange={e => setItemType(e.target.value as 'service' | 'part' | 'labor')}
-                  className={cn(inputSm, 'w-28 flex-none appearance-none pr-7')}>
+                <select value={itemType} onChange={e => {
+                  setItemType(e.target.value as 'service' | 'part' | 'labor')
+                  setSelectedCategoryId('')
+                  setItemDesc('')
+                  setItemPrice('')
+                }} className={cn(inputSm, 'w-28 flex-none appearance-none pr-7')}>
                   <option value="service">Service</option>
                   <option value="part">Part</option>
                   <option value="labor">Labor</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               </div>
-              <input
-                value={itemDesc}
-                onChange={e => handleDescChange(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-                placeholder="Description"
-                list={itemType === 'service' ? 'svc-catalog' : undefined}
-                className={cn(inputSm, 'min-w-[150px]')}
-              />
-              {itemType === 'service' && catalog.length > 0 && (
-                <datalist id="svc-catalog">
-                  {catalog.map(s => (
-                    <option key={s.id} value={s.name} />
-                  ))}
-                </datalist>
+
+              {itemType === 'service' ? (
+                <>
+                  {/* Category */}
+                  <div className="relative">
+                    <select value={selectedCategoryId} onChange={e => {
+                      setSelectedCategoryId(e.target.value)
+                      setItemDesc('')
+                      setItemPrice('')
+                    }} className={cn(inputSm, 'w-36 flex-none appearance-none pr-7')}>
+                      <option value="">— Category —</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+                  </div>
+
+                  {/* Service filtered by category */}
+                  <div className="relative flex-1 min-w-[150px]">
+                    <select
+                      value={itemDesc}
+                      onChange={e => {
+                        const name = e.target.value
+                        setItemDesc(name)
+                        const match = catalog.find(s => s.name === name && s.category_id === selectedCategoryId)
+                        if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
+                        else if (!name) setItemPrice('')
+                      }}
+                      disabled={!selectedCategoryId}
+                      className={cn(inputSm, 'w-full appearance-none pr-7 disabled:opacity-50')}
+                    >
+                      <option value="">— Service —</option>
+                      {catalog
+                        .filter(s => s.category_id === selectedCategoryId)
+                        .map(s => (
+                          <option key={s.id} value={s.name}>{s.name}</option>
+                        ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+                  </div>
+                </>
+              ) : (
+                <input
+                  value={itemDesc}
+                  onChange={e => setItemDesc(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                  placeholder="Description"
+                  className={cn(inputSm, 'min-w-[150px] flex-1')}
+                />
               )}
+
               <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
                 type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-16 flex-none')} />
               <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"

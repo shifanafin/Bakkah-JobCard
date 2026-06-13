@@ -189,81 +189,127 @@ export default function EmployeesPage() {
             <p className="text-sm text-gray-400 dark:text-white/30">No employees yet</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-white/[0.06]">
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Name</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Email / Username</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Role</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Joined</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
-                {paginated.map(emp => (
-                  <tr key={emp.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-xs">
-                          {emp.name[0]?.toUpperCase()}
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 dark:border-white/[0.06]">
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Email / Username</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Role</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Joined</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
+                  {paginated.map(emp => (
+                    <tr key={emp.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-xs">
+                            {emp.name[0]?.toUpperCase()}
+                          </div>
+                          <span className="font-medium text-gray-900 dark:text-white">{emp.name}</span>
                         </div>
-                        <span className="font-medium text-gray-900 dark:text-white">{emp.name}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="text-gray-700 dark:text-white/70">{emp.email}</p>
+                        <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{emp.username}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', ROLE_COLORS[emp.role] ?? 'bg-gray-100 text-gray-500')}>
+                          {emp.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={cn(
+                          'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
+                          emp.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400'
+                        )}>
+                          {emp.active ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-400 dark:text-white/30 text-xs">
+                        {formatDate(emp.created_at)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleToggle(emp)}
+                            disabled={togglingId === emp.id}
+                            title={emp.active ? 'Deactivate' : 'Activate'}
+                            className={cn(
+                              'flex h-7 w-7 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
+                              emp.active
+                                ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
+                                : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30'
+                            )}
+                          >
+                            {togglingId === emp.id
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              : emp.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />
+                            }
+                          </button>
+                          <button
+                            onClick={() => { setResetTarget(emp); setResetPwd(generatePassword()) }}
+                            title="Reset Password"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30"
+                          >
+                            <Key className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="md:hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {paginated.map(emp => (
+                <div key={emp.id} className="p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">
+                        {emp.name[0]?.toUpperCase()}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="text-gray-700 dark:text-white/70">{emp.email}</p>
-                      <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{emp.username}</p>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', ROLE_COLORS[emp.role] ?? 'bg-gray-100 text-gray-500')}>
-                        {emp.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={cn(
-                        'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
-                        emp.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400'
-                      )}>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">{emp.name}</p>
+                        <p className="text-xs font-mono text-gray-400 dark:text-white/30 truncate">@{emp.username}</p>
+                      </div>
+                    </div>
+                    <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', ROLE_COLORS[emp.role] ?? 'bg-gray-100 text-gray-500')}>
+                      {emp.role}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-white/50 truncate">{emp.email}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', emp.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
                         {emp.active ? 'Active' : 'Inactive'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-400 dark:text-white/30 text-xs">
-                      {formatDate(emp.created_at)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleToggle(emp)}
-                          disabled={togglingId === emp.id}
-                          title={emp.active ? 'Deactivate' : 'Activate'}
-                          className={cn(
-                            'flex h-7 w-7 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
-                            emp.active
-                              ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
-                              : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30'
-                          )}
-                        >
-                          {togglingId === emp.id
-                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            : emp.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />
-                          }
-                        </button>
-                        <button
-                          onClick={() => { setResetTarget(emp); setResetPwd(generatePassword()) }}
-                          title="Reset Password"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30"
-                        >
-                          <Key className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <span className="text-xs text-gray-400 dark:text-white/30">{formatDate(emp.created_at)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleToggle(emp)} disabled={togglingId === emp.id} title={emp.active ? 'Deactivate' : 'Activate'}
+                        className={cn('flex h-8 w-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
+                          emp.active ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
+                            : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30')}>
+                        {togglingId === emp.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emp.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
+                      </button>
+                      <button onClick={() => { setResetTarget(emp); setResetPwd(generatePassword()) }} title="Reset Password"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
+                        <Key className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
         {employees.length > PAGE_SIZE && (
           <Pagination page={page} totalItems={employees.length} pageSize={PAGE_SIZE} onChange={setPage} />

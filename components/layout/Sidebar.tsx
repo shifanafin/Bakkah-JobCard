@@ -21,6 +21,7 @@ import {
   BarChart2,
   Globe,
   UserRound,
+  ConciergeBell,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useShell } from "@/components/layout/WorkshopShell";
@@ -33,6 +34,7 @@ const NAV = {
   settings: 'Settings', signOut: 'Sign Out', employees: 'Employees',
   technicians: 'Technicians', attendance: 'Attendance', feedback: 'Feedback',
   announcements: 'Announcements', analytics: 'Analytics', website: 'Website CMS',
+  services: 'Services',
 }
 
 type NavItem = {
@@ -178,6 +180,7 @@ function SidebarContent({
         label: nav.announcements,
       },
       { href: "/workshop/admin/website", icon: Globe, label: nav.website },
+      { href: "/workshop/admin/services", icon: ConciergeBell, label: nav.services },
     );
   }
 
