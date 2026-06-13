@@ -28,6 +28,37 @@ async function fetchQuotation(sb: ReturnType<typeof createServiceClient>, jobCar
   return data ?? null
 }
 
+async function fetchProforma(sb: ReturnType<typeof createServiceClient>, jobCardId: string) {
+  const { data } = await sb
+    .from('proforma_invoices')
+    .select('id, proforma_number, status, invoice_date, notes, terms, subtotal, discount, vat_amount, total, items')
+    .eq('job_card_id', jobCardId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data ?? null
+}
+
+async function fetchTaxInvoice(sb: ReturnType<typeof createServiceClient>, jobCardId: string) {
+  const { data } = await sb
+    .from('tax_invoices')
+    .select('id, invoice_number, status, invoice_date, notes, subtotal, discount, vat_amount, total, items')
+    .eq('job_card_id', jobCardId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return data ?? null
+}
+
+async function fetchDocs(sb: ReturnType<typeof createServiceClient>, jobCardId: string) {
+  const [quotation, proforma, taxInvoice] = await Promise.all([
+    fetchQuotation(sb, jobCardId),
+    fetchProforma(sb, jobCardId),
+    fetchTaxInvoice(sb, jobCardId),
+  ])
+  return { quotation, proforma, taxInvoice }
+}
+
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '')
   if (digits.startsWith('971')) return digits
@@ -56,8 +87,8 @@ export async function GET(request: NextRequest) {
     if (error) return NextResponse.json({ error: 'Database error' }, { status: 500 })
     if (!data) return NextResponse.json({ error: 'Job card not found' }, { status: 404 })
 
-    const quotation = await fetchQuotation(sb, data.id)
-    return NextResponse.json({ mode: 'job', current: { ...data, quotation }, history: [] })
+    const docs = await fetchDocs(sb, data.id)
+    return NextResponse.json({ mode: 'job', current: { ...data, ...docs }, history: [] })
   }
 
   // ── Search by Phone Only (all customer jobs) ──────────────────
@@ -90,8 +121,8 @@ export async function GET(request: NextRequest) {
     }
 
     const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
-    const quotation = await fetchQuotation(sb, current.id)
-    return NextResponse.json({ mode: 'customer', current: { ...current, quotation }, history: jobs })
+    const docs = await fetchDocs(sb, current.id)
+    return NextResponse.json({ mode: 'customer', current: { ...current, ...docs }, history: jobs })
   }
 
   // ── Search by Plate Only (all vehicle jobs, no phone check) ───
@@ -120,8 +151,8 @@ export async function GET(request: NextRequest) {
     }
 
     const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
-    const quotation = await fetchQuotation(sb, current.id)
-    return NextResponse.json({ mode: 'vehicle', current: { ...current, quotation }, history: jobs })
+    const docs = await fetchDocs(sb, current.id)
+    return NextResponse.json({ mode: 'vehicle', current: { ...current, ...docs }, history: jobs })
   }
 
   // ── Search by Mobile + Plate (verified) ───────────────────────
@@ -166,8 +197,8 @@ export async function GET(request: NextRequest) {
     }
 
     const current = jobs.find(j => ACTIVE_STATUSES.includes(j.status)) ?? jobs[0]
-    const quotation = await fetchQuotation(sb, current.id)
-    return NextResponse.json({ mode: 'vehicle', current: { ...current, quotation }, history: jobs })
+    const docs = await fetchDocs(sb, current.id)
+    return NextResponse.json({ mode: 'vehicle', current: { ...current, ...docs }, history: jobs })
   }
 
   return NextResponse.json({ error: 'Provide job_number, phone, plate, or phone+plate.' }, { status: 400 })
