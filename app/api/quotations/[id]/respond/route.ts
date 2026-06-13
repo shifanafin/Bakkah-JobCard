@@ -99,5 +99,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     notes: 'Quotation approved by customer — work authorized',
   })
 
+  // Auto-create proforma invoice from approved quotation
+  try {
+    await createProformaForJob(job.id, id)
+  } catch {
+    // Non-fatal
+  }
+
   return NextResponse.json({ success: true, action: 'approved', new_status: newJobStatus })
 }

@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 // Shared helper — also used by job-cards approve route
 export async function createProformaForJob(jobCardId: string, quotationId: string | null) {
   const sb = createServiceClient()
-  let items: object[] = []
+  let items: Array<{ id: string; item_type: string; description: string; quantity: number; unit_price: number; total_price: number; sort_order: number }> = []
   let subtotal = 0, discount = 0, vat_amount = 0, total = 0
   let fromQuotationId: string | null = quotationId
 
@@ -86,7 +86,7 @@ export async function createProformaForJob(jobCardId: string, quotationId: strin
         unit_price: p.unit_price, total_price: p.total_price, sort_order: sortOrder++,
       })),
     ]
-    subtotal = items.reduce((s, i: { total_price: number }) => s + i.total_price, 0)
+    subtotal = items.reduce((s, i) => s + i.total_price, 0)
     vat_amount = subtotal * 0.05
     total = subtotal + vat_amount
   }

@@ -6,8 +6,7 @@ import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
-type CatalogService = { id: string; name: string; default_price: number; category: string; category_id: string | null }
-type ServiceCategory = { id: string; name: string }
+type CatalogService = { id: string; name: string; default_price: number; category: string }
 
 type QuotationItem = {
   id: string
@@ -57,10 +56,8 @@ export default function QuotationSection({
   const [creating, setCreating] = useState(false)
 
   const [catalog, setCatalog] = useState<CatalogService[]>([])
-  const [categories, setCategories] = useState<ServiceCategory[]>([])
 
   const [itemType, setItemType] = useState<'service' | 'part' | 'labor'>('service')
-  const [selectedCategoryId, setSelectedCategoryId] = useState('')
   const [itemDesc, setItemDesc] = useState('')
   const [itemQty, setItemQty] = useState('1')
   const [itemPrice, setItemPrice] = useState('')
@@ -90,10 +87,6 @@ export default function QuotationSection({
     fetch('/api/services')
       .then(r => r.json())
       .then(d => setCatalog(d.services ?? []))
-      .catch(() => {})
-    fetch('/api/services/categories')
-      .then(r => r.json())
-      .then(d => setCategories(d.categories ?? []))
       .catch(() => {})
   }, [])
 
@@ -320,7 +313,6 @@ export default function QuotationSection({
               <div className="relative">
                 <select value={itemType} onChange={e => {
                   setItemType(e.target.value as 'service' | 'part' | 'labor')
-                  setSelectedCategoryId('')
                   setItemDesc('')
                   setItemPrice('')
                 }} className={cn(inputSm, 'w-28 flex-none appearance-none pr-7')}>
@@ -332,46 +324,25 @@ export default function QuotationSection({
               </div>
 
               {itemType === 'service' ? (
-                <>
-                  {/* Category */}
-                  <div className="relative">
-                    <select value={selectedCategoryId} onChange={e => {
-                      setSelectedCategoryId(e.target.value)
-                      setItemDesc('')
-                      setItemPrice('')
-                    }} className={cn(inputSm, 'w-36 flex-none appearance-none pr-7')}>
-                      <option value="">— Category —</option>
-                      {categories.map(c => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
-                  </div>
-
-                  {/* Service filtered by category */}
-                  <div className="relative flex-1 min-w-[150px]">
-                    <select
-                      value={itemDesc}
-                      onChange={e => {
-                        const name = e.target.value
-                        setItemDesc(name)
-                        const match = catalog.find(s => s.name === name && s.category_id === selectedCategoryId)
-                        if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
-                        else if (!name) setItemPrice('')
-                      }}
-                      disabled={!selectedCategoryId}
-                      className={cn(inputSm, 'w-full appearance-none pr-7 disabled:opacity-50')}
-                    >
-                      <option value="">— Service —</option>
-                      {catalog
-                        .filter(s => s.category_id === selectedCategoryId)
-                        .map(s => (
-                          <option key={s.id} value={s.name}>{s.name}</option>
-                        ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
-                  </div>
-                </>
+                <div className="relative flex-1 min-w-[150px]">
+                  <select
+                    value={itemDesc}
+                    onChange={e => {
+                      const name = e.target.value
+                      setItemDesc(name)
+                      const match = catalog.find(s => s.name === name)
+                      if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
+                      else if (!name) setItemPrice('')
+                    }}
+                    className={cn(inputSm, 'w-full appearance-none pr-7')}
+                  >
+                    <option value="">— Select Service —</option>
+                    {catalog.map(s => (
+                      <option key={s.id} value={s.name}>{s.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+                </div>
               ) : (
                 <input
                   value={itemDesc}

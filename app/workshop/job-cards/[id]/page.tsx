@@ -7,6 +7,8 @@ import { useSession } from '@/lib/auth-client'
 import Header from '@/components/layout/Header'
 import StatusStepper from '@/components/job-card/StatusStepper'
 import QuotationSection from '@/components/job-card/QuotationSection'
+import ProformaSection from '@/components/job-card/ProformaSection'
+import TaxInvoiceSection from '@/components/job-card/TaxInvoiceSection'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
@@ -308,6 +310,23 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
 
         {/* Quotation */}
         <QuotationSection jobId={job.id} />
+
+        {/* Proforma Invoice — shown once quotation is approved */}
+        <ProformaSection
+          jobId={job.id}
+          jobNumber={job.job_number}
+          jobStatus={job.status}
+          customerPhone={job.customer?.phone}
+        />
+
+        {/* Tax Invoice — shown when job is delivered */}
+        {job.status === 'delivered' && (
+          <TaxInvoiceSection
+            jobId={job.id}
+            jobNumber={job.job_number}
+            customerPhone={job.customer?.phone}
+          />
+        )}
 
         {/* Notify Customer */}
         {job.customer?.phone || job.customer?.email ? (

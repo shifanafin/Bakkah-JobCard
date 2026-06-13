@@ -53,6 +53,42 @@ type Quotation = {
   items: QuotationItem[];
 };
 
+type DocItem = {
+  id: string;
+  item_type: "service" | "part" | "labor";
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+};
+
+type ProformaInvoice = {
+  id: string;
+  proforma_number: string;
+  status: string;
+  invoice_date: string;
+  notes: string | null;
+  terms: string | null;
+  subtotal: number;
+  discount: number;
+  vat_amount: number;
+  total: number;
+  items: DocItem[];
+};
+
+type TaxInvoice = {
+  id: string;
+  invoice_number: string;
+  status: "draft" | "issued";
+  invoice_date: string;
+  notes: string | null;
+  subtotal: number;
+  discount: number;
+  vat_amount: number;
+  total: number;
+  items: DocItem[];
+};
+
 type JobSummary = {
   id: string;
   job_number: string;
@@ -78,6 +114,8 @@ type JobSummary = {
   parts?: Part[];
   photos?: Photo[];
   quotation?: Quotation | null;
+  proforma?: ProformaInvoice | null;
+  taxInvoice?: TaxInvoice | null;
 };
 
 type TrackResponse = {
@@ -438,6 +476,122 @@ function JobCardDetail({
           )}
         </div>
       </div>
+
+      {/* Proforma Invoice — shown once quotation is approved and work is underway */}
+      {job.proforma && (
+        <div className="card space-y-4">
+          <div className="flex items-center gap-2 border-b border-gray-100 dark:border-white/[0.06] pb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
+              <Check className="h-3.5 w-3.5 text-brand" />
+            </div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Proforma Invoice</h3>
+            <span className="font-mono text-xs text-gray-400 dark:text-white/40">{job.proforma.proforma_number}</span>
+          </div>
+          {job.proforma.items.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
+              {(["service", "part", "labor"] as const).map(type => {
+                const group = job.proforma!.items.filter(i => i.item_type === type);
+                if (!group.length) return null;
+                const TYPE_LABEL = { service: "Services", part: "Parts & Materials", labor: "Labor" };
+                return (
+                  <div key={type} className="border-b border-gray-100 dark:border-white/[0.06] last:border-0">
+                    <p className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider bg-gray-50 dark:bg-white/[0.02] text-gray-400 dark:text-white/30">{TYPE_LABEL[type]}</p>
+                    {group.map((item, i) => (
+                      <div key={item.id} className={cn("flex items-center justify-between px-4 py-2.5 text-sm", i < group.length - 1 && "border-b border-gray-50 dark:border-white/[0.03]")}>
+                        <span className="text-gray-700 dark:text-white/70 flex-1 pr-4">
+                          {item.description}
+                          {item.quantity !== 1 && <span className="text-gray-400 dark:text-white/30 ml-1">×{item.quantity}</span>}
+                        </span>
+                        <span className="font-semibold tabular-nums text-gray-900 dark:text-white shrink-0">{formatAED(item.total_price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+              <div className="px-4 py-3 bg-gray-50 dark:bg-white/[0.02] space-y-1.5">
+                {job.proforma.discount > 0 && (
+                  <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                    <span>Discount</span><span className="tabular-nums">−{formatAED(job.proforma.discount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
+                  <span>VAT (5%)</span><span className="tabular-nums">{formatAED(job.proforma.vat_amount)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-1.5 border-t border-gray-200 dark:border-white/10">
+                  <span className="font-bold text-gray-900 dark:text-white">Total (incl. VAT)</span>
+                  <span className="font-black text-lg text-brand tabular-nums">{formatAED(job.proforma.total)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          {job.proforma.notes && (
+            <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{job.proforma.notes}</p>
+          )}
+        </div>
+      )}
+
+      {/* Tax Invoice — shown when job is delivered */}
+      {job.taxInvoice && (
+        <div className="card space-y-4">
+          <div className="flex items-center gap-2 border-b border-gray-100 dark:border-white/[0.06] pb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-500/15">
+              <Check className="h-3.5 w-3.5 text-emerald-500" />
+            </div>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Tax Invoice</h3>
+            <span className="font-mono text-xs text-gray-400 dark:text-white/40">{job.taxInvoice.invoice_number}</span>
+            <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold",
+              job.taxInvoice.status === "issued"
+                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
+                : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400")}>
+              {job.taxInvoice.status === "issued" ? "Issued" : "Draft"}
+            </span>
+          </div>
+          {job.taxInvoice.items.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
+              {(["service", "part", "labor"] as const).map(type => {
+                const group = job.taxInvoice!.items.filter(i => i.item_type === type);
+                if (!group.length) return null;
+                const TYPE_LABEL = { service: "Services", part: "Parts & Materials", labor: "Labor" };
+                return (
+                  <div key={type} className="border-b border-gray-100 dark:border-white/[0.06] last:border-0">
+                    <p className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider bg-gray-50 dark:bg-white/[0.02] text-gray-400 dark:text-white/30">{TYPE_LABEL[type]}</p>
+                    {group.map((item, i) => (
+                      <div key={item.id} className={cn("flex items-center justify-between px-4 py-2.5 text-sm", i < group.length - 1 && "border-b border-gray-50 dark:border-white/[0.03]")}>
+                        <span className="text-gray-700 dark:text-white/70 flex-1 pr-4">
+                          {item.description}
+                          {item.quantity !== 1 && <span className="text-gray-400 dark:text-white/30 ml-1">×{item.quantity}</span>}
+                        </span>
+                        <span className="font-semibold tabular-nums text-gray-900 dark:text-white shrink-0">{formatAED(item.total_price)}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+              <div className="px-4 py-3 bg-gray-50 dark:bg-white/[0.02] space-y-1.5">
+                <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
+                  <span>Subtotal</span><span className="tabular-nums">{formatAED(job.taxInvoice.subtotal)}</span>
+                </div>
+                {job.taxInvoice.discount > 0 && (
+                  <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                    <span>Completion Discount</span><span className="tabular-nums">−{formatAED(job.taxInvoice.discount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
+                  <span>VAT (5%)</span><span className="tabular-nums">{formatAED(job.taxInvoice.vat_amount)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-1.5 border-t border-gray-200 dark:border-white/10">
+                  <span className="font-bold text-gray-900 dark:text-white">Total (incl. VAT)</span>
+                  <span className="font-black text-xl text-brand tabular-nums">{formatAED(job.taxInvoice.total)}</span>
+                </div>
+                <p className="text-[10px] text-gray-400 dark:text-white/25 text-right">Prices in AED · VAT applicable</p>
+              </div>
+            </div>
+          )}
+          {job.taxInvoice.notes && (
+            <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{job.taxInvoice.notes}</p>
+          )}
+        </div>
+      )}
 
       {/* Before / After Photos */}
       {hasPhotos && (
