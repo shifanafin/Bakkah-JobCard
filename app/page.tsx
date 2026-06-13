@@ -23,7 +23,6 @@ import {
   Quote,
   Sun,
   Moon,
-  FileText,
   Play,
   ChevronDown,
   Award,
@@ -497,9 +496,10 @@ export default function BakkahHomePage() {
             </button>
             <Link
               href="/auth/login"
-              className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-[#6B7A28] px-4 py-2 text-sm font-bold text-black shadow-[0_0_20px_rgba(107,122,40,0.25)] hover:bg-[#C9A227] hover:shadow-[0_0_30px_rgba(107,122,40,0.4)] transition-all duration-200"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#6B7A28] px-3 py-2 text-xs sm:text-sm font-bold text-black shadow-[0_0_20px_rgba(107,122,40,0.25)] hover:bg-[#C9A227] hover:shadow-[0_0_30px_rgba(107,122,40,0.4)] transition-all duration-200 whitespace-nowrap"
             >
-              {l.nav.staffPortal}
+              <span className="hidden sm:inline">{l.nav.staffPortal}</span>
+              <span className="sm:hidden">Staff Login</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
             <button
@@ -1684,13 +1684,6 @@ export default function BakkahHomePage() {
               {l.footer.copyright}
             </p>
             <div className="flex items-center gap-5">
-              <Link
-                href="/invoice"
-                className="text-xs text-gray-400 dark:text-white/20 hover:text-[#6B7A28] transition-colors flex items-center gap-1"
-              >
-                <FileText className="h-3 w-3" /> View Invoice
-              </Link>
-              <span className="h-3 w-px bg-gray-200 dark:bg-white/10" />
               <Link
                 href="/auth/login"
                 className="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-white/20 hover:text-gray-600 dark:hover:text-white/50 transition-colors"
