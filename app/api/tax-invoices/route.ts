@@ -27,7 +27,7 @@ export async function createTaxInvoiceForJob(jobCardId: string, proformaId?: str
   const { data: existing } = await sb.from('tax_invoices').select('id').eq('job_card_id', jobCardId).limit(1).maybeSingle()
   if (existing) return { invoice: existing }
 
-  let items: object[] = []
+  let items: Array<{ id: string; item_type: string; description: string; quantity: number; unit_price: number; total_price: number; sort_order: number }> = []
   let subtotal = 0, vat_amount = 0, total = 0
   let fromProformaId: string | null = proformaId ?? null
 
@@ -67,7 +67,7 @@ export async function createTaxInvoiceForJob(jobCardId: string, proformaId?: str
           unit_price: p.unit_price, total_price: p.total_price, sort_order: sortOrder++,
         })),
       ]
-      subtotal = items.reduce((s, i: { total_price: number }) => s + i.total_price, 0)
+      subtotal = items.reduce((s, i) => s + i.total_price, 0)
       vat_amount = subtotal * 0.05
       total = subtotal + vat_amount
     }
