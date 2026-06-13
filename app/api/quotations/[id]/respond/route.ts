@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { createProformaForJob } from '@/app/api/proforma-invoices/route'
 
 function normalizePhone(raw: string): string {
   const digits = raw.replace(/\D/g, '')

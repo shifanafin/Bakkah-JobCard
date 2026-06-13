@@ -21,7 +21,6 @@ import {
   BarChart2,
   Globe,
   UserRound,
-  ConciergeBell,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useShell } from "@/components/layout/WorkshopShell";
@@ -116,7 +115,7 @@ function SidebarContent({
         highlight: true,
       },
     );
-  } else if (role === "supervisor") {
+  } else if (role === "supervisor" || role === "admin") {
     workshopNav.push(
       {
         href: "/workshop/dashboard",
@@ -135,35 +134,11 @@ function SidebarContent({
       { href: "/workshop/admin/technicians", icon: Users, label: nav.technicians },
       { href: "/workshop/inventory", icon: Package, label: nav.inventory },
     );
-  } else {
-    // admin + manager
-    workshopNav.push(
-      {
-        href: "/workshop/dashboard",
-        icon: LayoutDashboard,
-        label: nav.dashboard,
-      },
-      { href: "/workshop/job-cards", icon: ClipboardList, label: nav.jobCards },
-      {
-        href: "/workshop/job-cards/new",
-        icon: Plus,
-        label: nav.newJobCard,
-        highlight: true,
-      },
-      { href: "/workshop/customers", icon: UserRound, label: nav.customers },
-      { href: "/workshop/services", icon: Wrench, label: 'Services' },
-      { href: "/workshop/inventory", icon: Package, label: nav.inventory },
-    );
   }
 
   if (role === "admin") {
     adminNav.push(
       { href: "/workshop/admin/employees", icon: Users, label: nav.employees },
-      {
-        href: "/workshop/admin/technicians",
-        icon: Wrench,
-        label: nav.technicians,
-      },
       {
         href: "/workshop/admin/attendance",
         icon: Clock,
@@ -180,7 +155,6 @@ function SidebarContent({
         label: nav.announcements,
       },
       { href: "/workshop/admin/website", icon: Globe, label: nav.website },
-      { href: "/workshop/admin/services", icon: ConciergeBell, label: nav.services },
     );
   }
 

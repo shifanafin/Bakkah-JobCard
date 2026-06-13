@@ -19,15 +19,7 @@ import { toast } from 'sonner'
 function buildWhatsAppHref(job: JobCard): string {
   const origin = typeof window !== 'undefined' ? window.location.origin : ''
   const trackUrl = `${origin}/track?q=${encodeURIComponent(job.job_number)}`
-  const msg = [
-    `Dear ${job.customer?.name ?? 'Customer'},`,
-    `Your ${job.vehicle?.make ?? ''} ${job.vehicle?.model ?? ''} (${job.vehicle?.plate_number ?? ''}) — Job ${job.job_number} is now *${JOB_STATUS_LABEL[job.status]}*.`,
-    ``,
-    `Track your vehicle: ${trackUrl}`,
-    ``,
-    `Bakkah Auto Premium Care | +971 54 588 6999`,
-  ].join('\n')
-  return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
+  return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(trackUrl)}`
 }
 
 export default function JobCardDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,7 +28,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const { data: session } = useSession()
   const role = (session?.user as { role?: string })?.role ?? ''
   const userName = (session?.user as { name?: string })?.name ?? ''
-  const canAssign = role === 'admin' || role === 'supervisor' || role === 'manager'
+  const canAssign = role === 'admin' || role === 'supervisor'
 
   const [job, setJob] = useState<JobCard | null>(null)
   const [loading, setLoading] = useState(true)

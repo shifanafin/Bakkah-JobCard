@@ -20,7 +20,6 @@ const ROLES = [
   { value: "receptionist", label: "Receptionist" },
   { value: "technician", label: "Technician" },
   { value: "supervisor", label: "Supervisor" },
-  { value: "manager", label: "Manager" },
 ];
 
 export default function SignUpPage() {

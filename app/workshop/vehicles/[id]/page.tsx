@@ -646,7 +646,7 @@ export default function VehicleHistoryPage({ params }: { params: Promise<{ id: s
                     </span>
                   </div>
                 )}
-                {customer.emirates_id && (role === 'admin' || role === 'manager') && (
+                {customer.emirates_id && role === 'admin' && (
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400 dark:text-white/40">Emirates ID</span>
                     <span className="flex items-center gap-1 font-mono text-xs text-gray-500 dark:text-white/50">

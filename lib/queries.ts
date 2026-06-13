@@ -119,14 +119,15 @@ export async function createJobCard(input: {
 }
 
 export async function updateJobStatus(jobId: string, status: JobStatus, changedBy?: string) {
-  const sb = createClient()
-  const { data: cur } = await sb.from('job_cards').select('status').eq('id', jobId).single()
-  const { error } = await sb.from('job_cards').update({
-    status, updated_at: new Date().toISOString(),
-    ...(status === 'delivered' ? { date_delivered: new Date().toISOString() } : {}),
-  }).eq('id', jobId)
-  if (error) throw error
-  await sb.from('job_card_history').insert({ job_card_id: jobId, old_status: cur?.status, new_status: status, changed_by: changedBy })
+  const res = await fetch(`/api/job-cards/${jobId}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status, changed_by: changedBy }),
+  })
+  if (!res.ok) {
+    const d = await res.json()
+    throw new Error(d.error ?? 'Failed to update status')
+  }
 }
 
 // ── Services & Parts ──────────────────────────────────────────
@@ -188,19 +189,17 @@ export async function deletePhoto(id: string, cloudinaryId?: string) {
 }
 
 export async function approveJob(jobId: string, approvedBy?: string) {
-  const sb = createClient()
-  const { data: cur } = await sb.from('job_cards').select('status, technician_id').eq('id', jobId).single()
-  if (cur?.status !== 'waiting_for_approval') throw new Error('Job is not waiting for approval')
-  // If a technician is already assigned, skip pending and go straight to assigned
-  const newStatus: JobStatus = cur.technician_id ? 'assigned' : 'pending'
-  const { error } = await sb.from('job_cards').update({
-    status: newStatus, updated_at: new Date().toISOString(),
-  }).eq('id', jobId)
-  if (error) throw error
-  await sb.from('job_card_history').insert({
-    job_card_id: jobId, old_status: 'waiting_for_approval', new_status: newStatus,
-    changed_by: approvedBy, notes: 'Job approved',
+  const res = await fetch(`/api/job-cards/${jobId}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ approved_by: approvedBy }),
   })
+  if (!res.ok) {
+    const d = await res.json()
+    throw new Error(d.error ?? 'Failed to approve job')
+  }
+  const d = await res.json()
+  return d as { new_status: string; proforma_id: string | null }
 }
 
 export async function assignTechnician(jobId: string, technicianId: string, changedBy?: string) {
