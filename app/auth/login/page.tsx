@@ -14,7 +14,21 @@ import {
   Lock,
   ShieldCheck,
 } from "lucide-react";
-import { useT } from "@/lib/i18n";
+
+const AUTH = {
+  title: 'Bakkah',
+  subtitle: 'Workshop Management System',
+  signInTitle: 'Sign in to your account',
+  emailOrUsername: 'Email or Username',
+  password: 'Password',
+  signIn: 'Sign In',
+  signingIn: 'Signing in...',
+  footer: 'Bakkah · Al Qusais, Dubai, UAE',
+  errors: {
+    invalid: 'Invalid credentials — check your email/username and password',
+    welcome: 'Welcome back!',
+  },
+};
 
 function LoginForm() {
   const router = useRouter();
@@ -22,8 +36,7 @@ function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const [showPw, setShowPw] = useState(false);
   const [form, setForm] = useState({ login: "", password: "" });
-  const { t } = useT();
-  const a = t.auth;
+  const a = AUTH;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -160,8 +173,7 @@ function SetupBanner() {
 }
 
 export default function LoginPage() {
-  const { t } = useT();
-  const a = t.auth;
+  const a = AUTH;
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gray-50 dark:bg-surface-900">

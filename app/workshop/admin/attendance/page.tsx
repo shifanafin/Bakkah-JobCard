@@ -173,132 +173,163 @@ export default function AttendancePage() {
             <p className="text-sm text-gray-400">No staff to display</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-white/[0.06]">
-                  {['Staff', 'Role', 'Check-in', 'Check-out', 'Hours', 'Closed Today', 'Active Jobs', 'Total Jobs', ...(isToday ? ['Action'] : [])].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
-                {records.map(r => {
-                  const att = r.attendance
-                  const isIn  = att && !att.checkout_at
-                  const isOut = att && att.checkout_at
-                  const isActioning = attLoading === r.id
-
-                  return (
-                    <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
-                      {/* Staff */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-xs">
-                              {r.name[0]?.toUpperCase()}
-                            </div>
-                            {isIn && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />}
-                          </div>
-                          <span className="font-medium text-gray-900 dark:text-white">{r.name}</span>
-                        </div>
-                      </td>
-
-                      {/* Role */}
-                      <td className="px-4 py-3">
-                        <span className={cn(
-                          'rounded-full px-2 py-0.5 text-xs font-semibold capitalize',
-                          r.role === 'technician' ? 'bg-brand/15 text-brand' : 'bg-amber-500/15 text-amber-400'
-                        )}>
-                          {r.role}
-                        </span>
-                      </td>
-
-                      {/* Check-in */}
-                      <td className="px-4 py-3">
-                        {att ? (
-                          <span className="flex items-center gap-1.5 text-emerald-500 font-medium">
-                            <LogIn className="h-3.5 w-3.5" />
-                            {formatTime(att.checkin_at)}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400 dark:text-white/25 italic">Not in</span>
-                        )}
-                      </td>
-
-                      {/* Check-out */}
-                      <td className="px-4 py-3">
-                        {isOut ? (
-                          <span className="flex items-center gap-1.5 text-gray-500 dark:text-white/50 font-medium">
-                            <LogOut className="h-3.5 w-3.5" />
-                            {formatTime(att!.checkout_at!)}
-                          </span>
-                        ) : isIn ? (
-                          <span className="text-xs text-emerald-400 font-medium">Still in</span>
-                        ) : (
-                          <span className="text-xs text-gray-400 dark:text-white/25">—</span>
-                        )}
-                      </td>
-
-                      {/* Hours */}
-                      <td className="px-4 py-3 text-gray-600 dark:text-white/60 font-mono text-xs">
-                        {att ? hoursWorked(att.checkin_at, att.checkout_at) : '—'}
-                      </td>
-
-                      {/* Jobs closed today */}
-                      <td className="px-4 py-3">
-                        <span className={cn('font-bold text-sm', r.jobs_closed_today > 0 ? 'text-emerald-500' : 'text-gray-400 dark:text-white/25')}>
-                          {r.jobs_closed_today}
-                        </span>
-                      </td>
-
-                      {/* Active jobs */}
-                      <td className="px-4 py-3">
-                        <span className={cn('font-bold text-sm', r.active_jobs > 0 ? 'text-brand' : 'text-gray-400 dark:text-white/25')}>
-                          {r.active_jobs}
-                        </span>
-                      </td>
-
-                      {/* Total jobs */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          <BarChart2 className="h-3.5 w-3.5 text-gray-400 dark:text-white/25" />
-                          <span className="text-gray-700 dark:text-white/70 font-medium">{r.total_jobs}</span>
-                        </div>
-                      </td>
-
-                      {/* Action — today only */}
-                      {isToday && (
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 dark:border-white/[0.06]">
+                    {['Staff', 'Role', 'Check-in', 'Check-out', 'Hours', 'Closed Today', 'Active Jobs', 'Total Jobs', ...(isToday ? ['Action'] : [])].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
+                  {records.map(r => {
+                    const att = r.attendance
+                    const isIn  = att && !att.checkout_at
+                    const isOut = att && att.checkout_at
+                    const isActioning = attLoading === r.id
+                    return (
+                      <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
                         <td className="px-4 py-3">
-                          {isOut ? (
-                            <span className="text-xs text-gray-400 dark:text-white/25 italic">Done</span>
-                          ) : isIn ? (
-                            <button
-                              onClick={() => handleCheckOut(r)}
-                              disabled={isActioning}
-                              className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50 whitespace-nowrap"
-                            >
-                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
-                              Check Out
-                            </button>
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-xs">
+                                {r.name[0]?.toUpperCase()}
+                              </div>
+                              {isIn && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />}
+                            </div>
+                            <span className="font-medium text-gray-900 dark:text-white">{r.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold capitalize', r.role === 'technician' ? 'bg-brand/15 text-brand' : 'bg-amber-500/15 text-amber-400')}>
+                            {r.role}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {att ? (
+                            <span className="flex items-center gap-1.5 text-emerald-500 font-medium"><LogIn className="h-3.5 w-3.5" />{formatTime(att.checkin_at)}</span>
                           ) : (
-                            <button
-                              onClick={() => handleCheckIn(r)}
-                              disabled={isActioning}
-                              className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50 whitespace-nowrap"
-                            >
-                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
-                              Check In
-                            </button>
+                            <span className="text-xs text-gray-400 dark:text-white/25 italic">Not in</span>
                           )}
                         </td>
+                        <td className="px-4 py-3">
+                          {isOut ? (
+                            <span className="flex items-center gap-1.5 text-gray-500 dark:text-white/50 font-medium"><LogOut className="h-3.5 w-3.5" />{formatTime(att!.checkout_at!)}</span>
+                          ) : isIn ? (
+                            <span className="text-xs text-emerald-400 font-medium">Still in</span>
+                          ) : (
+                            <span className="text-xs text-gray-400 dark:text-white/25">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-white/60 font-mono text-xs">{att ? hoursWorked(att.checkin_at, att.checkout_at) : '—'}</td>
+                        <td className="px-4 py-3"><span className={cn('font-bold text-sm', r.jobs_closed_today > 0 ? 'text-emerald-500' : 'text-gray-400 dark:text-white/25')}>{r.jobs_closed_today}</span></td>
+                        <td className="px-4 py-3"><span className={cn('font-bold text-sm', r.active_jobs > 0 ? 'text-brand' : 'text-gray-400 dark:text-white/25')}>{r.active_jobs}</span></td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5"><BarChart2 className="h-3.5 w-3.5 text-gray-400 dark:text-white/25" /><span className="text-gray-700 dark:text-white/70 font-medium">{r.total_jobs}</span></div>
+                        </td>
+                        {isToday && (
+                          <td className="px-4 py-3">
+                            {isOut ? (
+                              <span className="text-xs text-gray-400 dark:text-white/25 italic">Done</span>
+                            ) : isIn ? (
+                              <button onClick={() => handleCheckOut(r)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50 whitespace-nowrap">
+                                {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
+                                Check Out
+                              </button>
+                            ) : (
+                              <button onClick={() => handleCheckIn(r)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50 whitespace-nowrap">
+                                {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
+                                Check In
+                              </button>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="md:hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {records.map(r => {
+                const att = r.attendance
+                const isIn  = att && !att.checkout_at
+                const isOut = att && att.checkout_at
+                const isActioning = attLoading === r.id
+                return (
+                  <div key={r.id} className="p-4 space-y-2.5">
+                    {/* Row 1: avatar + name + role */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="relative shrink-0">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">
+                            {r.name[0]?.toUpperCase()}
+                          </div>
+                          {isIn && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />}
+                        </div>
+                        <span className="font-semibold text-gray-900 dark:text-white truncate">{r.name}</span>
+                      </div>
+                      <span className={cn('shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold capitalize', r.role === 'technician' ? 'bg-brand/15 text-brand' : 'bg-amber-500/15 text-amber-400')}>
+                        {r.role}
+                      </span>
+                    </div>
+
+                    {/* Row 2: times + hours */}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+                      {att ? (
+                        <>
+                          <span className="flex items-center gap-1 text-emerald-500 font-medium"><LogIn className="h-3 w-3" />{formatTime(att.checkin_at)}</span>
+                          {isOut ? (
+                            <span className="flex items-center gap-1 text-gray-500 dark:text-white/50"><LogOut className="h-3 w-3" />{formatTime(att.checkout_at!)}</span>
+                          ) : (
+                            <span className="text-emerald-400 font-medium">Still in</span>
+                          )}
+                          <span className="font-mono text-gray-500 dark:text-white/40">{hoursWorked(att.checkin_at, att.checkout_at)}</span>
+                        </>
+                      ) : (
+                        <span className="text-gray-400 dark:text-white/25 italic">Not checked in</span>
                       )}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+
+                    {/* Row 3: job stats + action */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-3 text-xs">
+                        <span className="flex items-center gap-1 text-gray-500 dark:text-white/40">
+                          Closed: <span className={cn('font-bold', r.jobs_closed_today > 0 ? 'text-emerald-500' : 'text-gray-400')}>{r.jobs_closed_today}</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-gray-500 dark:text-white/40">
+                          Active: <span className={cn('font-bold', r.active_jobs > 0 ? 'text-brand' : 'text-gray-400')}>{r.active_jobs}</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-gray-500 dark:text-white/40">
+                          Total: <span className="font-bold text-gray-700 dark:text-white/70">{r.total_jobs}</span>
+                        </span>
+                      </div>
+                      {isToday && (
+                        isOut ? (
+                          <span className="text-xs text-gray-400 dark:text-white/25 italic">Done</span>
+                        ) : isIn ? (
+                          <button onClick={() => handleCheckOut(r)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50">
+                            {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
+                            Check Out
+                          </button>
+                        ) : (
+                          <button onClick={() => handleCheckIn(r)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
+                            {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
+                            Check In
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
 
         {/* Legend */}

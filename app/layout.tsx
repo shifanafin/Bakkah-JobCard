@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Bebas_Neue, Geist, Cairo } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { I18nProvider } from "@/lib/i18n";
 import PwaRegister from "@/components/PwaRegister";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import "./globals.css";
@@ -59,8 +58,7 @@ export default function RootLayout({
       <body
         className={`${bebas.variable} ${geist.variable} ${cairo.variable} font-body antialiased bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white`}
       >
-        <I18nProvider>
-          <ThemeProvider>
+        <ThemeProvider>
             <PwaRegister />
             {/* <PwaInstallBanner /> */}
             <PostHogProvider>{children}</PostHogProvider>
@@ -75,7 +73,6 @@ export default function RootLayout({
               }}
             />
           </ThemeProvider>
-        </I18nProvider>
       </body>
     </html>
   );

@@ -89,12 +89,10 @@ export default function AttendanceWidget() {
   const storageKey = useRef('')
   const elapsed = useLiveTimer(record && !record.checkout_at ? record.checkin_at : null)
 
-  // Only render for technicians and supervisors
-  if (!role || !['technician', 'supervisor'].includes(role)) return null
-
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  // All hooks must be called before any early return
   useEffect(() => {
-    if (!userId) return
+    // Only run for technicians and supervisors
+    if (!userId || !role || !['technician', 'supervisor'].includes(role)) return
     const today = new Date().toISOString().split('T')[0]
     storageKey.current = `att_widget_${userId}_${today}`
 
@@ -114,8 +112,10 @@ export default function AttendanceWidget() {
         }
       })
       .catch(() => {})
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId])
+  }, [userId, role])
+
+  // Only render for technicians and supervisors — AFTER all hooks
+  if (!role || !['technician', 'supervisor'].includes(role)) return null
 
   const isCheckedIn  = !!record && !record.checkout_at
   const isCheckedOut = !!record && !!record.checkout_at

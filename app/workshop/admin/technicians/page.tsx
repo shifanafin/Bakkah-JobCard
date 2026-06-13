@@ -254,167 +254,209 @@ export default function TechniciansPage() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 dark:border-white/[0.06]">
-                  {['Name', 'Specialty', 'Phone', 'Active Jobs', 'Status', 'Today\'s Attendance', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
-                {technicians.map(tech => {
-                  const att = tech.today_attendance
-                  const checkedIn  = att && !att.checkout_at
-                  const checkedOut = att && att.checkout_at
-                  const isActioning = attLoading === tech.id
+          <>
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 dark:border-white/[0.06]">
+                    {['Name', 'Specialty', 'Phone', 'Active Jobs', 'Status', 'Today\'s Attendance', 'Joined', 'Actions'].map(h => (
+                      <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
+                  {technicians.map(tech => {
+                    const att = tech.today_attendance
+                    const checkedIn  = att && !att.checkout_at
+                    const checkedOut = att && att.checkout_at
+                    const isActioning = attLoading === tech.id
 
-                  return (
-                    <tr key={tech.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
-
-                      {/* Name */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-xs">
-                              {tech.name[0]?.toUpperCase()}
+                    return (
+                      <tr key={tech.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-xs">
+                                {tech.name[0]?.toUpperCase()}
+                              </div>
+                              {checkedIn && (
+                                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />
+                              )}
                             </div>
-                            {checkedIn && (
-                              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">{tech.name}</p>
+                              {tech.username && (
+                                <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{tech.username}</p>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-semibold', SPECIALTY_COLORS[tech.role] ?? 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/50')}>
+                            {tech.role || 'Technician'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {tech.phone ? (
+                            <span className="flex items-center gap-1.5 text-gray-700 dark:text-white/70">
+                              <Phone className="h-3.5 w-3.5 text-gray-400 dark:text-white/30" />
+                              {tech.phone}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400 dark:text-white/25 italic">Not set</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {tech.active_jobs > 0 ? (
+                            <Link href={`/workshop/job-cards?technician=${tech.id}`} className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-bold text-brand hover:bg-brand/25 transition-colors">
+                              <Briefcase className="h-3 w-3" />
+                              {tech.active_jobs}
+                            </Link>
+                          ) : (
+                            <span className="text-xs text-gray-400 dark:text-white/25">0</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold', tech.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
+                            {tech.active ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {checkedOut ? (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs text-gray-500 dark:text-white/40">{fmtTime(att!.checkin_at)} — {fmtTime(att!.checkout_at!)}</span>
+                                <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/30 font-medium">Done</span>
+                              </div>
+                            ) : checkedIn ? (
+                              <div className="flex items-center gap-2">
+                                <span className="flex items-center gap-1 text-xs text-emerald-500 font-medium">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  In since {fmtTime(att!.checkin_at)}
+                                </span>
+                                <button onClick={() => handleCheckOut(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2 py-0.5 text-[10px] font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50">
+                                  {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
+                                  Check Out
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-400 dark:text-white/25 italic">Absent</span>
+                                <button onClick={() => handleCheckIn(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
+                                  {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
+                                  Check In
+                                </button>
+                              </div>
                             )}
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{tech.name}</p>
-                            {tech.username && (
-                              <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{tech.username}</p>
-                            )}
+                        </td>
+                        <td className="px-4 py-3 text-gray-400 dark:text-white/30 text-xs">{formatDate(tech.created_at)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button onClick={() => openEdit(tech)} title="Edit" className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/40 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30">
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => setDeleteTarget(tech)} title="Delete" className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-400/40 hover:text-red-400 transition-colors dark:border-white/[0.08] dark:text-white/30">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
                           </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile card list */}
+            <div className="md:hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 divide-y divide-gray-100 dark:divide-white/[0.05]">
+              {technicians.map(tech => {
+                const att = tech.today_attendance
+                const checkedIn  = att && !att.checkout_at
+                const checkedOut = att && att.checkout_at
+                const isActioning = attLoading === tech.id
+                return (
+                  <div key={tech.id} className="p-4 space-y-3">
+                    {/* Row 1: avatar + name + specialty */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="relative shrink-0">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">
+                            {tech.name[0]?.toUpperCase()}
+                          </div>
+                          {checkedIn && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />}
                         </div>
-                      </td>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 dark:text-white truncate">{tech.name}</p>
+                          {tech.username && <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{tech.username}</p>}
+                        </div>
+                      </div>
+                      <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold', SPECIALTY_COLORS[tech.role] ?? 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/50')}>
+                        {tech.role || 'Technician'}
+                      </span>
+                    </div>
 
-                      {/* Specialty */}
-                      <td className="px-4 py-3">
-                        <span className={cn(
-                          'rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                          SPECIALTY_COLORS[tech.role] ?? 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/50'
-                        )}>
-                          {tech.role || 'Technician'}
+                    {/* Row 2: phone + status + active jobs */}
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      {tech.phone ? (
+                        <span className="flex items-center gap-1 text-gray-600 dark:text-white/60 text-xs">
+                          <Phone className="h-3 w-3 text-gray-400" />{tech.phone}
                         </span>
-                      </td>
+                      ) : (
+                        <span className="text-xs text-gray-400 dark:text-white/25 italic">No phone</span>
+                      )}
+                      <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', tech.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
+                        {tech.active ? 'Active' : 'Inactive'}
+                      </span>
+                      {tech.active_jobs > 0 && (
+                        <Link href={`/workshop/job-cards?technician=${tech.id}`} className="flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold text-brand">
+                          <Briefcase className="h-3 w-3" />{tech.active_jobs} job{tech.active_jobs !== 1 ? 's' : ''}
+                        </Link>
+                      )}
+                    </div>
 
-                      {/* Phone */}
-                      <td className="px-4 py-3">
-                        {tech.phone ? (
-                          <span className="flex items-center gap-1.5 text-gray-700 dark:text-white/70">
-                            <Phone className="h-3.5 w-3.5 text-gray-400 dark:text-white/30" />
-                            {tech.phone}
+                    {/* Row 3: attendance + actions */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs">
+                        {checkedOut ? (
+                          <span className="text-gray-500 dark:text-white/40">{fmtTime(att!.checkin_at)} — {fmtTime(att!.checkout_at!)}</span>
+                        ) : checkedIn ? (
+                          <span className="flex items-center gap-1 text-emerald-500 font-medium">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            In since {fmtTime(att!.checkin_at)}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400 dark:text-white/25 italic">Not set</span>
+                          <span className="text-gray-400 dark:text-white/25 italic">Not checked in</span>
                         )}
-                      </td>
-
-                      {/* Active jobs */}
-                      <td className="px-4 py-3 text-center">
-                        {tech.active_jobs > 0 ? (
-                          <Link
-                            href={`/workshop/job-cards?technician=${tech.id}`}
-                            className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-bold text-brand hover:bg-brand/25 transition-colors"
-                          >
-                            <Briefcase className="h-3 w-3" />
-                            {tech.active_jobs}
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-gray-400 dark:text-white/25">0</span>
-                        )}
-                      </td>
-
-                      {/* Active/Inactive */}
-                      <td className="px-4 py-3">
-                        <span className={cn(
-                          'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
-                          tech.active
-                            ? 'bg-emerald-500/15 text-emerald-500'
-                            : 'bg-red-500/15 text-red-400'
-                        )}>
-                          {tech.active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-
-                      {/* Today's Attendance */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {checkedOut ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-xs text-gray-500 dark:text-white/40">
-                                {fmtTime(att!.checkin_at)} — {fmtTime(att!.checkout_at!)}
-                              </span>
-                              <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/30 font-medium">Done</span>
-                            </div>
-                          ) : checkedIn ? (
-                            <div className="flex items-center gap-2">
-                              <span className="flex items-center gap-1 text-xs text-emerald-500 font-medium">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                In since {fmtTime(att!.checkin_at)}
-                              </span>
-                              <button
-                                onClick={() => handleCheckOut(tech)}
-                                disabled={isActioning}
-                                title="Check out"
-                                className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2 py-0.5 text-[10px] font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50"
-                              >
-                                {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
-                                Check Out
-                              </button>
-                            </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {!checkedOut && (
+                          checkedIn ? (
+                            <button onClick={() => handleCheckOut(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50">
+                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
+                              Out
+                            </button>
                           ) : (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400 dark:text-white/25 italic">Absent</span>
-                              <button
-                                onClick={() => handleCheckIn(tech)}
-                                disabled={isActioning}
-                                title="Check in"
-                                className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50"
-                              >
-                                {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
-                                Check In
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Joined */}
-                      <td className="px-4 py-3 text-gray-400 dark:text-white/30 text-xs">
-                        {formatDate(tech.created_at)}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button
-                            onClick={() => openEdit(tech)}
-                            title="Edit"
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/40 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(tech)}
-                            title="Delete"
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-400/40 hover:text-red-400 transition-colors dark:border-white/[0.08] dark:text-white/30"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                            <button onClick={() => handleCheckIn(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
+                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
+                              In
+                            </button>
+                          )
+                        )}
+                        <button onClick={() => openEdit(tech)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/40 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30">
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => setDeleteTarget(tech)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-400/40 hover:text-red-400 transition-colors dark:border-white/[0.08] dark:text-white/30">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
 
         {/* Legend */}

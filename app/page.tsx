@@ -31,8 +31,9 @@ import {
   Users,
   ThumbsUp,
   Eye,
+  Menu,
+  X,
 } from "lucide-react";
-import { useT, LANG_META, type Lang } from "@/lib/i18n";
 import { useTheme } from "@/components/ThemeProvider";
 
 // ── CMS content types ─────────────────────────────────────────────
@@ -139,6 +140,108 @@ const stagger = {
 };
 
 
+const l = {
+  nav: {
+    services: 'Services', howItWorks: 'How It Works', reviews: 'Reviews',
+    contact: 'Contact', trackVehicle: 'Track Vehicle',
+    staffPortal: 'Staff Portal', whatsappUs: 'WhatsApp Us',
+  },
+  hero: {
+    badge: "Dubai's Premier Auto Detailing Studio",
+    headline: ['EXCELLENCE', 'IN EVERY', 'DETAIL.'],
+    subheadline: "Al Qusais, Dubai's most trusted specialists in ceramic coatings, paint correction, and complete vehicle detailing.",
+    subheadline2: '5,000+ happy customers',
+    subheadline3: '— and your car is next. 🚗',
+    cta_track: 'Track My Vehicle',
+    cta_book: 'Book via WhatsApp',
+    trust_rating: '5.0 Rating',
+    trust_reviews: '1,200+ Google Reviews',
+    trust_certified: 'Certified Detailers',
+    trust_location: 'Al Qusais, Dubai 🇦🇪',
+    scroll: 'Scroll',
+  },
+  services: {
+    eyebrow: 'What We Do Best',
+    title: 'OUR SERVICES',
+    subtitle: "Professional-grade detailing using the finest imported products and latest techniques. Yes, we're THAT good.",
+    items: {
+      fullDetail: { title: 'Full Detail Package', tag: 'Most Popular', desc: "Complete exterior & interior treatment — hand wash, clay bar, machine polish, protective coating. Your car walks in. A showstopper drives out." },
+      ceramic: { title: 'Ceramic Coating', tag: '5-Year Warranty', desc: "Nano-ceramic bonds directly to your paint for years of brilliant gloss. Water beads off. Dust slides off. Even Dubai sand waves goodbye." },
+      paintCorrection: { title: 'Paint Correction', tag: 'Expert Only', desc: "Swirl marks? Scratches? Oxidation? Parking lot regret? We erase it all with multi-stage machine polishing. Like it never happened." },
+      interior: { title: 'Interior Detailing', tag: 'Full Sanitize', desc: "Steam clean every crack, condition the leather, extract the carpets, and eliminate every odor. You'll think you bought a new car." },
+      rta: { title: 'RTA Inspection', tag: 'Same Day', desc: "First-time pass guaranteed (almost always). We prep your vehicle perfectly for RTA registration — no stress, no re-visits, no drama." },
+      fleet: { title: 'Fleet Services', tag: 'B2B', desc: "Got 5 cars? 50 cars? An entire motorcade? Dedicated packages for corporate fleets with flexible scheduling and volume pricing." },
+    },
+  },
+  beforeAfter: {
+    eyebrow: 'See The Difference',
+    title: 'BEFORE & AFTER',
+    subtitle: "We promised results. Here they are. Your car won't recognize itself — and neither will your neighbours.",
+    before: 'Before 😩',
+    after: 'After ✨',
+  },
+  features: [
+    '100% Hand-Washed', 'Imported Products Only', 'Certified Detailers',
+    'Same-Day Service Available', 'Live Job Status Tracking', 'Free Vehicle Inspection',
+  ],
+  stats: {
+    eyebrow: 'Our Track Record',
+    title: 'WHY CHOOSE BAKKAH',
+    subtitle: "Numbers don't lie. We've been transforming cars since before ceramic coating was even a thing.",
+    items: [
+      { label: 'Cars Transformed', sub: 'And counting' },
+      { label: 'Client Satisfaction', sub: 'Verified reviews' },
+      { label: 'Years of Excellence', sub: 'Since 2012' },
+      { label: 'Cars Per Month', sub: 'Busy workshop!' },
+    ],
+  },
+  howItWorks: {
+    eyebrow: 'Dead Simple Process',
+    title: 'HOW IT WORKS',
+    subtitle: 'Three steps. One immaculate car. Zero headaches. We promise.',
+    bookNow: 'Book Your Appointment Now',
+    steps: [
+      { title: 'Drop Your Car', desc: "Drive in any time. Our team does a full walkaround, documents every existing scratch (you're covered), and explains exactly what we'll do." },
+      { title: 'We Work Our Magic', desc: "Certified detailers go to work with premium imported products and professional equipment. Track live status from your phone the whole time." },
+      { title: 'Pick Up & Stare', desc: "Come collect your car. Prepare for a double-take. We guarantee it'll look better than the day you bought it — or we make it right." },
+    ],
+  },
+  reviews: {
+    eyebrow: 'Customer Reviews',
+    title: 'REAL WORDS. REAL CARS.',
+    subtitle: "Don't take our word for it — read what our customers say after picking up their freshly-detailed rides. 🚗✨",
+    verified: 'Verified Customer',
+    average: 'average',
+    from: 'from',
+    reviews: 'reviews',
+    review: 'review',
+  },
+  trackCta: {
+    title: 'TRACK YOUR VEHICLE',
+    subtitle: 'Know exactly where your car is in our detailing process. Live status updates from drop-off all the way to delivery — no calls needed.',
+    cta: 'Track My Vehicle',
+    hint: 'Use your job number (e.g. JC-2025-0001) or your registered phone number',
+  },
+  ticker: [
+    'CERAMIC COATING', 'PAINT CORRECTION', 'FULL DETAIL', 'INTERIOR DEEP CLEAN',
+    'RTA INSPECTION', 'FLEET SERVICES', 'NANO COATING', 'CLAY BAR TREATMENT',
+    'STEAM CLEANING', 'SCRATCH REMOVAL',
+  ],
+  footer: {
+    tagline: "Dubai's premier vehicle detailing studio. Excellence in every detail, every time. Your car deserves nothing less. 🏆",
+    ratingText: '5.0 on Google',
+    chatWhatsApp: 'Chat on WhatsApp',
+    ourServices: 'Our Services',
+    getInTouch: 'Get In Touch',
+    openingHours: 'Opening Hours',
+    monSat: 'Mon – Sat: 8:00 AM – 8:00 PM',
+    sunday: 'Sunday: 9:00 AM – 5:00 PM',
+    copyright: '© 2025 Bakkah Auto Premium Care LLC. All rights reserved. Made with ❤️ in Dubai.',
+    trackVehicle: 'Track Vehicle',
+    staffLogin: 'Staff Login',
+  },
+};
+
 const SERVICE_KEYS = [
   "fullDetail",
   "ceramic",
@@ -207,19 +310,9 @@ type Review = {
 };
 
 export default function BakkahHomePage() {
-  const { t, lang, setLang, translating } = useT();
   const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
-  const [langOpen, setLangOpen] = useState(false);
-  const langRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleOutside(e: MouseEvent) {
-      if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false);
-    }
-    document.addEventListener('mousedown', handleOutside);
-    return () => document.removeEventListener('mousedown', handleOutside);
-  }, []);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [heroIdx, setHeroIdx] = useState(0);
   const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef<HTMLDivElement>(null);
@@ -292,7 +385,6 @@ export default function BakkahHomePage() {
   const avgRating = reviews.length
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
     : null;
-  const l = t.landing;
   const SERVICE_LIST = [
     {
       icon: Sparkles,
@@ -392,34 +484,6 @@ export default function BakkahHomePage() {
             </a>
           </div>
           <div className="flex items-center gap-2">
-            {/* Language switcher */}
-            <div className="relative" ref={langRef}>
-              <button
-                onClick={() => setLangOpen(o => !o)}
-                disabled={translating}
-                className="flex h-8 items-center gap-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] px-2.5 text-xs font-bold text-gray-600 dark:text-white/50 transition hover:bg-gray-100 dark:hover:bg-white/[0.06] disabled:opacity-60"
-                aria-label="Change language"
-              >
-                <span>{LANG_META[lang].flag}</span>
-                <span>{LANG_META[lang].code}</span>
-                <ChevronDown className="h-3 w-3 opacity-50" />
-              </button>
-              {langOpen && (
-                <div className="absolute right-0 top-full mt-1.5 w-40 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-[#111] z-50">
-                  {(Object.entries(LANG_META) as [Lang, typeof LANG_META[Lang]][]).map(([code, meta]) => (
-                    <button
-                      key={code}
-                      onClick={() => { setLang(code); setLangOpen(false); }}
-                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition hover:bg-gray-50 dark:hover:bg-white/[0.05] ${lang === code ? 'font-bold text-[#6B7A28]' : 'text-gray-700 dark:text-white/60'}`}
-                    >
-                      <span>{meta.flag}</span>
-                      <span>{meta.label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <button
               onClick={toggle}
               className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/40 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
@@ -432,21 +496,54 @@ export default function BakkahHomePage() {
               )}
             </button>
             <Link
-              href="/track"
-              className="hidden sm:inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03] px-4 py-2 text-sm text-gray-600 dark:text-white/55 hover:border-[#6B7A28]/30 hover:text-[#6B7A28] dark:hover:text-[#6B7A28] transition-all duration-200"
-            >
-              <Search className="h-3.5 w-3.5" />
-              {l.nav.trackVehicle}
-            </Link>
-            <Link
               href="/auth/login"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#6B7A28] px-4 py-2 text-sm font-bold text-black shadow-[0_0_20px_rgba(107,122,40,0.25)] hover:bg-[#C9A227] hover:shadow-[0_0_30px_rgba(107,122,40,0.4)] transition-all duration-200"
+              className="hidden sm:inline-flex items-center gap-2 rounded-lg bg-[#6B7A28] px-4 py-2 text-sm font-bold text-black shadow-[0_0_20px_rgba(107,122,40,0.25)] hover:bg-[#C9A227] hover:shadow-[0_0_30px_rgba(107,122,40,0.4)] transition-all duration-200"
             >
               {l.nav.staffPortal}
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
+            <button
+              onClick={() => setMobileNavOpen(o => !o)}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-white/40 transition hover:bg-gray-100 dark:hover:bg-white/[0.06] md:hidden"
+              aria-label="Open menu"
+            >
+              {mobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileNavOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+              className="md:hidden border-t border-gray-200 dark:border-white/[0.06] bg-white/95 dark:bg-black/90 backdrop-blur-xl px-5 pb-4 pt-3 space-y-1"
+            >
+              {[
+                { href: '#services', label: l.nav.services },
+                { href: '#gallery', label: 'Gallery' },
+                { href: '#how-it-works', label: l.nav.howItWorks },
+                { href: '#reviews', label: l.nav.reviews },
+                { href: '#contact', label: l.nav.contact },
+              ].map(({ href, label }) => (
+                <a key={href} href={href} onClick={() => setMobileNavOpen(false)}
+                  className="flex items-center py-2.5 text-sm font-medium text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white transition-colors">
+                  {label}
+                </a>
+              ))}
+              <div className="pt-2 flex flex-col gap-2 border-t border-gray-100 dark:border-white/[0.06]">
+                <Link href="/auth/login" onClick={() => setMobileNavOpen(false)}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-[#6B7A28] px-4 py-2.5 text-sm font-bold text-black hover:bg-[#C9A227] transition-all">
+                  {l.nav.staffPortal}
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.nav>
 
       {/* ══════════════════════════════════════════════════════
@@ -531,13 +628,6 @@ export default function BakkahHomePage() {
             transition={{ duration: 0.6, delay: 0.55 }}
             className="mt-10 flex flex-wrap items-center justify-center gap-4"
           >
-            <Link
-              href="/track"
-              className="group inline-flex items-center gap-3 rounded-xl bg-[#6B7A28] px-7 py-3.5 text-sm font-bold text-black shadow-[0_0_40px_rgba(107,122,40,0.35)] transition-all duration-300 hover:bg-[#C9A227] hover:shadow-[0_0_60px_rgba(107,122,40,0.5)] hover:scale-[1.03] active:scale-[0.97]"
-            >
-              {l.hero.cta_track}
-              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1.5" />
-            </Link>
             <a
               href="https://wa.me/971545886999?text=Hi+Bakkah!+I'd+like+to+book+a+detailing+service"
               target="_blank"
@@ -1489,86 +1579,6 @@ export default function BakkahHomePage() {
         </section>
       )}
 
-      {/* ── Track CTA ────────────────────────────────────── */}
-      <section id="track" className="px-5 py-28 lg:px-8">
-        <div className="mx-auto max-w-3xl">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={fadeUp}
-            className="relative overflow-hidden rounded-3xl border border-[#6B7A28]/15 bg-gradient-to-br from-[#6B7A28]/[0.08] via-[#6B7A28]/[0.04] to-transparent p-10 text-center lg:p-16"
-          >
-            <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-[#6B7A28]/10 blur-3xl" />
-            <div className="pointer-events-none absolute -left-10 bottom-0 h-48 w-48 rounded-full bg-[#6B7A28]/[0.06] blur-2xl" />
-            <div className="relative">
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                whileInView={{ scale: 1, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: 0.15 }}
-                className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#6B7A28]/20 bg-[#6B7A28]/10 shadow-[0_0_30px_rgba(107,122,40,0.15)]"
-              >
-                <Search className="h-7 w-7 text-[#6B7A28]" />
-              </motion.div>
-              <motion.h2
-                variants={fadeUp}
-                custom={1}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="font-display text-[clamp(1.8rem,5vw,3rem)] tracking-[0.05em] text-gray-900 dark:text-white"
-              >
-                {l.trackCta.title}
-              </motion.h2>
-              <motion.p
-                variants={fadeUp}
-                custom={2}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="mx-auto mt-4 max-w-md text-sm text-gray-500 dark:text-white/45 leading-relaxed"
-              >
-                {l.trackCta.subtitle}
-              </motion.p>
-              <motion.div
-                variants={fadeUp}
-                custom={3}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="mt-8 flex flex-wrap items-center justify-center gap-3"
-              >
-                <Link
-                  href="/track"
-                  className="group inline-flex items-center gap-3 rounded-xl bg-[#6B7A28] px-8 py-4 text-sm font-bold text-black shadow-[0_0_40px_rgba(107,122,40,0.25)] transition-all duration-300 hover:bg-[#C9A227] hover:shadow-[0_0_60px_rgba(107,122,40,0.4)] hover:scale-[1.03] active:scale-[0.97]"
-                >
-                  {l.trackCta.cta}
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1.5" />
-                </Link>
-                <Link
-                  href="/invoice"
-                  className="group inline-flex items-center gap-3 rounded-xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.03] px-8 py-4 text-sm font-semibold text-gray-600 dark:text-white/60 transition-all duration-300 hover:border-[#6B7A28]/30 hover:text-[#6B7A28] dark:hover:border-[#6B7A28]/30 dark:hover:text-[#6B7A28]"
-                >
-                  <FileText className="h-4 w-4" />
-                  View Invoice
-                </Link>
-              </motion.div>
-              <motion.p
-                variants={fadeUp}
-                custom={4}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="mt-5 text-xs text-gray-400 dark:text-white/25"
-              >
-                {l.trackCta.hint}
-              </motion.p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* ── Footer ───────────────────────────────────────── */}
       <footer
         id="contact"
@@ -1674,13 +1684,6 @@ export default function BakkahHomePage() {
               {l.footer.copyright}
             </p>
             <div className="flex items-center gap-5">
-              <Link
-                href="/track"
-                className="text-xs text-gray-400 dark:text-white/20 hover:text-gray-600 dark:hover:text-white/50 transition-colors"
-              >
-                {l.footer.trackVehicle}
-              </Link>
-              <span className="h-3 w-px bg-gray-200 dark:bg-white/10" />
               <Link
                 href="/invoice"
                 className="text-xs text-gray-400 dark:text-white/20 hover:text-[#6B7A28] transition-colors flex items-center gap-1"
