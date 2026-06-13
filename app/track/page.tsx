@@ -316,11 +316,129 @@ function StatusStepper({ status }: { status: JobStatus }) {
 
 // ── Job Card Detail (Customer View) ─────────────────────────────────────────
 
+function QuotationApproval({ job, onDone }: { job: JobSummary; onDone: () => void }) {
+  const [phone, setPhone] = useState('')
+  const [reason, setReason] = useState('')
+  const [showDeclineReason, setShowDeclineReason] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [done, setDone] = useState<'approved' | 'declined' | null>(null)
+  const [error, setError] = useState('')
+
+  if (!job.quotation || job.quotation.status !== 'sent') return null
+
+  async function respond(action: 'approve' | 'decline') {
+    if (!phone.trim()) { setError('Please enter your mobile number to verify your identity.'); return }
+    setError('')
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/quotations/${job.quotation!.id}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim(), action, reason: reason.trim() || undefined }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setError(d.error || 'Something went wrong. Please try again.'); return }
+      setDone(action)
+      setTimeout(() => onDone(), 1800)
+    } catch {
+      setError('Network error. Please check your connection and try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (done) {
+    return (
+      <div className={cn(
+        'flex flex-col items-center gap-3 rounded-2xl border px-6 py-8 text-center',
+        done === 'approved'
+          ? 'border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10'
+          : 'border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10'
+      )}>
+        <div className={cn(
+          'flex h-14 w-14 items-center justify-center rounded-2xl',
+          done === 'approved' ? 'bg-emerald-100 dark:bg-emerald-500/20' : 'bg-red-100 dark:bg-red-500/20'
+        )}>
+          {done === 'approved'
+            ? <Check className="h-7 w-7 text-emerald-500" />
+            : <X className="h-7 w-7 text-red-500" />}
+        </div>
+        <div>
+          <p className={cn('text-base font-bold', done === 'approved' ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-400')}>
+            {done === 'approved' ? 'Quotation Approved!' : 'Quotation Declined'}
+          </p>
+          <p className="text-sm text-gray-500 dark:text-white/50 mt-1">
+            {done === 'approved'
+              ? 'Our team will begin work on your vehicle shortly.'
+              : 'We will review and reach out to discuss further.'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Phone verification */}
+      <div className="rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.03] px-4 py-3">
+        <p className="text-xs font-bold text-gray-500 dark:text-white/40 mb-2 uppercase tracking-wider">Verify your identity</p>
+        <input
+          value={phone}
+          onChange={e => { setPhone(e.target.value); setError('') }}
+          placeholder="Your mobile number (e.g. 050 123 4567)"
+          type="tel"
+          inputMode="tel"
+          className="input-base w-full"
+        />
+        {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+      </div>
+
+      {/* Decline reason */}
+      {showDeclineReason && (
+        <textarea
+          value={reason}
+          onChange={e => setReason(e.target.value)}
+          placeholder="Reason for declining (optional)"
+          rows={2}
+          className="input-base w-full resize-none text-sm"
+        />
+      )}
+
+      {/* Action buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={() => respond('approve')}
+          disabled={loading}
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-white hover:bg-emerald-600 transition-all shadow-[0_2px_12px_rgba(16,185,129,0.3)] disabled:opacity-60"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          Approve & Authorize Work
+        </button>
+        <button
+          onClick={() => {
+            if (!showDeclineReason) { setShowDeclineReason(true); return }
+            respond('decline')
+          }}
+          disabled={loading}
+          className="flex items-center justify-center gap-2 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/10 px-4 py-3.5 text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 transition-all disabled:opacity-60"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+          {showDeclineReason ? 'Confirm Decline' : 'Decline'}
+        </button>
+      </div>
+      <p className="text-[10px] text-center text-gray-400 dark:text-white/25 leading-relaxed">
+        By approving, you authorize Bakkah Auto to proceed with the quoted work. Your mobile number is used for identity verification only.
+      </p>
+    </div>
+  )
+}
+
 function JobCardDetail({
-  job, showFull = true,
+  job, showFull = true, onRefresh,
 }: {
   job: JobSummary;
   showFull?: boolean;
+  onRefresh?: () => void;
 }) {
   const statusCfg = STATUS_CONFIG[job.status] ?? STATUS_CONFIG.received;
   const beforePhotos = (job.photos ?? []).filter(p => p.category === "before_work");
@@ -370,7 +488,7 @@ function JobCardDetail({
 
         {showFull && <StatusStepper status={job.status as JobStatus} />}
 
-        {/* Quotation summary — read-only for waiting_for_approval */}
+        {/* Quotation summary + approval for waiting_for_approval */}
         {job.status === "waiting_for_approval" && job.quotation?.status === "sent" && job.quotation.items.length > 0 && (
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-4 py-3">
@@ -378,7 +496,7 @@ function JobCardDetail({
                 <p className="text-sm font-bold text-amber-700 dark:text-amber-300">Workshop Quotation</p>
                 <span className="font-mono text-xs text-amber-600/70 dark:text-amber-400/60">{job.quotation.quotation_number}</span>
               </div>
-              <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-0.5">Our team will contact you to discuss these estimated costs.</p>
+              <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-0.5">Please review the estimated costs below and approve or decline.</p>
             </div>
             <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
               {(["service", "part", "labor"] as const).map(type => {
@@ -428,6 +546,12 @@ function JobCardDetail({
                 <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{job.quotation.notes}</p>
               </div>
             )}
+
+            {/* Approve / Decline buttons */}
+            <div className="pt-1">
+              <p className="text-xs font-bold text-gray-700 dark:text-white/60 mb-3 text-center uppercase tracking-wider">Your Response</p>
+              <QuotationApproval job={job} onDone={() => onRefresh?.()} />
+            </div>
           </div>
         )}
 
@@ -1253,6 +1377,7 @@ export default function TrackPage() {
                 <JobCardDetail
                   job={result.current}
                   showFull
+                  onRefresh={() => runJobSearch(result.current.job_number)}
                 />
               </div>
             )}
