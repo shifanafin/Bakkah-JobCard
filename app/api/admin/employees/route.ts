@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -63,6 +64,18 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
+    // Create ba_account row so the user can log in via username/email
+    const now = new Date().toISOString()
+    await sb.from('ba_account').insert({
+      id:          randomUUID(),
+      account_id:  data.id,
+      provider_id: 'credential',
+      user_id:     data.id,
+      password:    password_hash,
+      created_at:  now,
+      updated_at:  now,
+    })
+
     // Mirror technician users into the technicians table so they appear in assignment dropdowns
     if (role === 'technician') {
       await sb.from('technicians').upsert({ id: data.id, name, active: true }, { onConflict: 'id' })
@@ -104,8 +117,14 @@ export async function PATCH(req: NextRequest) {
     if (action === 'reset_password') {
       if (!password) return NextResponse.json({ error: 'password required' }, { status: 400 })
       const password_hash = await bcrypt.hash(password, 10)
+      const now = new Date().toISOString()
       const { error } = await sb.from('users').update({ password_hash }).eq('id', id)
       if (error) throw error
+      // Keep ba_account in sync so login still works
+      await sb.from('ba_account')
+        .update({ password: password_hash, updated_at: now })
+        .eq('user_id', id)
+        .eq('provider_id', 'credential')
       return NextResponse.json({ success: true })
     }
 

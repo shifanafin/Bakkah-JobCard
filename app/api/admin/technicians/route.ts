@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 import { getServerSession } from '@/lib/server-session'
 
 export const runtime = 'nodejs'
@@ -110,6 +111,18 @@ export async function POST(req: NextRequest) {
 
     if (userErr) throw userErr
 
+    // Create ba_account row so the technician can log in
+    const now = new Date().toISOString()
+    await sb.from('ba_account').insert({
+      id:          randomUUID(),
+      account_id:  user.id,
+      provider_id: 'credential',
+      user_id:     user.id,
+      password:    password_hash,
+      created_at:  now,
+      updated_at:  now,
+    })
+
     await sb.from('technicians').upsert({
       id: user.id,
       name: user.name,
@@ -130,6 +143,12 @@ export async function POST(req: NextRequest) {
 // PATCH — update technician phone and/or specialty role
 export async function PATCH(req: NextRequest) {
   try {
+    const session = await getServerSession()
+    const callerRole = session?.user?.role
+    if (!session || (callerRole !== 'admin' && callerRole !== 'supervisor')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
     const { id, phone, specialty } = await req.json()
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 

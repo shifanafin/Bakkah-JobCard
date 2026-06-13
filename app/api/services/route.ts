@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/server-session'
 
 export async function GET(req: NextRequest) {
   const all = new URL(req.url).searchParams.get('all') === '1'
@@ -22,8 +21,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
-    const role = (session?.user as { role?: string })?.role
+    const session = await getServerSession()
+    const role = session?.user?.role
     if (!session || (role !== 'admin' && role !== 'supervisor')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }

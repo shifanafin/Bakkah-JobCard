@@ -130,6 +130,7 @@ function SidebarContent({
       },
       { href: "/workshop/customers", icon: UserRound, label: nav.customers },
       { href: "/workshop/services", icon: Wrench, label: 'Services' },
+      { href: "/workshop/admin/technicians", icon: Users, label: nav.technicians },
       { href: "/workshop/inventory", icon: Package, label: nav.inventory },
     );
   } else {
