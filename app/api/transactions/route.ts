@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getServerSession } from '@/lib/server-session'
-import { headers } from 'next/headers'
 
 export async function GET() {
-  const session = await getServerSession({ headers: await headers() })
+  const session = await getServerSession()
   const role = (session?.user as { role?: string } | undefined)?.role
   if (!session || (role !== 'admin' && role !== 'supervisor')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
