@@ -21,6 +21,7 @@ import {
   BarChart2,
   Globe,
   UserRound,
+  Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useShell } from "@/components/layout/WorkshopShell";
@@ -133,6 +134,7 @@ function SidebarContent({
       { href: "/workshop/services", icon: Wrench, label: 'Services' },
       { href: "/workshop/admin/technicians", icon: Users, label: nav.technicians },
       { href: "/workshop/inventory", icon: Package, label: nav.inventory },
+      { href: "/workshop/transactions", icon: Receipt, label: 'Transactions' },
     );
   }
 
