@@ -279,81 +279,11 @@ function StatusStepper({ status }: { status: JobStatus }) {
 // ── Job Card Detail (Customer View) ─────────────────────────────────────────
 
 function JobCardDetail({
-  job, showFull = true, approvalData, onApproved,
+  job, showFull = true,
 }: {
   job: JobSummary;
   showFull?: boolean;
-  approvalData?: { phone: string; plate?: string };
-  onApproved?: () => void;
 }) {
-  const [approving, setApproving] = useState(false);
-  const [approveError, setApproveError] = useState("");
-  const [showDecline, setShowDecline] = useState(false);
-  const [declineReason, setDeclineReason] = useState("");
-  const [declining, setDeclining] = useState(false);
-
-  // Inline phone verification for job-number mode (customer arrives via WhatsApp link)
-  const [phoneInput, setPhoneInput] = useState("");
-  const [verifiedPhone, setVerifiedPhone] = useState("");
-
-  // Effective auth: from search params, or from inline phone verification
-  const effectivePhone = approvalData?.phone ?? verifiedPhone;
-  const effectivePlate = approvalData?.plate;
-
-  const sentQuotation = job.quotation?.status === "sent" ? job.quotation : null;
-
-  async function handleApprove() {
-    if (!effectivePhone) return;
-    setApproving(true);
-    setApproveError("");
-    try {
-      const res = sentQuotation
-        ? await fetch(`/api/quotations/${sentQuotation.id}/respond`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: effectivePhone, action: "approve" }),
-          })
-        : await fetch("/api/approve-job", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "approve" }),
-          });
-      const data = await res.json();
-      if (!res.ok) { setApproveError(data.error || "Failed to approve"); return; }
-      onApproved?.();
-    } catch {
-      setApproveError("Something went wrong. Please try again.");
-    } finally {
-      setApproving(false);
-    }
-  }
-
-  async function handleDecline() {
-    if (!effectivePhone) return;
-    setDeclining(true);
-    setApproveError("");
-    try {
-      const res = sentQuotation
-        ? await fetch(`/api/quotations/${sentQuotation.id}/respond`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: effectivePhone, action: "decline", reason: declineReason }),
-          })
-        : await fetch("/api/approve-job", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ job_id: job.id, phone: effectivePhone, plate: effectivePlate, action: "decline", reason: declineReason }),
-          });
-      const data = await res.json();
-      if (!res.ok) { setApproveError(data.error || "Failed to decline"); return; }
-      onApproved?.();
-    } catch {
-      setApproveError("Something went wrong. Please try again.");
-    } finally {
-      setDeclining(false);
-    }
-  }
-
   const statusCfg = STATUS_CONFIG[job.status] ?? STATUS_CONFIG.received;
   const beforePhotos = (job.photos ?? []).filter(p => p.category === "before_work");
   const afterPhotos = (job.photos ?? []).filter(p => p.category === "after_work");
@@ -402,182 +332,63 @@ function JobCardDetail({
 
         {showFull && <StatusStepper status={job.status as JobStatus} />}
 
-        {/* Customer Approve / Decline — shown for waiting_for_approval jobs */}
-        {job.status === "waiting_for_approval" && (
+        {/* Quotation summary — read-only for waiting_for_approval */}
+        {job.status === "waiting_for_approval" && job.quotation?.status === "sent" && job.quotation.items.length > 0 && (
           <div className="mt-4 space-y-3">
-            {/* ── Quotation view (when staff has sent one) ── */}
-            {sentQuotation ? (
-              <>
-                <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-bold text-amber-700 dark:text-amber-300">Workshop Quotation</p>
-                    <span className="font-mono text-xs text-amber-600/70 dark:text-amber-400/60">{sentQuotation.quotation_number}</span>
+            <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-amber-700 dark:text-amber-300">Workshop Quotation</p>
+                <span className="font-mono text-xs text-amber-600/70 dark:text-amber-400/60">{job.quotation.quotation_number}</span>
+              </div>
+              <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-0.5">Our team will contact you to discuss these estimated costs.</p>
+            </div>
+            <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
+              {(["service", "part", "labor"] as const).map(type => {
+                const group = job.quotation!.items.filter(i => i.item_type === type);
+                if (!group.length) return null;
+                const TYPE_LABEL = { service: "Services", part: "Parts & Materials", labor: "Labor" };
+                const TYPE_ICON_CLS = { service: "text-blue-500 dark:text-blue-400", part: "text-emerald-500 dark:text-emerald-400", labor: "text-purple-500 dark:text-purple-400" };
+                return (
+                  <div key={type} className="border-b border-gray-100 dark:border-white/[0.06] last:border-0">
+                    <p className={cn("px-4 py-2 text-[10px] font-bold uppercase tracking-wider bg-gray-50 dark:bg-white/[0.02]", TYPE_ICON_CLS[type])}>{TYPE_LABEL[type]}</p>
+                    {group.map((item, i) => (
+                      <div key={item.id} className={cn("flex items-center justify-between px-4 py-2.5 text-sm", i < group.length - 1 && "border-b border-gray-50 dark:border-white/[0.03]")}>
+                        <span className="text-gray-700 dark:text-white/70 flex-1 pr-4">
+                          {item.description}
+                          {item.quantity !== 1 && <span className="text-gray-400 dark:text-white/30 ml-1">×{item.quantity}</span>}
+                        </span>
+                        <span className="font-semibold tabular-nums text-gray-900 dark:text-white shrink-0">{formatAED(item.total_price)}</span>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-0.5">
-                    Please review the estimated costs below and approve or decline.
-                  </p>
-                </div>
-
-                {/* Items */}
-                {sentQuotation.items.length > 0 && (
-                  <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
-                    {(["service", "part", "labor"] as const).map(type => {
-                      const group = sentQuotation.items.filter(i => i.item_type === type);
-                      if (!group.length) return null;
-                      const TYPE_LABEL = { service: "Services", part: "Parts & Materials", labor: "Labor" };
-                      const TYPE_ICON_CLS = {
-                        service: "text-blue-500 dark:text-blue-400",
-                        part: "text-emerald-500 dark:text-emerald-400",
-                        labor: "text-purple-500 dark:text-purple-400",
-                      };
-                      return (
-                        <div key={type} className="border-b border-gray-100 dark:border-white/[0.06] last:border-0">
-                          <p className={cn("px-4 py-2 text-[10px] font-bold uppercase tracking-wider bg-gray-50 dark:bg-white/[0.02]", TYPE_ICON_CLS[type])}>
-                            {TYPE_LABEL[type]}
-                          </p>
-                          {group.map((item, i) => (
-                            <div key={item.id} className={cn("flex items-center justify-between px-4 py-2.5 text-sm",
-                              i < group.length - 1 && "border-b border-gray-50 dark:border-white/[0.03]")}>
-                              <span className="text-gray-700 dark:text-white/70 flex-1 pr-4">
-                                {item.description}
-                                {item.quantity !== 1 && <span className="text-gray-400 dark:text-white/30 ml-1">×{item.quantity}</span>}
-                              </span>
-                              <span className="font-semibold tabular-nums text-gray-900 dark:text-white shrink-0">{formatAED(item.total_price)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })}
-
-                    {/* Totals */}
-                    <div className="px-4 py-3 bg-gray-50 dark:bg-white/[0.02] space-y-1.5">
-                      {sentQuotation.subtotal !== sentQuotation.total && (
-                        <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
-                          <span>Subtotal</span>
-                          <span className="tabular-nums">{formatAED(sentQuotation.subtotal)}</span>
-                        </div>
-                      )}
-                      {sentQuotation.discount > 0 && (
-                        <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
-                          <span>Discount</span>
-                          <span className="tabular-nums">−{formatAED(sentQuotation.discount)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
-                        <span>VAT (5%)</span>
-                        <span className="tabular-nums">{formatAED(sentQuotation.vat_amount)}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-1.5 border-t border-gray-200 dark:border-white/10">
-                        <span className="font-bold text-gray-900 dark:text-white">Total (incl. VAT)</span>
-                        <span className="font-black text-lg text-brand tabular-nums">{formatAED(sentQuotation.total)}</span>
-                      </div>
-                      <p className="text-[10px] text-gray-400 dark:text-white/25 text-right">
-                        Prices in AED · Valid for {sentQuotation.valid_days} days
-                      </p>
-                    </div>
+                );
+              })}
+              <div className="px-4 py-3 bg-gray-50 dark:bg-white/[0.02] space-y-1.5">
+                {job.quotation.subtotal !== job.quotation.total && (
+                  <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
+                    <span>Subtotal</span><span className="tabular-nums">{formatAED(job.quotation.subtotal)}</span>
                   </div>
                 )}
-
-                {/* Workshop notes */}
-                {sentQuotation.notes && (
-                  <div className="rounded-xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] px-4 py-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 mb-1">Workshop Notes</p>
-                    <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{sentQuotation.notes}</p>
+                {job.quotation.discount > 0 && (
+                  <div className="flex justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                    <span>Discount</span><span className="tabular-nums">−{formatAED(job.quotation.discount)}</span>
                   </div>
                 )}
-              </>
-            ) : (
-              /* No quotation — simple approval */
-              <div className="rounded-xl border border-orange-200 dark:border-orange-500/20 bg-orange-50 dark:bg-orange-500/10 px-4 py-3">
-                <p className="text-sm font-bold text-orange-700 dark:text-orange-300">Workshop requires your approval</p>
-                <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-0.5">Please review the job details, then approve or decline below.</p>
-              </div>
-            )}
-
-            {/* Phone verification — needed when arrived via job-number link */}
-            {!effectivePhone && (
-              <div className="space-y-2">
-                <label className="label text-gray-700 dark:text-white/70">
-                  Enter your registered mobile number to continue
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-white/30 pointer-events-none" />
-                    <input
-                      value={phoneInput}
-                      onChange={e => { setPhoneInput(e.target.value); setApproveError(""); }}
-                      onKeyDown={e => e.key === "Enter" && phoneInput.trim() && setVerifiedPhone(phoneInput.trim())}
-                      placeholder="+971 50 123 4567"
-                      type="tel"
-                      inputMode="tel"
-                      className="input-base pl-10 w-full"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { if (phoneInput.trim()) { setVerifiedPhone(phoneInput.trim()); setApproveError(""); } }}
-                    disabled={!phoneInput.trim()}
-                    className="flex items-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-40 px-4 py-2.5 text-sm font-bold text-white transition-colors shrink-0">
-                    Continue
-                  </button>
+                <div className="flex justify-between text-sm text-gray-500 dark:text-white/50">
+                  <span>VAT (5%)</span><span className="tabular-nums">{formatAED(job.quotation.vat_amount)}</span>
                 </div>
-              </div>
-            )}
-
-            {/* Approve / Decline buttons */}
-            {effectivePhone && !showDecline && (
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleApprove}
-                  disabled={approving || declining}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold text-white">
-                  {approving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  {approving ? "Approving..." : sentQuotation ? "Accept Quotation" : "Approve"}
-                </button>
-                <button
-                  onClick={() => setShowDecline(true)}
-                  disabled={approving}
-                  className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-200 dark:border-red-500/30 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 disabled:opacity-50 transition-colors px-4 py-3 text-sm font-bold">
-                  <X className="h-4 w-4" /> {sentQuotation ? "Decline Quotation" : "Decline"}
-                </button>
-              </div>
-            )}
-
-            {/* Decline reason form */}
-            {effectivePhone && showDecline && (
-              <div className="space-y-3 rounded-xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-4">
-                <div>
-                  <label className="label mb-1.5 text-red-700 dark:text-red-400">
-                    {sentQuotation ? "Reason for declining quotation (optional)" : "Reason for declining (optional)"}
-                  </label>
-                  <textarea
-                    value={declineReason}
-                    onChange={e => setDeclineReason(e.target.value)}
-                    placeholder={sentQuotation ? "e.g. Price too high, need a revised quotation..." : "Please let us know why you are declining..."}
-                    className="input-base w-full min-h-[80px] resize-none"
-                    rows={3}
-                  />
+                <div className="flex justify-between items-center pt-1.5 border-t border-gray-200 dark:border-white/10">
+                  <span className="font-bold text-gray-900 dark:text-white">Total (incl. VAT)</span>
+                  <span className="font-black text-lg text-brand tabular-nums">{formatAED(job.quotation.total)}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => { setShowDecline(false); setDeclineReason(""); }}
-                    disabled={declining}
-                    className="flex items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors">
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDecline}
-                    disabled={declining}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 transition-colors px-4 py-2.5 text-sm font-bold text-white">
-                    {declining ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                    {declining ? "Declining..." : "Confirm Decline"}
-                  </button>
-                </div>
+                <p className="text-[10px] text-gray-400 dark:text-white/25 text-right">Prices in AED · Valid for {job.quotation.valid_days} days</p>
               </div>
-            )}
-
-            {approveError && (
-              <p className="text-xs text-red-500 text-center">{approveError}</p>
+            </div>
+            {job.quotation.notes && (
+              <div className="rounded-xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 mb-1">Workshop Notes</p>
+                <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{job.quotation.notes}</p>
+              </div>
             )}
           </div>
         )}
@@ -846,6 +657,7 @@ export default function TrackPage() {
   const [result, setResult] = useState<TrackResponse | null>(null);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
+  const [isDirect, setIsDirect] = useState(false);
 
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
@@ -890,6 +702,7 @@ export default function TrackPage() {
       autoSearched.current = true;
       setMode("job");
       setJobQuery(jobParam);
+      setIsDirect(true);
       runJobSearch(jobParam);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -993,6 +806,7 @@ export default function TrackPage() {
     setResult(null);
     setError("");
     setSearched(false);
+    setIsDirect(false);
     setJobQuery("");
     setMobileQuery("");
     setPlateQuery("");
@@ -1081,7 +895,7 @@ export default function TrackPage() {
         )}
 
         {/* ── Search Form ───────────────────────────────────── */}
-        <div className="card-elevated mb-5">
+        {!isDirect && <div className="card-elevated mb-5">
           {/* Mode toggle */}
           <div className="flex rounded-xl border border-gray-200 dark:border-white/[0.08] overflow-hidden mb-4">
             <button
@@ -1175,7 +989,7 @@ export default function TrackPage() {
               </div>
             )}
           </form>
-        </div>
+        </div>}
 
         {/* ── Error ─────────────────────────────────────────── */}
         {error && (
@@ -1285,13 +1099,6 @@ export default function TrackPage() {
                 <JobCardDetail
                   job={result.current}
                   showFull
-                  approvalData={result.mode !== "job" && mobileQuery
-                    ? { phone: mobileQuery, plate: plateQuery || undefined }
-                    : undefined}
-                  onApproved={() => {
-                    if (mode === "vehicle") runVehicleSearch(mobileQuery, plateQuery);
-                    else runJobSearch(jobQuery);
-                  }}
                 />
               </div>
             )}

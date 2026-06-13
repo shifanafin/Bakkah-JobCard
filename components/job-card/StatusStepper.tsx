@@ -41,7 +41,7 @@ export default function StatusStepper({ jobId, currentStatus, hasTechnician, use
   const isPendingNoTech = (displayStatus === 'pending') && !hasTechnician
 
   const canApprove = isWaitingApproval &&
-    (userRole === 'admin' || userRole === 'supervisor' || userRole === 'manager')
+    (userRole === 'admin' || userRole === 'supervisor')
 
   const canAdvance =
     !isInspection &&

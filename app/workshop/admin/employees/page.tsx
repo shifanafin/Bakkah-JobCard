@@ -30,11 +30,10 @@ type NewEmployeeForm = {
   password: string
 }
 
-const ROLES = ['admin', 'supervisor', 'manager', 'receptionist', 'technician']
+const ROLES = ['admin', 'supervisor', 'receptionist', 'technician']
 const ROLE_COLORS: Record<string, string> = {
   admin: 'bg-red-500/15 text-red-400',
   supervisor: 'bg-amber-500/15 text-amber-400',
-  manager: 'bg-purple-500/15 text-purple-400',
   receptionist: 'bg-blue-500/15 text-blue-400',
   technician: 'bg-brand/15 text-brand',
 }

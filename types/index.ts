@@ -6,7 +6,7 @@ export type JobStatus = 'inspection' | 'waiting_for_approval' | 'pending' | 'ass
 export type JobType = 'service' | 'inspection' | 'detailing' | 'repair' | 'rta_check' | 'valuation' | 'other'
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
 export type PhotoCategory = 'exterior_front' | 'exterior_rear' | 'exterior_left' | 'exterior_right' | 'interior' | 'engine_bay' | 'damage' | 'before_work' | 'after_work' | 'other'
-export type UserRole = 'admin' | 'supervisor' | 'manager' | 'technician' | 'receptionist'
+export type UserRole = 'admin' | 'supervisor' | 'technician' | 'receptionist'
 
 export interface User {
   id: string
