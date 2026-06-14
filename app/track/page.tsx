@@ -970,8 +970,6 @@ export default function TrackPage() {
     const jobParam = params.get("q") ?? params.get("job");
     if (jobParam) {
       autoSearched.current = true;
-      setMode("job");
-      setJobQuery(jobParam);
       setIsDirect(true);
       runJobSearch(jobParam);
     }
