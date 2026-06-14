@@ -9,7 +9,7 @@ import { formatAED, formatDate } from "@/lib/utils/format";
 import {
   Search, Sun, Moon, Car, User, Calendar, Check, Loader2, MessageCircle,
   ArrowLeft, X, Star, Send, Quote, MapPin, Clock,
-  Wrench, Package, ChevronRight, Phone, Hash, Image as ImageIcon, History,
+  Wrench, Package, ChevronRight, Phone, Image as ImageIcon, History,
   ChevronDown, ChevronUp, ShieldCheck, BadgeCheck, AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -454,20 +454,21 @@ function JobCardDetail({
         <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
           <div>
             <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
-              <span className="font-mono text-xl font-black text-brand tracking-wider">{job.job_number}</span>
               <StatusBadge status={job.status} />
               <span className="rounded-full bg-gray-100 dark:bg-white/[0.06] px-2.5 py-0.5 text-xs font-medium text-gray-500 dark:text-white/40">
                 {JOB_TYPE_LABEL[job.job_type] ?? job.job_type}
               </span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-white/50">
+            <p className="text-base font-bold text-gray-800 dark:text-white">
               {job.vehicle?.make} {job.vehicle?.model}
               {job.vehicle?.year ? ` ${job.vehicle.year}` : ""}
-              {" · "}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-white/50 mt-0.5">
               <span className="font-mono font-bold text-gray-700 dark:text-white/70">
                 {job.vehicle?.plate_number}
               </span>
               {job.vehicle?.color ? ` · ${job.vehicle.color}` : ""}
+              {job.customer?.name ? ` · ${job.customer.name}` : ""}
             </p>
           </div>
           <div className="text-right shrink-0">
@@ -492,10 +493,7 @@ function JobCardDetail({
         {job.status === "waiting_for_approval" && job.quotation?.status === "sent" && job.quotation.items.length > 0 && (
           <div className="mt-4 space-y-3">
             <div className="rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-4 py-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-amber-700 dark:text-amber-300">Workshop Quotation</p>
-                <span className="font-mono text-xs text-amber-600/70 dark:text-amber-400/60">{job.quotation.quotation_number}</span>
-              </div>
+              <p className="text-sm font-bold text-amber-700 dark:text-amber-300">Estimated Cost Breakdown</p>
               <p className="text-xs text-amber-600/70 dark:text-amber-400/70 mt-0.5">Please review the estimated costs below and approve or decline.</p>
             </div>
             <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
@@ -608,8 +606,7 @@ function JobCardDetail({
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
               <Check className="h-3.5 w-3.5 text-brand" />
             </div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Proforma Invoice</h3>
-            <span className="font-mono text-xs text-gray-400 dark:text-white/40">{job.proforma.proforma_number}</span>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Confirmed Cost Summary</h3>
           </div>
           {job.proforma.items.length > 0 && (
             <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
@@ -661,14 +658,12 @@ function JobCardDetail({
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-500/15">
               <Check className="h-3.5 w-3.5 text-emerald-500" />
             </div>
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Tax Invoice</h3>
-            <span className="font-mono text-xs text-gray-400 dark:text-white/40">{job.taxInvoice.invoice_number}</span>
-            <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-bold",
-              job.taxInvoice.status === "issued"
-                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
-                : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400")}>
-              {job.taxInvoice.status === "issued" ? "Issued" : "Draft"}
-            </span>
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white">Final Invoice</h3>
+            {job.taxInvoice.status === "issued" && (
+              <span className="rounded-full px-2.5 py-0.5 text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400">
+                Issued
+              </span>
+            )}
           </div>
           {job.taxInvoice.items.length > 0 && (
             <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-white/[0.06]">
@@ -851,11 +846,11 @@ function HistoryCard({ job }: { job: JobSummary }) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-sm font-bold text-brand">{job.job_number}</span>
             <StatusBadge status={job.status} />
+            <span className="text-xs text-gray-500 dark:text-white/40">{JOB_TYPE_LABEL[job.job_type] ?? job.job_type}</span>
           </div>
           <p className="text-xs text-gray-500 dark:text-white/40 mt-0.5">
-            {formatDate(job.date_in)} · {JOB_TYPE_LABEL[job.job_type] ?? job.job_type}
+            {formatDate(job.date_in)}
             {job.mileage_in ? ` · ${job.mileage_in.toLocaleString()} km` : ""}
           </p>
           <p className="text-sm font-bold text-brand mt-1">{formatAED(job.quotation?.total || job.total)}</p>
@@ -925,9 +920,6 @@ export default function TrackPage() {
   const { theme, toggle } = useTheme();
   const autoSearched = useRef(false);
 
-  // Search mode
-  const [mode, setMode] = useState<"job" | "vehicle">("vehicle");
-  const [jobQuery, setJobQuery] = useState("");
   const [mobileQuery, setMobileQuery] = useState("");
   const [plateQuery, setPlateQuery] = useState("");
 
@@ -1047,8 +1039,7 @@ export default function TrackPage() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (mode === "job") runJobSearch(jobQuery);
-    else runVehicleSearch(mobileQuery, plateQuery);
+    runVehicleSearch(mobileQuery, plateQuery);
   }
 
   async function handleFeedbackSubmit(e: React.FormEvent) {
@@ -1085,7 +1076,6 @@ export default function TrackPage() {
     setError("");
     setSearched(false);
     setIsDirect(false);
-    setJobQuery("");
     setMobileQuery("");
     setPlateQuery("");
     setFbDone(false);
@@ -1174,98 +1164,44 @@ export default function TrackPage() {
 
         {/* ── Search Form ───────────────────────────────────── */}
         {!isDirect && <div className="card-elevated mb-5">
-          {/* Mode toggle */}
-          <div className="flex rounded-xl border border-gray-200 dark:border-white/[0.08] overflow-hidden mb-4">
-            <button
-              type="button"
-              onClick={() => { setMode("vehicle"); setError(""); }}
-              className={cn("flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-colors",
-                mode === "vehicle"
-                  ? "bg-brand text-black"
-                  : "text-gray-500 dark:text-white/40 hover:bg-gray-50 dark:hover:bg-white/[0.04]")}>
-              <Phone className="h-3.5 w-3.5" /> Mobile + Plate
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMode("job"); setError(""); }}
-              className={cn("flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-colors border-l border-gray-200 dark:border-white/[0.08]",
-                mode === "job"
-                  ? "bg-brand text-black"
-                  : "text-gray-500 dark:text-white/40 hover:bg-gray-50 dark:hover:bg-white/[0.04]")}>
-              <Hash className="h-3.5 w-3.5" /> Job Number
-            </button>
-          </div>
-
-          <form onSubmit={handleSearch}>
-            {mode === "vehicle" ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="label mb-1.5">Mobile Number</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none" />
-                    <input
-                      value={mobileQuery}
-                      onChange={e => setMobileQuery(e.target.value)}
-                      placeholder="+971 50 123 4567 or 050 123 4567"
-                      type="tel"
-                      inputMode="tel"
-                      className="input-base pl-10 w-full"
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="label">Plate Number</label>
-                    <span className="text-[10px] text-gray-400 dark:text-white/30 font-medium">optional — filters to one vehicle</span>
-                  </div>
-                  <div className="relative">
-                    <Car className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none" />
-                    <input
-                      value={plateQuery}
-                      onChange={e => setPlateQuery(e.target.value.toUpperCase())}
-                      placeholder="A 12345 · ABC 1234 · 12345 A"
-                      className="input-base pl-10 w-full font-mono uppercase tracking-widest"
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-                <button type="submit"
-                  disabled={loading || (!mobileQuery.trim() && !plateQuery.trim())}
-                  className="btn-primary w-full py-3">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                  {loading ? "Searching..." : mobileQuery.trim() && !plateQuery.trim() ? "View All My Jobs" : "Track My Vehicle"}
-                </button>
-                <p className="text-xs text-gray-400 dark:text-white/30 text-center leading-relaxed">
-                  Phone only → all your jobs · Phone + Plate → one vehicle · Plate only → vehicle history
-                </p>
+          <form onSubmit={handleSearch} className="space-y-3">
+            <div>
+              <label className="label mb-1.5">Mobile Number</label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none" />
+                <input
+                  value={mobileQuery}
+                  onChange={e => setMobileQuery(e.target.value)}
+                  placeholder="+971 50 123 4567 or 050 123 4567"
+                  type="tel"
+                  inputMode="tel"
+                  className="input-base pl-10 w-full"
+                  disabled={loading}
+                />
               </div>
-            ) : (
-              <div className="space-y-3">
-                <div>
-                  <label className="label mb-1.5">Job Card Number</label>
-                  <div className="relative">
-                    <Hash className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none" />
-                    <input
-                      value={jobQuery}
-                      onChange={e => setJobQuery(e.target.value)}
-                      placeholder="JC-2024-0001"
-                      className="input-base pl-10 w-full font-mono uppercase"
-                      disabled={loading}
-                    />
-                  </div>
-                </div>
-                <button type="submit"
-                  disabled={loading || !jobQuery.trim()}
-                  className="btn-primary w-full py-3">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                  {loading ? "Searching..." : "Find Job Card"}
-                </button>
-                <p className="text-xs text-gray-400 dark:text-white/30 text-center">
-                  Your job number starts with <span className="font-mono font-bold text-brand">JC-</span>
-                </p>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="label">Vehicle Plate Number</label>
+                <span className="text-[10px] text-gray-400 dark:text-white/30 font-medium">optional</span>
               </div>
-            )}
+              <div className="relative">
+                <Car className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none" />
+                <input
+                  value={plateQuery}
+                  onChange={e => setPlateQuery(e.target.value.toUpperCase())}
+                  placeholder="A 12345 · ABC 1234 · 12345 A"
+                  className="input-base pl-10 w-full font-mono uppercase tracking-widest"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+            <button type="submit"
+              disabled={loading || (!mobileQuery.trim() && !plateQuery.trim())}
+              className="btn-primary w-full py-3">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              {loading ? "Searching..." : "Track My Vehicle"}
+            </button>
           </form>
         </div>}
 
@@ -1377,7 +1313,7 @@ export default function TrackPage() {
                 <JobCardDetail
                   job={result.current}
                   showFull
-                  onRefresh={() => runJobSearch(result.current.job_number)}
+                  onRefresh={() => runJobSearch(result!.current.job_number)}
                 />
               </div>
             )}
