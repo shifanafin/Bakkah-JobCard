@@ -571,20 +571,11 @@ export default function QuotationSection({
             )}
 
             {quotation.status === 'approved' && (
-              <div className="flex w-full flex-col gap-2">
-                <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3 flex-1">
-                  <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                  <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                    Customer Approved — Work Authorized
-                  </span>
-                </div>
-                {customerPhone && (
-                  <a href={buildWhatsAppHref()} target="_blank" rel="noopener noreferrer"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30">
-                    <MessageCircle className="h-3.5 w-3.5" />
-                    Resend Quotation via WhatsApp
-                  </a>
-                )}
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3 w-full">
+                <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                  Customer Approved — Work Authorized
+                </span>
               </div>
             )}
 
