@@ -13,7 +13,7 @@ import PhotoUpload from '@/components/job-card/PhotoUpload'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, MessageCircle, Mail, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2, Bell } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2 } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -315,8 +315,10 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobNumber={job.job_number}
           customerPhone={job.customer?.phone}
           customerName={job.customer?.name}
+          customerEmail={job.customer?.email}
           canApprove={canAssign}
           onStatusChange={s => setQuotationApproved(s === 'approved')}
+          onEmailNotify={handleNotifyEmail}
         />
 
         {/* Proforma Invoice — shown once quotation is approved */}
@@ -338,25 +340,6 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           />
         )}
 
-        {/* Notify Customer — email only; WhatsApp is handled per-quotation above */}
-        {job.customer?.email && (
-          <div className="card space-y-3">
-            <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15">
-                <Bell className="h-3.5 w-3.5 text-indigo-400" />
-              </div>
-              <h3 className="section-title">Notify Customer</h3>
-            </div>
-            <button
-              onClick={handleNotifyEmail}
-              disabled={notifying}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
-            >
-              {notifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-              Send Status Email
-            </button>
-          </div>
-        )}
 
         {/* Photos */}
         <PhotoUpload

@@ -196,27 +196,30 @@ export default function ProformaSection({
         <>
           {/* Items table */}
           {proforma.items.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-white/[0.06]">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
+              <table className="min-w-[480px] w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                    {['Type', 'Description', 'Qty', 'Unit', 'Total', ...(!isLocked ? [''] : [])].map(h => (
-                      <th key={h} className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">{h}</th>
-                    ))}
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-20">Type</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">Description</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-12">Qty</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Unit</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Total</th>
+                    {!isLocked && <th className="w-8" />}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
                   {proforma.items.map(item => (
                     <tr key={item.id} className="group">
-                      <td className="px-3 py-2">
+                      <td className="px-3 py-2 whitespace-nowrap">
                         <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase', ITEM_TYPE_CLS[item.item_type])}>
                           {item.item_type}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-gray-800 dark:text-white/80">{item.description}</td>
-                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50">{item.quantity}</td>
-                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50">{formatAED(item.unit_price)}</td>
-                      <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white">{formatAED(item.total_price)}</td>
+                      <td className="px-3 py-2 text-gray-800 dark:text-white/80 min-w-[160px]">{item.description}</td>
+                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{item.quantity}</td>
+                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{formatAED(item.unit_price)}</td>
+                      <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">{formatAED(item.total_price)}</td>
                       {!isLocked && (
                         <td className="px-3 py-2">
                           <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
@@ -234,47 +237,51 @@ export default function ProformaSection({
 
           {/* Add item — unlocked only */}
           {!isLocked && (
-            <div className="flex gap-2 flex-wrap">
-              <div className="relative">
-                <select value={itemType} onChange={e => {
-                  setItemType(e.target.value as 'service' | 'part' | 'labor')
-                  setItemDesc(''); setItemPrice('')
-                }} className={cn(inputSm, 'w-28 flex-none appearance-none pr-7')}>
-                  <option value="service">Service</option>
-                  <option value="part">Part</option>
-                  <option value="labor">Labor</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
-              </div>
-
-              {itemType === 'service' ? (
-                <div className="relative flex-1 min-w-[150px]">
-                  <select value={itemDesc} onChange={e => {
-                    const name = e.target.value
-                    setItemDesc(name)
-                    const match = catalog.find(s => s.name === name)
-                    if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
-                    else if (!name) setItemPrice('')
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="relative w-28 flex-none">
+                  <select value={itemType} onChange={e => {
+                    setItemType(e.target.value as 'service' | 'part' | 'labor')
+                    setItemDesc(''); setItemPrice('')
                   }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
-                    <option value="">— Select service —</option>
-                    {catalog.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    <option value="service">Service</option>
+                    <option value="part">Part</option>
+                    <option value="labor">Labor</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
                 </div>
-              ) : (
-                <input value={itemDesc} onChange={e => setItemDesc(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-                  placeholder="Description" className={cn(inputSm, 'min-w-[150px] flex-1')} />
-              )}
 
-              <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
-                type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-16 flex-none')} />
-              <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
-                type="number" min={0} className={cn(inputSm, 'w-32 flex-none')} />
-              <button onClick={handleAddItem} disabled={isPending || !itemDesc.trim() || !itemPrice}
-                className="btn-primary text-xs px-3 py-2 h-auto flex-none">
-                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Add</>}
-              </button>
+                {itemType === 'service' ? (
+                  <div className="relative flex-1">
+                    <select value={itemDesc} onChange={e => {
+                      const name = e.target.value
+                      setItemDesc(name)
+                      const match = catalog.find(s => s.name === name)
+                      if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
+                      else if (!name) setItemPrice('')
+                    }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
+                      <option value="">— Select service —</option>
+                      {catalog.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+                  </div>
+                ) : (
+                  <input value={itemDesc} onChange={e => setItemDesc(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                    placeholder="Description" className={cn(inputSm, 'flex-1')} />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
+                  type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-20 flex-none')} />
+                <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
+                  type="number" min={0} className={cn(inputSm, 'flex-1')} />
+                <button onClick={handleAddItem} disabled={isPending || !itemDesc.trim() || !itemPrice}
+                  className="btn-primary text-xs px-3 py-2 h-auto flex-none">
+                  {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Add</>}
+                </button>
+              </div>
             </div>
           )}
 
