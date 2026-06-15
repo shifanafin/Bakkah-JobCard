@@ -54,6 +54,7 @@ export default function QuotationSection({
   canApprove,
   onStatusChange,
   onEmailNotify,
+  onJobUpdate,
 }: {
   jobId: string
   jobNumber?: string
@@ -63,6 +64,7 @@ export default function QuotationSection({
   canApprove?: boolean
   onStatusChange?: (status: string | null) => void
   onEmailNotify?: () => void
+  onJobUpdate?: () => void
 }) {
   // undefined = loading, null = no quotation
   const [quotation, setQuotation] = useState<Quotation | null | undefined>(undefined)
@@ -205,6 +207,7 @@ export default function QuotationSection({
         if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to save quotation'); return }
         const d = await res.json(); applyQuotation(d.quotation)
         toast.success('Quotation saved')
+        onJobUpdate?.()
       } catch { toast.error('Failed to save quotation') }
     })
   }
@@ -266,6 +269,7 @@ export default function QuotationSection({
         if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to approve'); return }
         const d = await res.json(); applyQuotation(d.quotation)
         toast.success('Quotation approved — proforma created')
+        onJobUpdate?.()
       } catch { toast.error('Failed to approve quotation') }
     })
   }
@@ -282,6 +286,7 @@ export default function QuotationSection({
         if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to decline'); return }
         const d = await res.json(); applyQuotation(d.quotation)
         toast.success('Quotation declined')
+        onJobUpdate?.()
       } catch { toast.error('Failed to decline quotation') }
     })
   }

@@ -201,7 +201,6 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           currentStatus={job.status as JobStatus}
           hasTechnician={!!job.technician_id}
           userRole={role}
-          userName={userName}
           onUpdate={s => { setJob(j => j ? { ...j, status: s } : j); load() }}
         />
 
@@ -319,6 +318,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           canApprove={canAssign}
           onStatusChange={s => setQuotationApproved(s === 'approved')}
           onEmailNotify={handleNotifyEmail}
+          onJobUpdate={load}
         />
 
         {/* Proforma Invoice — shown once quotation is approved */}
