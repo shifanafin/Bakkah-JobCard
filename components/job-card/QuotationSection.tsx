@@ -50,12 +50,14 @@ export default function QuotationSection({
   jobNumber,
   customerPhone,
   customerName,
+  canApprove,
   onStatusChange,
 }: {
   jobId: string
   jobNumber?: string
   customerPhone?: string
   customerName?: string
+  canApprove?: boolean
   onStatusChange?: (status: string | null) => void
 }) {
   // undefined = loading, null = no quotation
@@ -222,6 +224,38 @@ export default function QuotationSection({
         await fetch(`/api/quotations/${quotation.id}`, { method: 'DELETE' })
         applyQuotation(null); toast.success('Quotation deleted')
       } catch { toast.error('Failed to delete quotation') }
+    })
+  }
+
+  function handleAdminApprove() {
+    if (!quotation) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/quotations/${quotation.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'approve' }),
+        })
+        if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to approve'); return }
+        const d = await res.json(); applyQuotation(d.quotation)
+        toast.success('Quotation approved — proforma created')
+      } catch { toast.error('Failed to approve quotation') }
+    })
+  }
+
+  function handleAdminDecline() {
+    if (!quotation) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/quotations/${quotation.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'decline' }),
+        })
+        if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to decline'); return }
+        const d = await res.json(); applyQuotation(d.quotation)
+        toast.success('Quotation declined')
+      } catch { toast.error('Failed to decline quotation') }
     })
   }
 
@@ -509,6 +543,23 @@ export default function QuotationSection({
                     Edit
                   </button>
                 </div>
+
+                {/* Admin / supervisor can approve or decline on behalf of customer */}
+                {canApprove && (
+                  <div className="flex gap-2">
+                    <button onClick={handleAdminApprove} disabled={isPending}
+                      className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300 dark:hover:bg-emerald-500/25 disabled:opacity-50">
+                      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                      Approve
+                    </button>
+                    <button onClick={handleAdminDecline} disabled={isPending}
+                      className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-100 transition-colors dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-400 dark:hover:bg-red-500/25 disabled:opacity-50">
+                      {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <AlertTriangle className="h-4 w-4" />}
+                      Decline
+                    </button>
+                  </div>
+                )}
+
                 {customerPhone && (
                   <a href={buildWhatsAppHref()} target="_blank" rel="noopener noreferrer"
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30">
