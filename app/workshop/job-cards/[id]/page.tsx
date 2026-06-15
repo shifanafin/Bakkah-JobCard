@@ -338,8 +338,8 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           />
         )}
 
-        {/* Notify Customer */}
-        {job.customer?.phone || job.customer?.email ? (
+        {/* Notify Customer — email only; WhatsApp is handled per-quotation above */}
+        {job.customer?.email && (
           <div className="card space-y-3">
             <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/15">
@@ -347,31 +347,16 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <h3 className="section-title">Notify Customer</h3>
             </div>
-            <div className="flex gap-3">
-              {job.customer?.email && (
-                <button
-                  onClick={handleNotifyEmail}
-                  disabled={notifying}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
-                >
-                  {notifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                  Send Email
-                </button>
-              )}
-              {job.customer?.phone && (
-                <a
-                  href={buildWhatsAppHref(job)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-300 dark:hover:bg-emerald-500/30"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp Share
-                </a>
-              )}
-            </div>
+            <button
+              onClick={handleNotifyEmail}
+              disabled={notifying}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50 dark:border-indigo-500/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:hover:bg-indigo-500/20"
+            >
+              {notifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+              Send Status Email
+            </button>
           </div>
-        ) : null}
+        )}
 
         {/* Photos */}
         <PhotoUpload
