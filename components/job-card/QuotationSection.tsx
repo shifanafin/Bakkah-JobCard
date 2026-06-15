@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle, MessageCircle, Mail } from 'lucide-react'
+import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle, MessageCircle, Mail, X } from 'lucide-react'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -73,6 +73,9 @@ export default function QuotationSection({
   }
   const [isPending, startTransition] = useTransition()
   const [creating, setCreating] = useState(false)
+  const [editingItem, setEditingItem] = useState<{
+    id: string; description: string; quantity: string; unit_price: string
+  } | null>(null)
 
   const [catalog, setCatalog] = useState<CatalogService[]>([])
 
@@ -231,6 +234,26 @@ export default function QuotationSection({
     })
   }
 
+  function handleSaveEditItem() {
+    if (!quotation || !editingItem) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/quotations/${quotation.id}/items?item_id=${editingItem.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: editingItem.description,
+            quantity: parseFloat(editingItem.quantity) || 1,
+            unit_price: parseFloat(editingItem.unit_price) || 0,
+          }),
+        })
+        if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Failed to save'); return }
+        const d = await res.json(); applyQuotation(d.quotation); setEditingItem(null)
+        toast.success('Item updated')
+      } catch { toast.error('Failed to update item') }
+    })
+  }
+
   function handleAdminApprove() {
     if (!quotation) return
     startTransition(async () => {
@@ -359,48 +382,103 @@ export default function QuotationSection({
           )}
 
           {/* Items table */}
-          {quotation.items.length > 0 && (
-            <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
-              <table className="min-w-[480px] w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-20">Type</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">Description</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-12">Qty</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Unit</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Total</th>
-                    {quotation.status === 'draft' && <th className="w-8" />}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
-                  {quotation.items.map(item => (
-                    <tr key={item.id} className="group">
-                      <td className="px-3 py-2 whitespace-nowrap">
-                        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase', ITEM_TYPE_CLS[item.item_type])}>
-                          {item.item_type}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-gray-800 dark:text-white/80 min-w-[160px]">{item.description}</td>
-                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{item.quantity}</td>
-                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{formatAED(item.unit_price)}</td>
-                      <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">{formatAED(item.total_price)}</td>
-                      {quotation.status === 'draft' && (
-                        <td className="px-3 py-2">
-                          <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
-                            className="text-gray-200 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all dark:text-white/20">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </td>
-                      )}
+          {quotation.items.length > 0 && (() => {
+            const canEdit = quotation.status !== 'approved' && quotation.status !== 'declined'
+            const inpCls = 'rounded-md border border-brand/30 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:border-brand dark:bg-white/[0.06] dark:text-white dark:border-brand/40'
+            return (
+              <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
+                <table className="min-w-[480px] w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                      <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-20">Type</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">Description</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-12">Qty</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Unit</th>
+                      <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Total</th>
+                      {canEdit && <th className="w-16" />}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
+                    {quotation.items.map(item => {
+                      const isEditing = editingItem?.id === item.id
+                      const liveTotal = isEditing
+                        ? (parseFloat(editingItem!.quantity) || 0) * (parseFloat(editingItem!.unit_price) || 0)
+                        : item.total_price
+                      return (
+                        <tr key={item.id} className="group">
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase', ITEM_TYPE_CLS[item.item_type])}>
+                              {item.item_type}
+                            </span>
+                          </td>
+                          {isEditing ? (
+                            <>
+                              <td className="px-2 py-1.5 min-w-[160px]">
+                                <input value={editingItem!.description}
+                                  onChange={e => setEditingItem(prev => prev && { ...prev, description: e.target.value })}
+                                  className={cn(inpCls, 'w-full')} />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input type="number" min={0.5} step={0.5} value={editingItem!.quantity}
+                                  onChange={e => setEditingItem(prev => prev && { ...prev, quantity: e.target.value })}
+                                  className={cn(inpCls, 'w-16')} />
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <input type="number" min={0} value={editingItem!.unit_price}
+                                  onChange={e => setEditingItem(prev => prev && { ...prev, unit_price: e.target.value })}
+                                  className={cn(inpCls, 'w-24')} />
+                              </td>
+                              <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">
+                                {formatAED(liveTotal)}
+                              </td>
+                              <td className="px-2 py-1.5">
+                                <div className="flex gap-1">
+                                  <button onClick={handleSaveEditItem} disabled={isPending}
+                                    className="flex items-center justify-center rounded-md bg-brand p-1.5 text-white hover:bg-brand/80 disabled:opacity-50">
+                                    <Check className="h-3 w-3" />
+                                  </button>
+                                  <button onClick={() => setEditingItem(null)} disabled={isPending}
+                                    className="flex items-center justify-center rounded-md border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50 dark:border-white/10 dark:text-white/50">
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td className="px-3 py-2 text-gray-800 dark:text-white/80 min-w-[160px]">{item.description}</td>
+                              <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{item.quantity}</td>
+                              <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{formatAED(item.unit_price)}</td>
+                              <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">{formatAED(item.total_price)}</td>
+                              {canEdit && (
+                                <td className="px-2 py-2">
+                                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                    <button
+                                      onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
+                                      disabled={isPending}
+                                      className="text-gray-300 hover:text-brand transition-colors dark:text-white/20 dark:hover:text-brand">
+                                      <Edit2 className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
+                                      className="text-gray-300 hover:text-red-400 transition-colors dark:text-white/20">
+                                      <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              )}
+                            </>
+                          )}
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )
+          })()}
 
-          {/* Add item — draft only */}
-          {quotation.status === 'draft' && (
+          {/* Add item — editable until approved */}
+          {quotation.status !== 'approved' && quotation.status !== 'declined' && (
             <div className="space-y-2">
               <div className="flex gap-2">
                 {/* Type */}
@@ -483,8 +561,8 @@ export default function QuotationSection({
             </div>
           </div>
 
-          {/* Discount — draft only */}
-          {quotation.status === 'draft' && (
+          {/* Discount — editable until approved */}
+          {quotation.status !== 'approved' && quotation.status !== 'declined' && (
             <div className="flex items-end gap-2">
               <div className="flex-1">
                 <label className="label">Discount (AED)</label>
@@ -498,14 +576,14 @@ export default function QuotationSection({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="label">Notes to Customer</label>
-              {quotation.status === 'draft' && !editingNotes && (
+              {quotation.status !== 'approved' && quotation.status !== 'declined' && !editingNotes && (
                 <button onClick={() => setEditingNotes(true)}
                   className="text-xs text-brand hover:underline flex items-center gap-1">
                   <Edit2 className="h-3 w-3" /> Edit
                 </button>
               )}
             </div>
-            {quotation.status === 'draft' && editingNotes ? (
+            {quotation.status !== 'approved' && quotation.status !== 'declined' && editingNotes ? (
               <div className="space-y-2">
                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
                   className="input-base w-full min-h-[80px] resize-none"
@@ -520,7 +598,7 @@ export default function QuotationSection({
             ) : (
               quotation.notes
                 ? <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{quotation.notes}</p>
-                : quotation.status === 'draft'
+                : (quotation.status !== 'approved' && quotation.status !== 'declined')
                   ? <p className="text-xs text-gray-300 dark:text-white/20 italic">No notes — click Edit to add</p>
                   : null
             )}
