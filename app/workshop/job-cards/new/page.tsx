@@ -681,6 +681,7 @@ export default function NewJobCardPage() {
           await sb.from("job_cards").update(sigUp).eq("id", jc.id);
         }
 
+        localStorage.removeItem(DRAFT_KEY);
         toast.success(`Job card ${jc.job_number} created — status: Inspection`);
         router.push(`/workshop/job-cards/${jc.id}`);
       } catch (err) {

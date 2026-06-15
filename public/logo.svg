@@ -1,23 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-  <!-- Olive green circle background -->
-  <circle cx="200" cy="200" r="200" fill="#566020"/>
-  <!-- Outer gold ring -->
-  <circle cx="200" cy="200" r="192" fill="#C9A845"/>
-  <!-- Thin inner olive gap -->
-  <circle cx="200" cy="200" r="182" fill="#566020"/>
-  <!-- Main bold gold ring -->
-  <circle cx="200" cy="200" r="174" fill="#C9A845"/>
-  <!-- Olive center -->
-  <circle cx="200" cy="200" r="158" fill="#566020"/>
 
-  <!-- Bold gold B — upper bowl narrower, lower bowl wider, thick stem -->
-  <path fill="#C9A845" d="
-    M 108 104
-    L 108 296
-    L 162 296
-    C 332 296 332 198 162 198
-    L 162 186
-    C 316 186 316 104 162 104
+  <!-- Dark olive background -->
+  <rect width="400" height="400" fill="#4c5826"/>
+
+  <!-- Outer thin gold ring -->
+  <circle cx="200" cy="200" r="178" fill="none" stroke="#c9a85a" stroke-width="5"/>
+
+  <!-- Gold disc (gap between ring inner-edge and disc creates double-ring look) -->
+  <circle cx="200" cy="200" r="169" fill="#c9a85a"/>
+
+  <!-- Left side notch tabs at mid-height (characteristic logo detail) -->
+  <rect x="31" y="184" width="40" height="13" fill="#4c5826"/>
+  <rect x="31" y="203" width="40" height="13" fill="#4c5826"/>
+
+  <!-- B outer shape: stem + upper bowl + lower bowl (wider), all olive-green -->
+  <path fill="#4c5826" d="
+    M 68 80
+    L 68 320
+    L 122 320
+    C 335 320 335 200 122 200
+    C 310 200 310 80 122 80
     Z
   "/>
+
+  <!-- Upper bowl counter — gold shows through the upper hole -->
+  <path fill="#c9a85a" d="M 122 102 C 262 102 262 182 122 182 Z"/>
+
+  <!-- Lower bowl counter — gold shows through the lower hole (slightly wider) -->
+  <path fill="#c9a85a" d="M 122 218 C 286 218 286 304 122 304 Z"/>
+
 </svg>

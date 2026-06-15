@@ -1,23 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Full-bleed square bg for maskable (safe zone is inner 80%) -->
-  <rect width="512" height="512" fill="#566020"/>
-  <!-- Outer gold ring -->
-  <circle cx="256" cy="256" r="246" fill="#C9A845"/>
-  <!-- Thin inner olive gap -->
-  <circle cx="256" cy="256" r="234" fill="#566020"/>
-  <!-- Main bold gold ring -->
-  <circle cx="256" cy="256" r="222" fill="#C9A845"/>
-  <!-- Olive center -->
-  <circle cx="256" cy="256" r="202" fill="#566020"/>
 
-  <!-- Bold gold B — within 80% safe zone -->
-  <path fill="#C9A845" d="
-    M 138 133
-    L 138 379
-    L 207 379
-    C 425 379 425 254 207 254
-    L 207 238
-    C 404 238 404 133 207 133
+  <!-- Full-bleed square for maskable PWA icon -->
+  <rect width="512" height="512" fill="#4c5826"/>
+
+  <!-- Outer thin gold ring -->
+  <circle cx="256" cy="256" r="228" fill="none" stroke="#c9a85a" stroke-width="6"/>
+
+  <!-- Gold disc -->
+  <circle cx="256" cy="256" r="217" fill="#c9a85a"/>
+
+  <!-- Left side notch tabs -->
+  <rect x="39" y="236" width="51" height="17" fill="#4c5826"/>
+  <rect x="39" y="259" width="51" height="17" fill="#4c5826"/>
+
+  <!-- B outer shape -->
+  <path fill="#4c5826" d="
+    M 87 103
+    L 87 410
+    L 157 410
+    C 430 410 430 256 157 256
+    C 397 256 397 103 157 103
     Z
   "/>
+
+  <!-- Upper bowl counter -->
+  <path fill="#c9a85a" d="M 157 131 C 336 131 336 234 157 234 Z"/>
+
+  <!-- Lower bowl counter -->
+  <path fill="#c9a85a" d="M 157 279 C 367 279 367 390 157 390 Z"/>
+
 </svg>

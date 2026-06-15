@@ -165,7 +165,7 @@ function SidebarContent({
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-gray-200 px-5 dark:border-white/[0.06]">
         <div className="flex items-center gap-3">
-          <img src="/logo.svg" alt="Bakkah Logo" className="h-9 w-9 rounded-full ring-1 ring-brand/30" />
+          <img src="/logo.png" alt="Bakkah Logo" className="h-9 w-9 rounded-full ring-1 ring-brand/30" />
           <div>
             <p className="font-display text-lg leading-none tracking-wide text-gray-900 dark:text-white">
               Bakkah
