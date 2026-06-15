@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { updateJobStatus, approveJob } from '@/lib/queries'
+import { updateJobStatus } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_STEP, type JobStatus } from '@/types'
 import { Check, Loader2, UserX, ShieldCheck, ClipboardCheck } from 'lucide-react'
 import { toast } from 'sonner'
@@ -18,12 +18,11 @@ const STEPS: JobStatus[] = [
   'delivered',
 ]
 
-export default function StatusStepper({ jobId, currentStatus, hasTechnician, userRole, userName, onUpdate }: {
+export default function StatusStepper({ jobId, currentStatus, hasTechnician, userRole, onUpdate }: {
   jobId: string
   currentStatus: JobStatus
   hasTechnician: boolean
   userRole?: string
-  userName?: string
   onUpdate: (s: JobStatus) => void
 }) {
   const [isPending, startTransition] = useTransition()
@@ -40,9 +39,6 @@ export default function StatusStepper({ jobId, currentStatus, hasTechnician, use
   const isWaitingApproval = displayStatus === 'waiting_for_approval'
   const isPendingNoTech = (displayStatus === 'pending') && !hasTechnician
 
-  const canApprove = isWaitingApproval &&
-    (userRole === 'admin' || userRole === 'supervisor')
-
   const canAdvance =
     !isInspection &&
     !isWaitingApproval &&
@@ -53,17 +49,6 @@ export default function StatusStepper({ jobId, currentStatus, hasTechnician, use
   // Next visible step index
   const currentStepIdx = STEPS.indexOf(displayStatus === 'pending' ? 'assigned' : displayStatus)
   const nextStep = STEPS[currentStepIdx + 1] as JobStatus | undefined
-
-  function handleApprove() {
-    startTransition(async () => {
-      try {
-        await approveJob(jobId, userName)
-        const newStatus: JobStatus = hasTechnician ? 'assigned' : 'pending'
-        onUpdate(newStatus)
-        toast.success('Job approved')
-      } catch { toast.error('Failed to approve job') }
-    })
-  }
 
   function advance() {
     if (!canAdvance || !nextStep) return
@@ -94,14 +79,12 @@ export default function StatusStepper({ jobId, currentStatus, hasTechnician, use
           <span className="flex items-center gap-1.5 text-xs text-cyan-400">
             <ClipboardCheck className="h-3.5 w-3.5" /> Vehicle under inspection — add quotation to proceed
           </span>
-        ) : isWaitingApproval && canApprove ? (
-          <button onClick={handleApprove} disabled={isPending}
-            className="flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-600 transition-colors h-auto disabled:opacity-50">
-            {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><ShieldCheck className="h-3.5 w-3.5" /> Approve Job</>}
-          </button>
         ) : isWaitingApproval ? (
           <span className="flex items-center gap-1.5 text-xs text-orange-400">
-            <ShieldCheck className="h-3.5 w-3.5" /> Awaiting customer approval
+            <ShieldCheck className="h-3.5 w-3.5" />
+            {userRole === 'admin' || userRole === 'supervisor'
+              ? 'Approve via the Quotation section below'
+              : 'Awaiting customer approval'}
           </span>
         ) : isPendingNoTech ? (
           <span className="flex items-center gap-1.5 text-xs text-yellow-400">
