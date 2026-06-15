@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
+import { getServerSession } from '@/lib/server-session'
 import { createProformaForJob } from '@/app/api/proforma-invoices/route'
 
 type Params = { params: Promise<{ id: string }> }
@@ -11,9 +10,9 @@ type Params = { params: Promise<{ id: string }> }
 // Also auto-creates a proforma invoice from the approved quotation.
 export async function POST(req: NextRequest, { params }: Params) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
-    const role = (session?.user as { role?: string })?.role
-    const userName = (session?.user as { name?: string })?.name
+    const session = await getServerSession()
+    const role = session?.user?.role
+    const userName = session?.user?.name
 
     if (!session || (role !== 'admin' && role !== 'supervisor')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })

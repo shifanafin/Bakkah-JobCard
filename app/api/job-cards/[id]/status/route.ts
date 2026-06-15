@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
+import { getServerSession } from '@/lib/server-session'
 import { createTaxInvoiceForJob } from '@/app/api/tax-invoices/route'
 
 type Params = { params: Promise<{ id: string }> }
@@ -11,8 +10,8 @@ type Params = { params: Promise<{ id: string }> }
 // On delivery: auto-creates a draft tax invoice.
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
-    const session = await auth.api.getSession({ headers: await headers() })
-    const role = (session?.user as { role?: string })?.role
+    const session = await getServerSession()
+    const role = session?.user?.role
     const userId = session?.user?.id
 
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
