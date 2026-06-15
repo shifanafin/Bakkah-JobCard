@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { getServerSession } from '@/lib/server-session'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -10,9 +9,8 @@ type Params = { params: Promise<{ id: string }> }
 // Jobs that have progressed past 'inspection' require status=cancelled first.
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
-    // Verify admin session
-    const session = await auth.api.getSession({ headers: await headers() })
-    const role = (session?.user as { role?: string })?.role
+    const session = await getServerSession()
+    const role = session?.user?.role
     if (!session || (role !== 'admin' && role !== 'supervisor')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
