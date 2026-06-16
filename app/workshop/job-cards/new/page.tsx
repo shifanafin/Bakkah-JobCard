@@ -636,8 +636,12 @@ export default function NewJobCardPage() {
           technician_id: wo.technician_id || undefined,
         });
 
-        // Upload photos
-        for (const ph of photos) {
+        localStorage.removeItem(DRAFT_KEY);
+        toast.success(`Job card ${jc.job_number} created — status: Inspection`);
+        router.push(`/workshop/job-cards/${jc.id}`);
+
+        // Upload photos + signatures in parallel after navigating
+        const photoUploads = photos.map(async (ph) => {
           try {
             const { url, publicId } = await uploadFile(
               ph.file,
@@ -652,38 +656,31 @@ export default function NewJobCardPage() {
           } catch {
             /* skip failed photo */
           }
-        }
+        });
 
-        // Upload signatures
         const sb = createClient();
-        const sigUp: Record<string, string> = {};
+        const sigUploads: Promise<[string, string] | null>[] = [];
         if (custSig) {
-          try {
-            sigUp.customer_signature_url = await uploadDataUrl(
-              custSig,
-              `bakkah/${jc.id}/signatures`,
-            );
-          } catch {
-            /* skip */
-          }
+          sigUploads.push(
+            uploadDataUrl(custSig, `bakkah/${jc.id}/signatures`)
+              .then((url) => ["customer_signature_url", url] as [string, string])
+              .catch(() => null),
+          );
         }
         if (supSig) {
-          try {
-            sigUp.supervisor_signature_url = await uploadDataUrl(
-              supSig,
-              `bakkah/${jc.id}/signatures`,
-            );
-          } catch {
-            /* skip */
-          }
-        }
-        if (Object.keys(sigUp).length) {
-          await sb.from("job_cards").update(sigUp).eq("id", jc.id);
+          sigUploads.push(
+            uploadDataUrl(supSig, `bakkah/${jc.id}/signatures`)
+              .then((url) => ["supervisor_signature_url", url] as [string, string])
+              .catch(() => null),
+          );
         }
 
-        localStorage.removeItem(DRAFT_KEY);
-        toast.success(`Job card ${jc.job_number} created — status: Inspection`);
-        router.push(`/workshop/job-cards/${jc.id}`);
+        await Promise.all([...photoUploads, ...sigUploads.map(async (p) => {
+          const result = await p;
+          if (result) {
+            await sb.from("job_cards").update({ [result[0]]: result[1] }).eq("id", jc.id);
+          }
+        })]);
       } catch (err) {
         toast.error(
           err instanceof Error ? err.message : "Failed to create job card",

@@ -13,15 +13,15 @@ export async function GET() {
 
   const [qtRes, pfRes, tiRes] = await Promise.all([
     sb.from('quotations')
-      .select('id, quotation_number, status, subtotal, discount, vat_amount, total, created_at, updated_at, job_card_id, job_card:job_cards(job_number, status, customer:customers(name, phone))')
+      .select('id, quotation_number, status, subtotal, discount, vat_amount, total, created_at, updated_at, job_card_id, job_card:job_cards(job_number, status, customer:customers(name, phone), vehicle:vehicles(model, plate_number))')
       .order('created_at', { ascending: false })
       .limit(200),
     sb.from('proforma_invoices')
-      .select('id, proforma_number, subtotal, discount, vat_amount, total, invoice_date, created_at, job_card_id, job_card:job_cards(job_number, status, customer:customers(name, phone))')
+      .select('id, proforma_number, subtotal, discount, vat_amount, total, invoice_date, created_at, job_card_id, job_card:job_cards(job_number, status, customer:customers(name, phone), vehicle:vehicles(model, plate_number))')
       .order('created_at', { ascending: false })
       .limit(200),
     sb.from('tax_invoices')
-      .select('id, invoice_number, status, subtotal, discount, vat_amount, total, invoice_date, created_at, job_card_id, job_card:job_cards(job_number, status, customer:customers(name, phone))')
+      .select('id, invoice_number, status, subtotal, discount, vat_amount, total, invoice_date, created_at, job_card_id, job_card:job_cards(job_number, status, customer:customers(name, phone), vehicle:vehicles(model, plate_number))')
       .order('created_at', { ascending: false })
       .limit(200),
   ])

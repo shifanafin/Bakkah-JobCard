@@ -13,6 +13,7 @@ type JobRef = {
   job_number: string
   status: string
   customer?: { name: string; phone: string } | null
+  vehicle?: { model: string; plate_number: string } | null
 }
 
 type Quotation = {
@@ -119,7 +120,7 @@ export default function TransactionsPage() {
   const q = search.toLowerCase()
 
   const filteredQuotations = quotations
-    .filter(x => !q || x.quotation_number.toLowerCase().includes(q) || (x.job_card?.customer?.name ?? '').toLowerCase().includes(q) || (x.job_card?.job_number ?? '').toLowerCase().includes(q))
+    .filter(x => !q || x.quotation_number.toLowerCase().includes(q) || (x.job_card?.customer?.name ?? '').toLowerCase().includes(q) || (x.job_card?.job_number ?? '').toLowerCase().includes(q) || (x.job_card?.vehicle?.plate_number ?? '').toLowerCase().includes(q) || (x.job_card?.vehicle?.model ?? '').toLowerCase().includes(q))
     .sort((a, b) => {
       const mul = sortDir === 'asc' ? 1 : -1
       if (sortKey === 'date') return mul * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
@@ -128,7 +129,7 @@ export default function TransactionsPage() {
     })
 
   const filteredProformas = proformas
-    .filter(x => !q || x.proforma_number.toLowerCase().includes(q) || (x.job_card?.customer?.name ?? '').toLowerCase().includes(q) || (x.job_card?.job_number ?? '').toLowerCase().includes(q))
+    .filter(x => !q || x.proforma_number.toLowerCase().includes(q) || (x.job_card?.customer?.name ?? '').toLowerCase().includes(q) || (x.job_card?.job_number ?? '').toLowerCase().includes(q) || (x.job_card?.vehicle?.plate_number ?? '').toLowerCase().includes(q) || (x.job_card?.vehicle?.model ?? '').toLowerCase().includes(q))
     .sort((a, b) => {
       const mul = sortDir === 'asc' ? 1 : -1
       if (sortKey === 'date') return mul * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
@@ -137,7 +138,7 @@ export default function TransactionsPage() {
     })
 
   const filteredTax = taxInvoices
-    .filter(x => !q || x.invoice_number.toLowerCase().includes(q) || (x.job_card?.customer?.name ?? '').toLowerCase().includes(q) || (x.job_card?.job_number ?? '').toLowerCase().includes(q))
+    .filter(x => !q || x.invoice_number.toLowerCase().includes(q) || (x.job_card?.customer?.name ?? '').toLowerCase().includes(q) || (x.job_card?.job_number ?? '').toLowerCase().includes(q) || (x.job_card?.vehicle?.plate_number ?? '').toLowerCase().includes(q) || (x.job_card?.vehicle?.model ?? '').toLowerCase().includes(q))
     .sort((a, b) => {
       const mul = sortDir === 'asc' ? 1 : -1
       if (sortKey === 'date') return mul * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
@@ -292,6 +293,7 @@ function QuotationTable({ rows, SortIcon, onSort }: {
           <tr>
             <th className={thCls} onClick={() => onSort('number')}>Number <SortIcon k="number" /></th>
             <th className={thCls}>Customer</th>
+            <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
             <th className={thCls}>Status</th>
             <th className={thCls} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
@@ -308,6 +310,10 @@ function QuotationTable({ rows, SortIcon, onSort }: {
                 <td className={tdCls}>
                   <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
                   <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
+                </td>
+                <td className={tdCls}>
+                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                  <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
                 </td>
                 <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
                 <td className={tdCls}>
@@ -345,6 +351,7 @@ function ProformaTable({ rows, SortIcon, onSort }: {
           <tr>
             <th className={thCls} onClick={() => onSort('number')}>Number <SortIcon k="number" /></th>
             <th className={thCls}>Customer</th>
+            <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
             <th className={thCls} onClick={() => onSort('total')}>Subtotal</th>
             <th className={thCls}>Discount</th>
@@ -361,6 +368,10 @@ function ProformaTable({ rows, SortIcon, onSort }: {
               <td className={tdCls}>
                 <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
                 <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
+              </td>
+              <td className={tdCls}>
+                <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
               </td>
               <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
               <td className={cn(tdCls, 'tabular-nums text-gray-600 dark:text-white/60')}>{formatAED(row.subtotal)}</td>
@@ -397,6 +408,7 @@ function TaxTable({ rows, SortIcon, onSort }: {
           <tr>
             <th className={thCls} onClick={() => onSort('number')}>Invoice # <SortIcon k="number" /></th>
             <th className={thCls}>Customer</th>
+            <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
             <th className={thCls}>Status</th>
             <th className={thCls}>Subtotal</th>
@@ -416,6 +428,10 @@ function TaxTable({ rows, SortIcon, onSort }: {
                 <td className={tdCls}>
                   <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
                   <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
+                </td>
+                <td className={tdCls}>
+                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                  <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
                 </td>
                 <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
                 <td className={tdCls}>
