@@ -3,7 +3,7 @@
 // ============================================================
 
 export type JobStatus = 'inspection' | 'waiting_for_approval' | 'pending' | 'assigned' | 'received' | 'in_progress' | 'qc_check' | 'ready' | 'delivered' | 'cancelled'
-export type JobType = 'service' | 'inspection' | 'detailing' | 'repair' | 'rta_check' | 'valuation' | 'other'
+export type JobType = string
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
 export type PhotoCategory = 'exterior_front' | 'exterior_rear' | 'exterior_left' | 'exterior_right' | 'interior' | 'engine_bay' | 'damage' | 'before_work' | 'after_work' | 'other'
 export type UserRole = 'admin' | 'supervisor' | 'technician' | 'receptionist'
@@ -152,7 +152,7 @@ export const JOB_STATUS_STEP: Record<JobStatus, number> = {
   pending: 2, received: 2, assigned: 3, in_progress: 4, qc_check: 5, ready: 6, delivered: 7, cancelled: -1,
 }
 
-export const JOB_TYPE_LABEL: Record<JobType, string> = {
+export const JOB_TYPE_LABEL: Record<string, string> = {
   service: 'Service',
   inspection: '360° Inspection',
   detailing: 'Auto Detailing',
