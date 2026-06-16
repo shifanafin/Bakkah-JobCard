@@ -1198,13 +1198,13 @@ export default function NewJobCardPage() {
                     }
                     className={selectCls}
                   >
-                    {JOB_TYPES.map((t) => (
+                    {jobTypes.map((t) => (
                       <option
-                        key={t}
-                        value={t}
+                        key={t.id}
+                        value={t.name}
                         className="dark:bg-zinc-900 dark:text-white"
                       >
-                        {JOB_TYPE_LABEL[t]}
+                        {t.name}
                       </option>
                     ))}
                   </select>

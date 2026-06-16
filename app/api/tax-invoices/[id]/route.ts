@@ -29,38 +29,39 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const body = await req.json()
     const sb = createServiceClient()
 
-    const { data: inv } = await sb.from('tax_invoices').select('status, subtotal, discount').eq('id', id).single()
+    const { data: inv } = await sb.from('tax_invoices').select('status, subtotal, discount, items').eq('id', id).single()
     if (!inv) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-    // Locked once issued
-    if (inv.status === 'issued' && body.action !== undefined) {
-      return NextResponse.json({ error: 'Tax invoice is already issued' }, { status: 400 })
-    }
 
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
 
     if (body.action === 'issue') {
-      if (inv.status === 'issued') return NextResponse.json({ error: 'Already issued' }, { status: 400 })
+      if (inv.status !== 'draft') return NextResponse.json({ error: 'Can only issue a draft invoice' }, { status: 400 })
       updates.status = 'issued'
-    }
+    } else if (body.action === 'mark_paid') {
+      if (inv.status !== 'issued') return NextResponse.json({ error: 'Can only mark as paid after issuing' }, { status: 400 })
+      updates.status = 'paid'
+    } else {
+      // Editing (discount / notes / terms) — only allowed on drafts
+      if (inv.status !== 'draft') {
+        return NextResponse.json({ error: 'Invoice is locked — only draft invoices can be edited' }, { status: 400 })
+      }
 
-    if (inv.status !== 'issued') {
       if (body.notes !== undefined) updates.notes = body.notes
       if (body.terms !== undefined) updates.terms = body.terms
 
       if (body.discount !== undefined) {
         const disc = parseFloat(body.discount) || 0
         const items: Item[] = (inv as { items?: Item[] }).items ?? []
-        const subtotal = items.reduce((s, i) => s + i.total_price, inv.subtotal ?? 0)
         const effectiveSubtotal = body.items !== undefined
           ? (body.items as Item[]).reduce((s: number, i: Item) => s + i.total_price, 0)
-          : (inv.subtotal ?? 0)
+          : items.length > 0
+            ? items.reduce((s, i) => s + i.total_price, 0)
+            : (inv.subtotal ?? 0)
         const vat = Math.max(0, (effectiveSubtotal - disc) * 0.05)
         updates.discount = disc
         updates.subtotal = effectiveSubtotal
         updates.vat_amount = vat
         updates.total = Math.max(0, effectiveSubtotal - disc + vat)
-        void subtotal // used for type safety
       }
     }
 

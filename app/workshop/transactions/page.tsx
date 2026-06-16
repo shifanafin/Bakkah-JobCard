@@ -5,9 +5,11 @@ import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Link from 'next/link'
-import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
+import * as XLSX from 'xlsx'
+import { toast } from 'sonner'
 
 type JobRef = {
   job_number: string
@@ -45,7 +47,7 @@ type Proforma = {
 type TaxInvoice = {
   id: string
   invoice_number: string
-  status: 'draft' | 'issued'
+  status: 'draft' | 'issued' | 'paid'
   subtotal: number
   discount: number
   vat_amount: number
@@ -66,6 +68,7 @@ const QUOTATION_STATUS: Record<string, { label: string; cls: string }> = {
 const TAX_STATUS: Record<string, { label: string; cls: string }> = {
   draft: { label: 'Draft', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400' },
   issued: { label: 'Issued', cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' },
+  paid: { label: 'Paid', cls: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400' },
 }
 
 type Tab = 'quotations' | 'proformas' | 'tax'
@@ -149,7 +152,75 @@ export default function TransactionsPage() {
   const totalQuotationValue = quotations.reduce((s, x) => s + x.total, 0)
   const totalProformaValue = proformas.reduce((s, x) => s + x.total, 0)
   const totalTaxValue = taxInvoices.reduce((s, x) => s + x.total, 0)
-  const issuedTaxValue = taxInvoices.filter(x => x.status === 'issued').reduce((s, x) => s + x.total, 0)
+  const issuedTaxValue = taxInvoices.filter(x => x.status === 'issued' || x.status === 'paid').reduce((s, x) => s + x.total, 0)
+  const paidTaxCount = taxInvoices.filter(x => x.status === 'paid').length
+
+  // ── Payment import state ──────────────────────────────────────
+  const [showImport, setShowImport] = useState(false)
+  const [importRows, setImportRows] = useState<Record<string, string>[]>([])
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{ updated: number; failed: number; errors: string[] } | null>(null)
+
+  function downloadPaymentTemplate() {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Job Number', 'Payment Status', 'Payment Method'],
+      ['JC-2024-0001', 'paid', 'cash'],
+      ['JC-2024-0002', 'partial', 'card'],
+    ])
+    ws['!cols'] = [{ wch: 18 }, { wch: 16 }, { wch: 16 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Payment Import')
+    XLSX.writeFile(wb, 'Bakkah_Payment_Import_Template.xlsx')
+  }
+
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const wb = XLSX.read(ev.target?.result, { type: 'array' })
+        const ws = wb.Sheets[wb.SheetNames[0]]
+        const data = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: '' })
+        setImportRows(data)
+        setImportResult(null)
+      } catch { toast.error('Failed to parse file') }
+    }
+    reader.readAsArrayBuffer(file)
+    e.target.value = ''
+  }
+
+  async function handleImport() {
+    if (importRows.length === 0) return
+    setImporting(true)
+    setImportResult(null)
+    const errors: string[] = []
+    let updated = 0
+    for (let i = 0; i < importRows.length; i++) {
+      const r = importRows[i]
+      const jobNumber = (r['Job Number'] ?? r['job_number'] ?? '').trim()
+      const paymentStatus = (r['Payment Status'] ?? r['payment_status'] ?? '').trim().toLowerCase()
+      const paymentMethod = (r['Payment Method'] ?? r['payment_method'] ?? '').trim().toLowerCase()
+      if (!jobNumber) { errors.push(`Row ${i + 1}: Job Number is required`); continue }
+      if (!['paid', 'partial', 'unpaid'].includes(paymentStatus)) {
+        errors.push(`Row ${i + 1}: Payment Status must be paid, partial, or unpaid`); continue
+      }
+      try {
+        const res = await fetch(`/api/job-cards/payment-import`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_number: jobNumber, payment_status: paymentStatus, payment_method: paymentMethod || null }),
+        })
+        const d = await res.json()
+        if (!res.ok) { errors.push(`Row ${i + 1} (${jobNumber}): ${d.error}`); continue }
+        updated++
+      } catch { errors.push(`Row ${i + 1} (${jobNumber}): Network error`) }
+    }
+    setImportResult({ updated, failed: errors.length, errors })
+    setImporting(false)
+    if (updated > 0) toast.success(`${updated} payment${updated !== 1 ? 's' : ''} updated`)
+    if (errors.length > 0) toast.error(`${errors.length} row${errors.length !== 1 ? 's' : ''} failed`)
+  }
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
@@ -190,12 +261,12 @@ export default function TransactionsPage() {
             sub={`${taxInvoices.filter(x => x.status === 'issued').length} issued`}
           />
           <SummaryCard
-            label="Revenue (Issued)"
-            count={taxInvoices.filter(x => x.status === 'issued').length}
+            label="Revenue (Issued + Paid)"
+            count={taxInvoices.filter(x => x.status === 'issued' || x.status === 'paid').length}
             value={issuedTaxValue}
             icon={<Receipt className="h-4 w-4 text-emerald-500" />}
             iconBg="bg-emerald-500/10"
-            sub="finalized tax invoices"
+            sub={`${paidTaxCount} paid`}
             highlight
           />
         </div>
@@ -229,13 +300,125 @@ export default function TransactionsPage() {
             ))}
           </div>
 
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by number, customer, job…"
-            className="input-base sm:w-64"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by number, customer, job…"
+              className="input-base sm:w-64"
+            />
+            <button
+              onClick={() => { setShowImport(true); setImportRows([]); setImportResult(null) }}
+              className="btn-ghost border-blue-600/30 bg-blue-500/8 text-blue-600 hover:bg-blue-500/15 dark:text-blue-400 shrink-0">
+              <Upload className="h-4 w-4" /> Import Payments
+            </button>
+          </div>
         </div>
+
+        {/* ── Payment import modal ── */}
+        {showImport && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl dark:bg-surface-800 flex flex-col max-h-[90vh]">
+              <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/[0.06] px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <Upload className="h-4 w-4 text-brand" />
+                  <h2 className="font-bold text-gray-900 dark:text-white">Import Payments</h2>
+                </div>
+                <button onClick={() => setShowImport(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-white/60">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1 p-5 space-y-4">
+                <div className="flex items-center justify-between rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-white/80">Download Template</p>
+                    <p className="text-xs text-gray-400 dark:text-white/30">Columns: Job Number, Payment Status, Payment Method</p>
+                  </div>
+                  <button onClick={downloadPaymentTemplate}
+                    className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white dark:bg-white/[0.05] dark:border-white/[0.08] px-3 py-1.5 text-xs font-semibold text-gray-600 dark:text-white/70 hover:bg-gray-50 transition-colors">
+                    <Download className="h-3.5 w-3.5" /> Template
+                  </button>
+                </div>
+
+                <div>
+                  <label className="label">Upload Excel / CSV File</label>
+                  <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02] px-4 py-6 hover:border-brand/40 transition-colors">
+                    <Upload className="h-6 w-6 text-gray-300 dark:text-white/20" />
+                    <span className="text-sm text-gray-500 dark:text-white/40">Click to select file (.xlsx, .csv)</span>
+                    <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+                  </label>
+                </div>
+
+                {importRows.length > 0 && !importResult && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 dark:text-white/40 mb-2 uppercase tracking-wide">
+                      Preview — {importRows.length} row{importRows.length !== 1 ? 's' : ''}
+                    </p>
+                    <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06]">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="bg-gray-50 dark:bg-white/[0.03]">
+                            {['Job Number', 'Payment Status', 'Payment Method'].map(h => (
+                              <th key={h} className="px-3 py-2 text-left font-bold text-gray-400 dark:text-white/30">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50 dark:divide-white/[0.03]">
+                          {importRows.slice(0, 6).map((row, i) => (
+                            <tr key={i}>
+                              <td className="px-3 py-1.5 font-mono text-gray-700 dark:text-white/70">{row['Job Number'] ?? row['job_number']}</td>
+                              <td className="px-3 py-1.5 text-gray-500 dark:text-white/50 capitalize">{row['Payment Status'] ?? row['payment_status']}</td>
+                              <td className="px-3 py-1.5 text-gray-500 dark:text-white/50">{row['Payment Method'] ?? row['payment_method']}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {importRows.length > 6 && (
+                        <p className="px-3 py-2 text-xs text-gray-400 dark:text-white/30">+{importRows.length - 6} more rows</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {importResult && (
+                  <div className="space-y-2">
+                    <div className="flex gap-3">
+                      {importResult.updated > 0 && (
+                        <div className="flex-1 flex items-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-3 py-2.5">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                          <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{importResult.updated} updated</span>
+                        </div>
+                      )}
+                      {importResult.failed > 0 && (
+                        <div className="flex-1 flex items-center gap-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 px-3 py-2.5">
+                          <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+                          <span className="text-sm font-semibold text-red-700 dark:text-red-400">{importResult.failed} failed</span>
+                        </div>
+                      )}
+                    </div>
+                    {importResult.errors.map((e, i) => (
+                      <p key={i} className="text-xs text-red-500">{e}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 border-t border-gray-100 dark:border-white/[0.06] px-5 py-4">
+                {importRows.length > 0 && !importResult && (
+                  <button onClick={handleImport} disabled={importing}
+                    className="btn-primary flex-1 gap-2">
+                    {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    Update {importRows.length} Payment{importRows.length !== 1 ? 's' : ''}
+                  </button>
+                )}
+                <button onClick={() => { setShowImport(false); setImportRows([]); setImportResult(null) }} className="btn-ghost">
+                  {importResult ? 'Close' : 'Cancel'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         <div className="card overflow-hidden p-0">

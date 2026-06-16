@@ -195,7 +195,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 <p className="text-sm text-gray-600">{job.vehicle?.make} {job.vehicle?.model} {job.vehicle?.year}</p>
                 {job.vehicle?.color && <p className="text-sm text-gray-600">Color: {job.vehicle.color}</p>}
                 {job.mileage_in && <p className="text-sm text-gray-600">Mileage In: {job.mileage_in.toLocaleString()} km</p>}
-                <p className="text-sm text-gray-600">Type: {JOB_TYPE_LABEL[job.job_type]}</p>
+                <p className="text-sm text-gray-600">Type: {JOB_TYPE_LABEL[job.job_type] ?? job.job_type}</p>
                 {job.technician && <p className="text-sm text-gray-600">Technician: {job.technician.name}</p>}
               </div>
             </div>
