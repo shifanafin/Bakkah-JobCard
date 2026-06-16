@@ -1,0 +1,45 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createServiceClient } from '@/lib/supabase/service'
+import { getServerSession } from '@/lib/server-session'
+
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url)
+  const all = url.searchParams.get('all') === '1'
+  const sb = createServiceClient()
+
+  let query = sb
+    .from('job_types')
+    .select('id, name, active, sort_order')
+    .order('sort_order', { ascending: true })
+    .order('name', { ascending: true })
+
+  if (!all) query = query.eq('active', true)
+
+  const { data, error } = await query
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ job_types: data ?? [] })
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getServerSession()
+    const role = session?.user?.role
+    if (!session || (role !== 'admin' && role !== 'supervisor')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const body = await req.json()
+    if (!body.name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+
+    const sb = createServiceClient()
+    const { data, error } = await sb.from('job_types').insert({
+      name: body.name.trim(),
+      sort_order: parseInt(body.sort_order) || 0,
+    }).select().single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ job_type: data }, { status: 201 })
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
+  }
+}

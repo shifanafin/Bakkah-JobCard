@@ -83,15 +83,7 @@ type VehicleOption = {
 
 type PendingPhoto = { file: File; preview: string; category: PhotoCategory };
 
-const JOB_TYPES: JobType[] = [
-  "service",
-  "inspection",
-  "detailing",
-  "repair",
-  "rta_check",
-  "valuation",
-  "other",
-];
+// Job types are loaded from the admin-managed /api/job-types endpoint
 
 const PHOTO_CATS: PhotoCategory[] = [
   "exterior_front",
@@ -256,8 +248,9 @@ export default function NewJobCardPage() {
   const [technicians, setTechnicians] = useState<
     { id: string; name: string; role: string }[]
   >([]);
+  const [jobTypes, setJobTypes] = useState<{ id: string; name: string }[]>([]);
   const [wo, setWo] = useState({
-    job_type: "service" as JobType,
+    job_type: "" as JobType,
     date_in: today,
     date_out: "",
     mileage_in: "",
@@ -322,6 +315,17 @@ export default function NewJobCardPage() {
     fetch("/api/admin/technicians")
       .then((r) => r.json())
       .then((d) => setTechnicians(Array.isArray(d) ? d : (d.technicians ?? [])))
+      .catch(() => {});
+    fetch("/api/job-types")
+      .then((r) => r.json())
+      .then((d) => {
+        const list: { id: string; name: string }[] = d.job_types ?? [];
+        setJobTypes(list);
+        setWo((f) => ({
+          ...f,
+          job_type: f.job_type || (list[0]?.name ?? ""),
+        }));
+      })
       .catch(() => {});
   }, []);
 
