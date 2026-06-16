@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { Receipt, Loader2, Check, MessageCircle, AlertTriangle } from 'lucide-react'
+import { Receipt, Loader2, Check, MessageCircle, AlertTriangle, BadgeCheck } from 'lucide-react'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -20,7 +20,7 @@ type TaxInvoice = {
   id: string
   invoice_number: string
   job_card_id: string
-  status: 'draft' | 'issued'
+  status: 'draft' | 'issued' | 'paid'
   invoice_date: string
   notes: string | null
   terms: string | null
@@ -35,6 +35,18 @@ const ITEM_TYPE_CLS: Record<string, string> = {
   service: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400',
   part: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
   labor: 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400',
+}
+
+const STATUS_BADGE: Record<string, string> = {
+  draft: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
+  issued: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
+  paid: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  draft: 'Draft',
+  issued: 'Issued',
+  paid: 'Paid',
 }
 
 export default function TaxInvoiceSection({
@@ -64,15 +76,15 @@ export default function TaxInvoiceSection({
 
   useEffect(() => { load() }, [jobId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const isLocked = invoice?.status === 'issued'
+  const isDraft = invoice?.status === 'draft'
+  const isIssued = invoice?.status === 'issued'
+  const isPaid = invoice?.status === 'paid'
 
   function handleDiscount() {
-    if (!invoice || isLocked) return
+    if (!invoice || !isDraft) return
     startTransition(async () => {
       try {
         const disc = parseFloat(discount) || 0
-        const subtotal = invoice.items.reduce((s, i) => s + i.total_price, 0) || invoice.subtotal
-        const vat = Math.max(0, (subtotal - disc) * 0.05)
         const res = await fetch(`/api/tax-invoices/${invoice.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -81,14 +93,13 @@ export default function TaxInvoiceSection({
         const d = await res.json()
         if (!res.ok) { toast.error(d.error || 'Failed'); return }
         setInvoice(d.invoice)
-        void vat
         toast.success('Discount applied')
       } catch { toast.error('Failed to apply discount') }
     })
   }
 
   function handleSaveNotes() {
-    if (!invoice || isLocked) return
+    if (!invoice || !isDraft) return
     startTransition(async () => {
       try {
         const res = await fetch(`/api/tax-invoices/${invoice.id}`, {
@@ -105,7 +116,7 @@ export default function TaxInvoiceSection({
   }
 
   function handleIssue() {
-    if (!invoice || isLocked) return
+    if (!invoice || !isDraft) return
     startTransition(async () => {
       try {
         const res = await fetch(`/api/tax-invoices/${invoice.id}`, {
@@ -118,6 +129,24 @@ export default function TaxInvoiceSection({
         setInvoice(d.invoice)
         toast.success('Tax invoice issued')
       } catch { toast.error('Failed to issue invoice') }
+    })
+  }
+
+  function handleMarkPaid() {
+    if (!invoice || !isIssued) return
+    if (!confirm('Mark this tax invoice as Paid? This cannot be undone.')) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/tax-invoices/${invoice.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'mark_paid' }),
+        })
+        const d = await res.json()
+        if (!res.ok) { toast.error(d.error || 'Failed'); return }
+        setInvoice(d.invoice)
+        toast.success('Invoice marked as paid')
+      } catch { toast.error('Failed to mark as paid') }
     })
   }
 
@@ -157,11 +186,8 @@ export default function TaxInvoiceSection({
         {invoice && (
           <>
             <span className="font-mono text-xs text-gray-400 dark:text-white/40">{invoice.invoice_number}</span>
-            <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold',
-              invoice.status === 'issued'
-                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400'
-                : 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400')}>
-              {invoice.status === 'issued' ? 'Issued' : 'Draft'}
+            <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold', STATUS_BADGE[invoice.status])}>
+              {STATUS_LABEL[invoice.status]}
             </span>
           </>
         )}
@@ -184,7 +210,7 @@ export default function TaxInvoiceSection({
       ) : (
         <>
           {/* Draft notice */}
-          {!isLocked && (
+          {isDraft && (
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-3 py-2.5">
               <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 dark:text-amber-300">
@@ -247,7 +273,7 @@ export default function TaxInvoiceSection({
           </div>
 
           {/* Completion Discount — draft only */}
-          {!isLocked && (
+          {isDraft && (
             <div className="flex items-end gap-2">
               <div className="flex-1">
                 <label className="label">Completion Discount (AED)</label>
@@ -261,11 +287,11 @@ export default function TaxInvoiceSection({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="label">Notes</label>
-              {!isLocked && !editingNotes && (
+              {isDraft && !editingNotes && (
                 <button onClick={() => setEditingNotes(true)} className="text-xs text-brand hover:underline">Edit</button>
               )}
             </div>
-            {!isLocked && editingNotes ? (
+            {isDraft && editingNotes ? (
               <div className="space-y-2">
                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
                   className="input-base w-full min-h-[80px] resize-none"
@@ -280,26 +306,44 @@ export default function TaxInvoiceSection({
               </div>
             ) : invoice.notes ? (
               <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{invoice.notes}</p>
-            ) : !isLocked ? (
+            ) : isDraft ? (
               <p className="text-xs text-gray-300 dark:text-white/20 italic">No notes — click Edit to add</p>
             ) : null}
           </div>
 
           {/* Issue button — draft only */}
-          {!isLocked && (
+          {isDraft && (
             <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
-              <button onClick={handleIssue} disabled={isPending}
-                className="btn-primary flex-1">
+              <button onClick={handleIssue} disabled={isPending} className="btn-primary flex-1">
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 Issue Tax Invoice
               </button>
             </div>
           )}
 
-          {isLocked && (
-            <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3">
-              <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-              <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Tax Invoice Issued — Locked</span>
+          {/* Issued — show Mark as Paid */}
+          {isIssued && (
+            <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3">
+                <Check className="h-4 w-4 text-emerald-500 shrink-0" />
+                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Tax Invoice Issued — Locked</span>
+              </div>
+              <button onClick={handleMarkPaid} disabled={isPending}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400">
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
+                Mark as Paid
+              </button>
+            </div>
+          )}
+
+          {/* Paid — final state */}
+          {isPaid && (
+            <div className="flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 px-4 py-3 pt-1 mt-1 border-t border-gray-100 dark:border-white/[0.06]">
+              <BadgeCheck className="h-5 w-5 text-blue-500 shrink-0" />
+              <div>
+                <p className="text-sm font-bold text-blue-700 dark:text-blue-400">Invoice Paid</p>
+                <p className="text-xs text-blue-500/70 dark:text-blue-400/60">Payment received and recorded</p>
+              </div>
             </div>
           )}
         </>
