@@ -906,7 +906,7 @@ export default function PublicInvoicePage({
               style={{ borderTop: "2px solid #6B7A28", paddingTop: "1.25rem" }}
             >
               <p className="text-xs text-gray-400">
-                Bakkah Auto Premium Care · Al Qusais Industrial Area, Dubai, UAE ·
+                Bakkah Premium Auto Care · Al Qusais Industrial Area, Dubai, UAE ·
                 TRN: 100 000 000 000 003
               </p>
               <p className="mt-1 text-xs text-gray-400">

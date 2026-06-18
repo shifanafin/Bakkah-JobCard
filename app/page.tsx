@@ -235,7 +235,7 @@ const l = {
     openingHours: 'Opening Hours',
     monSat: 'Mon – Sat: 8:00 AM – 8:00 PM',
     sunday: 'Sunday: 9:00 AM – 5:00 PM',
-    copyright: '© 2025 Bakkah Auto Premium Care LLC. All rights reserved. Made with ❤️ in Dubai.',
+    copyright: '© 2025 Bakkah Premium Auto Care LLC. All rights reserved. Made with ❤️ in Dubai.',
     trackVehicle: 'Track Vehicle',
     staffLogin: 'Staff Login',
   },
@@ -1212,7 +1212,7 @@ export default function BakkahHomePage() {
             {videoReady && (
               <iframe
                 src="https://www.youtube.com/embed/dU9mC9wKblI?autoplay=1&mute=1&controls=1&rel=0&modestbranding=1&playsinline=1&loop=1&playlist=dU9mC9wKblI"
-                title="Professional Car Detailing — Bakkah Auto Premium Care Dubai"
+                title="Professional Car Detailing — Bakkah Premium Auto Care Dubai"
                 className="absolute inset-0 w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen

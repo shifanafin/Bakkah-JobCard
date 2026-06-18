@@ -73,7 +73,7 @@ export async function sendQuotationEmail(params: QuotationEmailParams) {
         <tr>
           <td style="background:linear-gradient(135deg,#566020,#6b7a28);padding:32px 36px;text-align:center;">
             <div style="width:64px;height:64px;border-radius:50%;background:#C9A845;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#566020;line-height:64px;">B</div>
-            <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">Bakkah Auto Premium Care</h1>
+            <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:0.5px;">Bakkah Premium Auto Care</h1>
             <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:13px;">Al Qusais, Dubai — UAE</p>
           </td>
         </tr>
@@ -181,7 +181,7 @@ export async function sendQuotationEmail(params: QuotationEmailParams) {
         <!-- Footer -->
         <tr>
           <td style="background:#f8f8f8;padding:20px 36px;text-align:center;border-top:1px solid #f0f0f0;">
-            <p style="margin:0;font-size:12px;color:#aaa;">Bakkah Auto Premium Care · Al Qusais, Dubai, UAE</p>
+            <p style="margin:0;font-size:12px;color:#aaa;">Bakkah Premium Auto Care · Al Qusais, Dubai, UAE</p>
             <p style="margin:4px 0 0;font-size:11px;color:#ccc;">This is an automated message. Please do not reply to this email.</p>
           </td>
         </tr>
@@ -196,7 +196,7 @@ export async function sendQuotationEmail(params: QuotationEmailParams) {
   const { data, error } = await resend.emails.send({
     from: FROM,
     to,
-    subject: `Quotation ${quotationNumber} — Bakkah Auto Premium Care`,
+    subject: `Quotation ${quotationNumber} — Bakkah Premium Auto Care`,
     html,
   });
 
@@ -232,7 +232,7 @@ export async function sendStatusUpdateEmail(params: StatusUpdateEmailParams) {
         <tr>
           <td style="background:linear-gradient(135deg,#566020,#6b7a28);padding:28px 36px;text-align:center;">
             <div style="width:56px;height:56px;border-radius:50%;background:#C9A845;margin:0 auto 12px;font-size:26px;font-weight:900;color:#566020;line-height:56px;">B</div>
-            <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">Bakkah Auto Premium Care</h1>
+            <h1 style="margin:0;color:#fff;font-size:20px;font-weight:700;">Bakkah Premium Auto Care</h1>
             <p style="margin:4px 0 0;color:rgba(255,255,255,0.7);font-size:12px;">Al Qusais, Dubai — UAE</p>
           </td>
         </tr>
@@ -254,7 +254,7 @@ export async function sendStatusUpdateEmail(params: StatusUpdateEmailParams) {
         </tr>
         <tr>
           <td style="background:#f8f8f8;padding:16px 36px;text-align:center;border-top:1px solid #f0f0f0;">
-            <p style="margin:0;font-size:11px;color:#aaa;">Bakkah Auto Premium Care · Al Qusais, Dubai, UAE · +971 54 588 6999</p>
+            <p style="margin:0;font-size:11px;color:#aaa;">Bakkah Premium Auto Care · Al Qusais, Dubai, UAE · +971 54 588 6999</p>
           </td>
         </tr>
       </table>

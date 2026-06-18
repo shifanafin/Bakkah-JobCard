@@ -306,7 +306,7 @@ export default function QuotationSection({
     const lines = [
       `Dear ${customerName ?? 'Valued Customer'},`,
       ``,
-      `Your vehicle has been assessed at Bakkah Auto Premium Care.`,
+      `Your vehicle has been assessed at Bakkah Premium Auto Care.`,
       `Here is your Quotation *${quotation.quotation_number}*${jobNumber ? ` for Job *${jobNumber}*` : ''}:`,
       ``,
       `━━━━━━━━━━━━━━━━━━`,
@@ -323,7 +323,7 @@ export default function QuotationSection({
       `Questions? Call or WhatsApp us:`,
       `📞 +971 54 588 6999`,
       ``,
-      `Bakkah Auto Premium Care`,
+      `Bakkah Premium Auto Care`,
       `Al Qusais Industrial Area 5, Dubai`,
     ]
 

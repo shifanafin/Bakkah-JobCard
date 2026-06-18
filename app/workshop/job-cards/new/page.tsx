@@ -316,17 +316,22 @@ export default function NewJobCardPage() {
       .then((r) => r.json())
       .then((d) => setTechnicians(Array.isArray(d) ? d : (d.technicians ?? [])))
       .catch(() => {});
-    fetch("/api/job-types")
-      .then((r) => r.json())
-      .then((d) => {
-        const list: { id: string; name: string }[] = d.job_types ?? [];
-        setJobTypes(list);
-        setWo((f) => ({
-          ...f,
-          job_type: f.job_type || (list[0]?.name ?? ""),
-        }));
-      })
-      .catch(() => {});
+    Promise.all([
+      fetch("/api/job-types").then((r) => r.json()).catch(() => ({})),
+      fetch("/api/services").then((r) => r.json()).catch(() => ({})),
+    ]).then(([jt, sv]) => {
+      const jtList: { id: string; name: string }[] = jt.job_types ?? [];
+      const svList: { id: string; name: string }[] = (sv.services ?? []).map(
+        (s: { id: string; name: string }) => ({ id: `svc-${s.id}`, name: s.name }),
+      );
+      const seen = new Set(jtList.map((x) => x.name.toLowerCase()));
+      const merged = [...jtList, ...svList.filter((s) => !seen.has(s.name.toLowerCase()))];
+      setJobTypes(merged);
+      setWo((f) => ({
+        ...f,
+        job_type: f.job_type || (merged[0]?.name ?? ""),
+      }));
+    });
   }, []);
 
   // Close dropdowns on outside click

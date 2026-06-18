@@ -6,8 +6,8 @@ type Params = { params: Promise<{ id: string }> }
 
 function recalcTotals(items: { total_price: number }[], discount: number) {
   const subtotal = items.reduce((s, i) => s + (i.total_price || 0), 0)
-  const vat = Math.max(0, (subtotal - discount) * 0.05)
-  return { subtotal, vat_amount: vat, total: Math.max(0, subtotal - discount + vat) }
+  const vat = subtotal * 0.05
+  return { subtotal, vat_amount: vat, total: Math.max(0, subtotal + vat - discount) }
 }
 
 async function getQuotationCtx(id: string) {

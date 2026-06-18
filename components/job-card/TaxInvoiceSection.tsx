@@ -162,7 +162,7 @@ export default function TaxInvoiceSection({
       ``,
       `Total: AED ${invoice?.total?.toFixed(2)}`,
       ``,
-      `Bakkah Auto Premium Care | +971 54 588 6999`,
+      `Bakkah Premium Auto Care | +971 54 588 6999`,
     ].join('\n')
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
   }

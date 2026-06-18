@@ -44,10 +44,10 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     if (body.discount !== undefined) {
       const disc = parseFloat(body.discount) || 0
-      const vat = Math.max(0, (pi.subtotal - disc) * 0.05)
+      const vat = pi.subtotal * 0.05
       updates.discount = disc
       updates.vat_amount = vat
-      updates.total = Math.max(0, pi.subtotal - disc + vat)
+      updates.total = Math.max(0, pi.subtotal + vat - disc)
     }
 
     const { data, error } = await sb.from('proforma_invoices').update(updates).eq('id', id).select().single()
