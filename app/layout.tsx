@@ -19,8 +19,24 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Bakkah Premium Auto Care", template: "%s — Bakkah" },
-  description: "Automotive Workshop Management Platform — Al Qusais, Dubai",
+  metadataBase: new URL("https://bakkah.ae"),
+  title: {
+    default: "Bakkah Premium Auto Care | Car Detailing Dubai — Al Qusais",
+    template: "%s | Bakkah Premium Auto Care Dubai",
+  },
+  description:
+    "Dubai's #1 premium car detailing studio in Al Qusais. Expert ceramic coating, paint correction, full detailing & RTA inspection prep. 5,000+ cars transformed. 5.0★ Google rating.",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
@@ -32,9 +48,19 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Bakkah",
+    title: "Bakkah Auto Care",
   },
   applicationName: "Bakkah Premium Auto Care",
+  authors: [{ name: "Bakkah Premium Auto Care LLC" }],
+  creator: "Bakkah Premium Auto Care LLC",
+  publisher: "Bakkah Premium Auto Care LLC",
+  category: "Automotive",
+  classification: "Car Detailing & Auto Care Services",
+  openGraph: {
+    type: "website",
+    locale: "en_AE",
+    siteName: "Bakkah Premium Auto Care",
+  },
 };
 
 export const viewport: Viewport = {
@@ -52,26 +78,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" dir="ltr" className="dark" suppressHydrationWarning>
-      <head></head>
+    <html lang="en-AE" dir="ltr" className="dark" suppressHydrationWarning>
+      <head />
       <body
         className={`${bebas.variable} ${geist.variable} ${cairo.variable} font-body antialiased bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white`}
       >
         <ThemeProvider>
-            <PwaRegister />
-            {/* <PwaInstallBanner /> */}
-            <PostHogProvider>{children}</PostHogProvider>
-            <Toaster
-              theme="system"
-              position="top-right"
-              toastOptions={{
-                classNames: {
-                  toast:
-                    "bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white",
-                },
-              }}
-            />
-          </ThemeProvider>
+          <PwaRegister />
+          <PostHogProvider>{children}</PostHogProvider>
+          <Toaster
+            theme="system"
+            position="top-right"
+            toastOptions={{
+              classNames: {
+                toast:
+                  "bg-white dark:bg-[#1c1c1c] border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white",
+              },
+            }}
+          />
+        </ThemeProvider>
       </body>
     </html>
   );

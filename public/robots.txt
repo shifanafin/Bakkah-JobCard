@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /track
+Disallow: /workshop/
+Disallow: /auth/
+Disallow: /api/
+Disallow: /invoice/
+
+# Allow crawling of public assets
+Allow: /icons/
+Allow: /logo.png
+Allow: /logo.svg
+
+Sitemap: https://bakkah.ae/sitemap.xml
