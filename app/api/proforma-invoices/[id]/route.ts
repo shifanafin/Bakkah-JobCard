@@ -27,16 +27,49 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const body = await req.json()
     const sb = createServiceClient()
 
-    // Check job status — locked once delivered
-    const { data: pi } = await sb.from('proforma_invoices').select('job_card_id, subtotal, discount').eq('id', id).single()
+    const { data: pi } = await sb.from('proforma_invoices').select('*').eq('id', id).single()
     if (!pi) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    const { data: job } = await sb.from('job_cards').select('status').eq('id', pi.job_card_id).single()
-    if (job?.status === 'delivered' || job?.status === 'cancelled') {
-      return NextResponse.json({ error: 'Cannot edit proforma for a completed job' }, { status: 400 })
+    const now = new Date().toISOString()
+
+    // Sync items from linked quotation
+    if (body.action === 'sync_from_quotation') {
+      if (!pi.quotation_id) {
+        return NextResponse.json({ error: 'No quotation linked to this proforma' }, { status: 400 })
+      }
+      const { data: qt } = await sb
+        .from('quotations')
+        .select('*, items:quotation_items(*)')
+        .eq('id', pi.quotation_id)
+        .single()
+      if (!qt) return NextResponse.json({ error: 'Quotation not found' }, { status: 404 })
+
+      const items = (qt.items ?? []).map((i: {
+        item_type: string; description: string; quantity: number
+        unit_price: number; total_price: number; sort_order: number
+      }) => ({
+        id: crypto.randomUUID(),
+        item_type: i.item_type,
+        description: i.description,
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+        total_price: i.total_price,
+        sort_order: i.sort_order,
+      }))
+
+      const disc = pi.discount ?? 0
+      const subtotal = items.reduce((s: number, i: { total_price: number }) => s + i.total_price, 0)
+      const vat_amount = Math.max(0, (subtotal - disc) * 0.05)
+      const total = Math.max(0, subtotal - disc + vat_amount)
+
+      const { data, error } = await sb.from('proforma_invoices')
+        .update({ items, subtotal, vat_amount, total, updated_at: now })
+        .eq('id', id).select().single()
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      return NextResponse.json({ proforma: data })
     }
 
-    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+    const updates: Record<string, unknown> = { updated_at: now }
 
     if (body.notes !== undefined) updates.notes = body.notes
     if (body.terms !== undefined) updates.terms = body.terms
@@ -44,10 +77,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
     if (body.discount !== undefined) {
       const disc = parseFloat(body.discount) || 0
-      const vat = Math.max(0, (pi.subtotal - disc) * 0.05)
+      const subtotal = (pi.subtotal as number) ?? 0
+      const vat = Math.max(0, (subtotal - disc) * 0.05)
       updates.discount = disc
       updates.vat_amount = vat
-      updates.total = Math.max(0, pi.subtotal - disc + vat)
+      updates.total = Math.max(0, subtotal - disc + vat)
     }
 
     const { data, error } = await sb.from('proforma_invoices').update(updates).eq('id', id).select().single()

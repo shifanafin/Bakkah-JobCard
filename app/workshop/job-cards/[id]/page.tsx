@@ -42,7 +42,6 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
-  const [quotationApproved, setQuotationApproved] = useState(false)
 
   async function handleNotifyEmail() {
     if (!job) return
@@ -316,29 +315,24 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           customerName={job.customer?.name}
           customerEmail={job.customer?.email}
           canApprove={canAssign}
-          onStatusChange={s => setQuotationApproved(s === 'approved')}
           onEmailNotify={handleNotifyEmail}
           onJobUpdate={load}
         />
 
-        {/* Proforma Invoice — shown once quotation is approved */}
-        {quotationApproved && (
-          <ProformaSection
-            jobId={job.id}
-            jobNumber={job.job_number}
-            jobStatus={job.status}
-            customerPhone={job.customer?.phone}
-          />
-        )}
+        {/* Proforma Invoice — always rendered; section hides itself when no proforma exists */}
+        <ProformaSection
+          jobId={job.id}
+          jobNumber={job.job_number}
+          customerPhone={job.customer?.phone}
+        />
 
-        {/* Tax Invoice — shown when job is delivered */}
-        {job.status === 'delivered' && (
-          <TaxInvoiceSection
-            jobId={job.id}
-            jobNumber={job.job_number}
-            customerPhone={job.customer?.phone}
-          />
-        )}
+        {/* Tax Invoice — always rendered; canCreate allows admin/supervisor to create manually */}
+        <TaxInvoiceSection
+          jobId={job.id}
+          jobNumber={job.job_number}
+          customerPhone={job.customer?.phone}
+          canCreate={canAssign}
+        />
 
 
         {/* Photos */}

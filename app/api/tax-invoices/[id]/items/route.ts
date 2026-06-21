@@ -21,17 +21,14 @@ async function requireAuth() {
   return session
 }
 
-async function getProformaCtx(id: string) {
+async function getInvoiceCtx(id: string) {
   const sb = createServiceClient()
-  const { data: pi } = await sb
-    .from('proforma_invoices')
-    .select('*, job_card_id, subtotal, discount, items')
+  const { data: inv } = await sb
+    .from('tax_invoices')
+    .select('*')
     .eq('id', id)
     .single()
-  if (!pi) return { sb, pi: null, jobStatus: null }
-  const { data: job } = await sb.from('job_cards').select('status').eq('id', pi.job_card_id).single()
-  const jobStatus = job?.status ?? null
-  return { sb, pi, jobStatus }
+  return { sb, inv }
 }
 
 function recalc(items: Item[], discount: number) {
@@ -41,38 +38,21 @@ function recalc(items: Item[], discount: number) {
   return { subtotal, vat_amount, total }
 }
 
-async function logHistory(
-  sb: ReturnType<typeof createServiceClient>,
-  jobCardId: string,
-  jobStatus: string,
-  changedBy: string,
-  notes: string,
-) {
-  await sb.from('job_card_history').insert({
-    job_card_id: jobCardId,
-    old_status: jobStatus,
-    new_status: jobStatus,
-    changed_by: changedBy,
-    notes,
-  })
-}
-
 // POST — add item
 export async function POST(req: NextRequest, { params }: Params) {
   try {
-    const session = await requireAuth()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    const userName = session.user?.name ?? 'Staff'
+    if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
     const { id } = await params
-    const { sb, pi, jobStatus } = await getProformaCtx(id)
-    if (!pi) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const { sb, inv } = await getInvoiceCtx(id)
+    if (!inv) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const body = await req.json()
     if (!body.description?.trim()) return NextResponse.json({ error: 'Description required' }, { status: 400 })
 
     const qty = parseFloat(body.quantity) || 1
     const unitPrice = parseFloat(body.unit_price) || 0
+    const existingItems: Item[] = inv.items ?? []
     const newItem: Item = {
       id: crypto.randomUUID(),
       item_type: body.item_type ?? 'service',
@@ -80,22 +60,18 @@ export async function POST(req: NextRequest, { params }: Params) {
       quantity: qty,
       unit_price: unitPrice,
       total_price: qty * unitPrice,
-      sort_order: (pi.items as Item[]).length,
+      sort_order: existingItems.length,
     }
 
-    const newItems = [...(pi.items as Item[]), newItem]
-    const { subtotal, vat_amount, total } = recalc(newItems, pi.discount ?? 0)
+    const newItems = [...existingItems, newItem]
+    const { subtotal, vat_amount, total } = recalc(newItems, inv.discount ?? 0)
 
-    const { data, error } = await sb.from('proforma_invoices')
+    const { data, error } = await sb.from('tax_invoices')
       .update({ items: newItems, subtotal, vat_amount, total, updated_at: new Date().toISOString() })
       .eq('id', id).select().single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-    await logHistory(sb, pi.job_card_id, jobStatus ?? '', userName,
-      `Added proforma item: "${newItem.description}" ×${qty} @ AED ${unitPrice}`)
-
-    return NextResponse.json({ proforma: data })
+    return NextResponse.json({ invoice: data })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
   }
@@ -104,19 +80,18 @@ export async function POST(req: NextRequest, { params }: Params) {
 // PATCH — edit item (?item_id=xxx)
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
-    const session = await requireAuth()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    const userName = session.user?.name ?? 'Staff'
+    if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
     const { id } = await params
     const itemId = new URL(req.url).searchParams.get('item_id')
     if (!itemId) return NextResponse.json({ error: 'item_id required' }, { status: 400 })
 
-    const { sb, pi, jobStatus } = await getProformaCtx(id)
-    if (!pi) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const { sb, inv } = await getInvoiceCtx(id)
+    if (!inv) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
     const body = await req.json()
-    const existing = (pi.items as Item[]).find(i => i.id === itemId)
+    const items: Item[] = inv.items ?? []
+    const existing = items.find(i => i.id === itemId)
     if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
 
     const qty = body.quantity !== undefined ? parseFloat(body.quantity) || existing.quantity : existing.quantity
@@ -124,19 +99,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     const description = body.description?.trim() || existing.description
 
     const updatedItem: Item = { ...existing, description, quantity: qty, unit_price: unitPrice, total_price: qty * unitPrice }
-    const newItems = (pi.items as Item[]).map(i => i.id === itemId ? updatedItem : i)
-    const { subtotal, vat_amount, total } = recalc(newItems, pi.discount ?? 0)
+    const newItems = items.map(i => i.id === itemId ? updatedItem : i)
+    const { subtotal, vat_amount, total } = recalc(newItems, inv.discount ?? 0)
 
-    const { data, error } = await sb.from('proforma_invoices')
+    const { data, error } = await sb.from('tax_invoices')
       .update({ items: newItems, subtotal, vat_amount, total, updated_at: new Date().toISOString() })
       .eq('id', id).select().single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-    await logHistory(sb, pi.job_card_id, jobStatus ?? '', userName,
-      `Edited proforma item: "${description}" ×${qty} @ AED ${unitPrice}`)
-
-    return NextResponse.json({ proforma: data })
+    return NextResponse.json({ invoice: data })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
   }
@@ -145,33 +116,25 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 // DELETE — remove item (?item_id=xxx)
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
-    const session = await requireAuth()
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
-    const userName = session.user?.name ?? 'Staff'
+    if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
     const { id } = await params
     const itemId = new URL(req.url).searchParams.get('item_id')
     if (!itemId) return NextResponse.json({ error: 'item_id required' }, { status: 400 })
 
-    const { sb, pi, jobStatus } = await getProformaCtx(id)
-    if (!pi) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    const { sb, inv } = await getInvoiceCtx(id)
+    if (!inv) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    const existing = (pi.items as Item[]).find(i => i.id === itemId)
-    const newItems = (pi.items as Item[]).filter(i => i.id !== itemId)
-    const { subtotal, vat_amount, total } = recalc(newItems, pi.discount ?? 0)
+    const items: Item[] = inv.items ?? []
+    const newItems = items.filter(i => i.id !== itemId)
+    const { subtotal, vat_amount, total } = recalc(newItems, inv.discount ?? 0)
 
-    const { data, error } = await sb.from('proforma_invoices')
+    const { data, error } = await sb.from('tax_invoices')
       .update({ items: newItems, subtotal, vat_amount, total, updated_at: new Date().toISOString() })
       .eq('id', id).select().single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-    if (existing) {
-      await logHistory(sb, pi.job_card_id, jobStatus ?? '', userName,
-        `Removed proforma item: "${existing.description}"`)
-    }
-
-    return NextResponse.json({ proforma: data })
+    return NextResponse.json({ invoice: data })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
   }
