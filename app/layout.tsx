@@ -19,7 +19,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Bakkah Auto Premium Care", template: "%s — Bakkah" },
+  title: { default: "Bakkah Premium Auto Care", template: "%s — Bakkah" },
   description: "Automotive Workshop Management Platform — Al Qusais, Dubai",
   manifest: "/manifest.webmanifest",
   icons: {
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Bakkah",
   },
-  applicationName: "Bakkah Auto Premium Care",
+  applicationName: "Bakkah Premium Auto Care",
 };
 
 export const viewport: Viewport = {

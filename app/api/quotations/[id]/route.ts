@@ -105,9 +105,9 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     updates.discount = body.discount
     const { data: q } = await sb.from('quotations').select('subtotal').eq('id', id).single()
     if (q) {
-      const vat = Math.max(0, (q.subtotal - body.discount) * 0.05)
+      const vat = q.subtotal * 0.05
       updates.vat_amount = vat
-      updates.total = Math.max(0, q.subtotal - body.discount + vat)
+      updates.total = Math.max(0, q.subtotal + vat - body.discount)
     }
   }
 
