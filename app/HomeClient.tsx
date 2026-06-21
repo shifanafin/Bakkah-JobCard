@@ -88,37 +88,31 @@ const SERVICES = [
   {
     icon: Sparkles, emoji: "✨", key: "fullDetail",
     title: "Full Detail Package", tag: "Most Popular",
-    price: "From AED 299",
     desc: "Complete exterior & interior treatment — hand wash, clay bar, machine polish, protective coating. Your car walks in. A showstopper drives out.",
   },
   {
     icon: Shield, emoji: "🛡️", key: "ceramic",
     title: "Ceramic Coating", tag: "5-Year Warranty",
-    price: "From AED 1,499",
     desc: "Nano-ceramic bonds directly to your paint for years of brilliant gloss. Water beads off. Dubai sand waves goodbye. 3–5 year durability guaranteed.",
   },
   {
     icon: Zap, emoji: "⚡", key: "paintCorrection",
     title: "Paint Correction", tag: "Expert Only",
-    price: "From AED 799",
     desc: "Swirl marks? Scratches? Oxidation? We erase it all with multi-stage machine polishing. Removes up to 90% of defects. Like it never happened.",
   },
   {
     icon: Droplets, emoji: "🫧", key: "interior",
     title: "Interior Detailing", tag: "Full Sanitize",
-    price: "From AED 249",
     desc: "Steam clean every crack, condition the leather, extract the carpets, eliminate every odour. You'll think you bought a new car.",
   },
   {
     icon: ClipboardCheck, emoji: "📋", key: "rta",
     title: "RTA Inspection Prep", tag: "Same Day",
-    price: "From AED 149",
     desc: "First-time pass guaranteed (almost always). We prep your vehicle perfectly for RTA registration — no stress, no re-visits, no drama.",
   },
   {
     icon: Truck, emoji: "🚛", key: "fleet",
     title: "Fleet Services", tag: "Corporate B2B",
-    price: "Custom Quote",
     desc: "Got 5 cars? 50? An entire motorcade? Dedicated packages for corporate fleets with flexible scheduling and volume pricing.",
   },
 ];
@@ -312,7 +306,7 @@ export default function BakkahHomePage() {
           {/* Arabic tagline */}
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.52 }}
             className="mt-5 text-base text-[#C9A227]/80 dark:text-[#C9A227]/70 font-medium tracking-wide" dir="rtl" lang="ar">
-            أفضل مركز تجميل سيارات في دبي — القصيص
+            مرحباً بك في بكه للعناية المتميزة بالسيارات — القصيص، دبي
           </motion.p>
 
           {/* English subtitle */}
@@ -433,10 +427,6 @@ export default function BakkahHomePage() {
                     <span className="rounded-full bg-[#C9A227] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-black">{s.tag}</span>
                   </div>
                   <div className="absolute top-3 right-3 text-xl">{s.emoji}</div>
-                  {/* Price badge */}
-                  <div className="absolute bottom-3 right-3">
-                    <span className="rounded-lg bg-black/70 backdrop-blur-sm border border-[#C9A227]/30 px-2.5 py-1 text-[11px] font-bold text-[#C9A227]">{s.price}</span>
-                  </div>
                   <div className="absolute bottom-3 left-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md border border-white/20">
                     <s.icon className="h-4 w-4 text-white" />
                   </div>
@@ -862,11 +852,8 @@ export default function BakkahHomePage() {
               <h4 className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-400 dark:text-white/25">Our Services</h4>
               <ul className="space-y-3">
                 {SERVICES.map(s => (
-                  <li key={s.title} className="flex items-center justify-between text-sm text-gray-500 dark:text-white/38">
-                    <span className="flex items-center gap-2">
-                      <span className="text-base shrink-0">{s.emoji}</span> {s.title}
-                    </span>
-                    <span className="text-[11px] font-semibold text-[#C9A227]/80">{s.price}</span>
+                  <li key={s.title} className="flex items-center gap-2.5 text-sm text-gray-500 dark:text-white/38">
+                    <span className="text-base shrink-0">{s.emoji}</span> {s.title}
                   </li>
                 ))}
               </ul>
