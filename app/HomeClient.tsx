@@ -113,7 +113,7 @@ const SERVICES = [
   {
     icon: Truck, emoji: "🚛", key: "fleet",
     title: "Fleet Services", tag: "Corporate B2B",
-    desc: "Got 5 cars? 50? An entire motorcade? Dedicated packages for corporate fleets with flexible scheduling and volume pricing.",
+    desc: "Got 5 cars? 50? An entire motorcade? Dedicated packages for corporate fleets with flexible scheduling and tailored plans.",
   },
 ];
 
@@ -316,10 +316,10 @@ export default function BakkahHomePage() {
             <span className="font-semibold text-gray-800 dark:text-white/80">5,000+ happy customers</span> — and your car is next.
           </motion.p>
 
-          {/* Pricing teaser */}
+          {/* Inspection note */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.68 }}
             className="mt-3 text-sm text-gray-500 dark:text-white/35">
-            Services <span className="font-semibold text-[#C9A227]">from AED 149</span> · Free vehicle inspection · All prices VAT inclusive
+            Free vehicle inspection on arrival · Honest advice · No pressure
           </motion.p>
 
           {/* CTAs */}
@@ -405,7 +405,7 @@ export default function BakkahHomePage() {
               className="mx-auto mt-3 h-px w-24 bg-gradient-to-r from-transparent via-[#C9A227] to-transparent" />
             <motion.p variants={fadeUp} custom={3} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}
               className="mx-auto mt-5 max-w-md text-sm text-gray-500 dark:text-white/38 leading-relaxed">
-              Professional-grade detailing using the finest imported products and latest techniques. All prices in AED, VAT inclusive.
+              Professional-grade detailing using the finest imported products and latest techniques. WhatsApp us for a personal quote.
             </motion.p>
           </div>
 
@@ -446,7 +446,7 @@ export default function BakkahHomePage() {
 
           {/* Footnote */}
           <motion.p variants={fadeUp} custom={4} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mt-8 text-center text-xs text-gray-400 dark:text-white/25">
-            All prices are approximate starting rates in AED and include 5% VAT. Final price depends on vehicle size and condition. Contact us for an exact quote.
+            Every job is assessed individually — WhatsApp us a photo for a quick, honest quote. No obligation.
           </motion.p>
         </div>
       </section>
@@ -480,7 +480,7 @@ export default function BakkahHomePage() {
 
           <motion.div variants={fadeUp} custom={4} initial="hidden" whileInView="visible" viewport={{ once: true }}
             className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
-            {["✅ Free condition report before every job", "✅ No hidden charges — ever", "✅ Live job tracking on your phone", "✅ Satisfaction guaranteed or we redo it", "✅ VAT inclusive pricing"].map(item => (
+            {["✅ Free condition report before every job", "✅ No hidden charges — ever", "✅ Live job tracking on your phone", "✅ Satisfaction guaranteed or we redo it", "✅ Transparent, upfront quotes"].map(item => (
               <span key={item} className="text-sm font-medium text-gray-600 dark:text-white/50">{item}</span>
             ))}
           </motion.div>
@@ -685,7 +685,7 @@ export default function BakkahHomePage() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 relative">
             <div className="absolute top-14 left-[calc(33.33%+16px)] right-[calc(33.33%+16px)] hidden lg:block h-px bg-gradient-to-r from-[#C9A227]/40 via-[#C9A227]/20 to-[#C9A227]/40" />
             {[
-              { title: "Drop Your Car", emoji: "🚗", desc: "Drive in any time. Full walkaround, every scratch documented with photos. We explain exactly what we'll do and confirm the price." },
+              { title: "Drop Your Car", emoji: "🚗", desc: "Drive in any time. Full walkaround, every scratch documented with photos. We explain exactly what we'll do — no surprises." },
               { title: "We Work Our Magic", emoji: "✨", desc: "Certified detailers go to work with premium imported products. Track live status from your phone the whole time." },
               { title: "Pick Up & Stare", emoji: "🤩", desc: "Come collect your car. Prepare for a double-take. Looks better than the day you bought it — or we make it right." },
             ].map((step, i) => (
@@ -834,7 +834,7 @@ export default function BakkahHomePage() {
                 </div>
               </div>
               <p className="text-sm text-gray-500 dark:text-white/38 leading-relaxed max-w-xs">
-                Dubai's premier vehicle detailing studio. Excellence in every detail, every time. Your car deserves nothing less.
+                A trusted vehicle detailing studio in Al Qusais, Dubai. Excellence in every detail, every time. Your car deserves nothing less.
               </p>
               {/* Stars */}
               <div className="mt-4 flex items-center gap-1">

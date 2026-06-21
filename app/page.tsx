@@ -4,7 +4,7 @@ import HomeClient from "./HomeClient";
 export const metadata: Metadata = {
   title: "Bakkah Premium Auto Care | Car Detailing Dubai — Al Qusais",
   description:
-    "Dubai's #1 premium car detailing studio in Al Qusais. Expert ceramic coating, paint correction, full detailing, RTA inspection prep & fleet services. 5,000+ cars transformed. 5.0★ Google rating. Book via WhatsApp today.",
+    "Trusted car detailing studio in Al Qusais, Dubai. Expert ceramic coating, paint correction, full detailing, RTA inspection prep & fleet services. 5,000+ cars cared for. 5.0★ Google rating. Book via WhatsApp today.",
   keywords: [
     "car detailing dubai",
     "auto detailing dubai",
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
     locale: "en_AE",
     url: "https://bakkah.ae",
     siteName: "Bakkah Premium Auto Care",
-    title: "Bakkah Premium Auto Care | #1 Car Detailing Studio in Dubai",
+    title: "Bakkah Premium Auto Care | Car Detailing Studio in Dubai",
     description:
-      "Dubai's most trusted car detailing studio in Al Qusais. Ceramic coating, paint correction, RTA prep & fleet services. 5,000+ happy customers. 5.0★ rated.",
+      "Trusted car detailing studio in Al Qusais, Dubai. Ceramic coating, paint correction, RTA prep & fleet services. 5,000+ happy customers. 5.0★ rated.",
     images: [
       {
         url: "/opengraph-image",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Bakkah Premium Auto Care | Car Detailing Dubai",
     description:
-      "Dubai's #1 car detailing studio. Ceramic coating, paint correction & more. Al Qusais, Dubai. Book on WhatsApp.",
+      "Trusted car detailing in Al Qusais, Dubai. Ceramic coating, paint correction & more. Book on WhatsApp.",
     images: ["/opengraph-image"],
   },
   alternates: {
@@ -68,7 +68,7 @@ const jsonLd = {
         "Bakkah Car Care Al Qusais",
       ],
       description:
-        "Dubai's premier vehicle detailing studio in Al Qusais. Specialising in ceramic coating, paint correction, full interior & exterior detailing, RTA inspection preparation, and corporate fleet services. Serving Dubai since 2012 with 5,000+ satisfied customers.",
+        "A trusted vehicle detailing studio in Al Qusais, Dubai. Specialising in ceramic coating, paint correction, full interior & exterior detailing, RTA inspection preparation, and corporate fleet services. Serving Dubai since 2012 with 5,000+ satisfied customers.",
       url: "https://bakkah.ae",
       telephone: "+971545886999",
       email: "info@bakkah.ae",
@@ -279,7 +279,7 @@ const jsonLd = {
       url: "https://bakkah.ae",
       name: "Bakkah Premium Auto Care",
       description:
-        "Dubai's premier car detailing, ceramic coating and auto care studio in Al Qusais",
+        "Trusted car detailing, ceramic coating and auto care studio in Al Qusais, Dubai",
       publisher: {
         "@id": "https://bakkah.ae/#business",
       },

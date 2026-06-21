@@ -72,7 +72,7 @@ export default function Image() {
               textTransform: "uppercase",
             }}
           >
-            ⭐ Dubai's Premier Auto Detailing Studio ⭐
+            ⭐ Trusted Auto Detailing Studio — Al Qusais, Dubai ⭐
           </div>
 
           {/* Brand name */}

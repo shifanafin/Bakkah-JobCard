@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: "%s | Bakkah Premium Auto Care Dubai",
   },
   description:
-    "Dubai's #1 premium car detailing studio in Al Qusais. Expert ceramic coating, paint correction, full detailing & RTA inspection prep. 5,000+ cars transformed. 5.0★ Google rating.",
+    "Trusted car detailing studio in Al Qusais, Dubai. Expert ceramic coating, paint correction, full detailing & RTA inspection prep. 5,000+ cars cared for. 5.0★ Google rating.",
   robots: {
     index: true,
     follow: true,
