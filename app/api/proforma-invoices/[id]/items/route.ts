@@ -36,8 +36,8 @@ async function getProformaCtx(id: string) {
 
 function recalc(items: Item[], discount: number) {
   const subtotal = items.reduce((s, i) => s + i.total_price, 0)
-  const vat_amount = Math.max(0, (subtotal - discount) * 0.05)
-  const total = Math.max(0, subtotal - discount + vat_amount)
+  const vat_amount = subtotal * 0.05
+  const total = Math.max(0, subtotal + vat_amount - discount)
   return { subtotal, vat_amount, total }
 }
 

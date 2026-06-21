@@ -1,6 +1,6 @@
 {
   "id": "/",
-  "name": "Bakkah Auto Premium Care",
+  "name": "Bakkah Premium Auto Care",
   "short_name": "Bakkah",
   "description": "Professional Car Detailing & Workshop Management — Dubai",
   "start_url": "/auth/login",
@@ -50,7 +50,7 @@
       "sizes": "512x512",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Bakkah Auto Premium Care"
+      "label": "Bakkah Premium Auto Care"
     }
   ],
   "shortcuts": [
