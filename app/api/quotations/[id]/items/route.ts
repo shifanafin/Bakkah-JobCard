@@ -54,9 +54,6 @@ export async function POST(request: NextRequest, { params }: Params) {
 
   const { sb, q, jobStatus } = await getQuotationCtx(id)
   if (!q) return NextResponse.json({ error: 'Quotation not found' }, { status: 404 })
-  if (q.status === 'approved' || q.status === 'declined') {
-    return NextResponse.json({ error: 'Quotation is not editable' }, { status: 400 })
-  }
 
   const qty = body.quantity ?? 1
   const unitPrice = body.unit_price ?? 0
@@ -97,9 +94,6 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
   const { sb, q, jobStatus } = await getQuotationCtx(id)
   if (!q) return NextResponse.json({ error: 'Quotation not found' }, { status: 404 })
-  if (q.status === 'approved' || q.status === 'declined') {
-    return NextResponse.json({ error: 'Quotation is not editable' }, { status: 400 })
-  }
 
   const { data: existing } = await sb.from('quotation_items').select('*').eq('id', itemId).eq('quotation_id', id).single()
   if (!existing) return NextResponse.json({ error: 'Item not found' }, { status: 404 })
@@ -138,9 +132,6 @@ export async function DELETE(request: NextRequest, { params }: Params) {
 
   const { sb, q, jobStatus } = await getQuotationCtx(id)
   if (!q) return NextResponse.json({ error: 'Quotation not found' }, { status: 404 })
-  if (q.status === 'approved' || q.status === 'declined') {
-    return NextResponse.json({ error: 'Quotation is not editable' }, { status: 400 })
-  }
 
   const { data: existing } = await sb.from('quotation_items')
     .select('description, quantity, unit_price')

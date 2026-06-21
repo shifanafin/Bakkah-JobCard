@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useTransition } from 'react'
-import { Receipt, Loader2, Check, MessageCircle, AlertTriangle, BadgeCheck } from 'lucide-react'
+import { Receipt, Loader2, Check, MessageCircle, AlertTriangle, BadgeCheck, Plus, Trash2, Edit2, X, ChevronDown, RefreshCw } from 'lucide-react'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -20,6 +20,7 @@ type TaxInvoice = {
   id: string
   invoice_number: string
   job_card_id: string
+  proforma_id: string | null
   status: 'draft' | 'issued' | 'paid'
   invoice_date: string
   notes: string | null
@@ -49,20 +50,34 @@ const STATUS_LABEL: Record<string, string> = {
   paid: 'Paid',
 }
 
+const inputSm = 'flex-1 rounded-lg border px-2.5 py-2 text-sm focus:border-brand/50 focus:outline-none transition bg-white border-gray-200 text-gray-900 placeholder:text-gray-300 dark:bg-white/[0.04] dark:border-white/10 dark:text-white dark:placeholder:text-white/20'
+
 export default function TaxInvoiceSection({
   jobId,
   jobNumber,
   customerPhone,
+  canCreate,
 }: {
   jobId: string
   jobNumber: string
   customerPhone?: string
+  canCreate?: boolean
 }) {
   const [invoice, setInvoice] = useState<TaxInvoice | null | undefined>(undefined)
   const [isPending, startTransition] = useTransition()
+  const [creating, setCreating] = useState(false)
   const [discount, setDiscount] = useState('0')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
+  const [catalog, setCatalog] = useState<{ id: string; name: string; default_price: number }[]>([])
+
+  const [itemType, setItemType] = useState<'service' | 'part' | 'labor'>('service')
+  const [itemDesc, setItemDesc] = useState('')
+  const [itemQty, setItemQty] = useState('1')
+  const [itemPrice, setItemPrice] = useState('')
+  const [editingItem, setEditingItem] = useState<{
+    id: string; description: string; quantity: string; unit_price: string
+  } | null>(null)
 
   async function load() {
     try {
@@ -76,12 +91,35 @@ export default function TaxInvoiceSection({
 
   useEffect(() => { load() }, [jobId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    fetch('/api/services')
+      .then(r => r.json())
+      .then(d => setCatalog(d.services ?? []))
+      .catch(() => {})
+  }, [])
+
   const isDraft = invoice?.status === 'draft'
   const isIssued = invoice?.status === 'issued'
   const isPaid = invoice?.status === 'paid'
 
+  async function handleCreate() {
+    setCreating(true)
+    try {
+      const res = await fetch('/api/tax-invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_card_id: jobId }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to create invoice'); return }
+      await load()
+      toast.success('Tax invoice created')
+    } catch { toast.error('Failed to create invoice') }
+    finally { setCreating(false) }
+  }
+
   function handleDiscount() {
-    if (!invoice || !isDraft) return
+    if (!invoice) return
     startTransition(async () => {
       try {
         const disc = parseFloat(discount) || 0
@@ -99,7 +137,7 @@ export default function TaxInvoiceSection({
   }
 
   function handleSaveNotes() {
-    if (!invoice || !isDraft) return
+    if (!invoice) return
     startTransition(async () => {
       try {
         const res = await fetch(`/api/tax-invoices/${invoice.id}`, {
@@ -150,6 +188,81 @@ export default function TaxInvoiceSection({
     })
   }
 
+  function handleSyncFromProforma() {
+    if (!invoice) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/tax-invoices/${invoice.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'sync_from_proforma' }),
+        })
+        const d = await res.json()
+        if (!res.ok) { toast.error(d.error || 'Sync failed'); return }
+        setInvoice(d.invoice)
+        setDiscount(d.invoice.discount?.toString() ?? '0')
+        toast.success('Tax invoice synced from proforma')
+      } catch { toast.error('Sync failed') }
+    })
+  }
+
+  function handleAddItem() {
+    if (!itemDesc.trim() || !itemPrice || !invoice) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/tax-invoices/${invoice.id}/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            item_type: itemType,
+            description: itemDesc.trim(),
+            quantity: parseFloat(itemQty) || 1,
+            unit_price: parseFloat(itemPrice),
+          }),
+        })
+        const d = await res.json()
+        if (!res.ok) { toast.error(d.error || 'Failed to add item'); return }
+        setInvoice(d.invoice)
+        setItemDesc(''); setItemQty('1'); setItemPrice('')
+        toast.success('Item added')
+      } catch { toast.error('Failed to add item') }
+    })
+  }
+
+  function handleSaveEditItem() {
+    if (!invoice || !editingItem) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/tax-invoices/${invoice.id}/items?item_id=${editingItem.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            description: editingItem.description,
+            quantity: parseFloat(editingItem.quantity) || 1,
+            unit_price: parseFloat(editingItem.unit_price) || 0,
+          }),
+        })
+        const d = await res.json()
+        if (!res.ok) { toast.error(d.error || 'Failed to save'); return }
+        setInvoice(d.invoice); setEditingItem(null)
+        toast.success('Item updated')
+      } catch { toast.error('Failed to update item') }
+    })
+  }
+
+  function handleRemoveItem(itemId: string) {
+    if (!invoice) return
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/tax-invoices/${invoice.id}/items?item_id=${itemId}`, { method: 'DELETE' })
+        const d = await res.json()
+        if (!res.ok) { toast.error(d.error || 'Failed'); return }
+        setInvoice(d.invoice)
+        toast.success('Item removed')
+      } catch { toast.error('Failed to remove item') }
+    })
+  }
+
   function buildShareHref() {
     if (!customerPhone) return '#'
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
@@ -175,6 +288,8 @@ export default function TaxInvoiceSection({
     )
   }
 
+  const inpCls = 'rounded-md border border-brand/30 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:border-brand dark:bg-white/[0.06] dark:text-white dark:border-brand/40'
+
   return (
     <div className="card space-y-4">
       {/* Header */}
@@ -191,11 +306,23 @@ export default function TaxInvoiceSection({
             </span>
           </>
         )}
-        {invoice && customerPhone && (
-          <a href={buildShareHref()} target="_blank" rel="noopener noreferrer"
-            className="ml-auto flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-            <MessageCircle className="h-3.5 w-3.5" /> Share
-          </a>
+        {invoice && (
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={handleSyncFromProforma}
+              disabled={isPending}
+              title="Sync items and totals from the proforma invoice"
+              className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 disabled:opacity-50">
+              {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+              Sync from Proforma
+            </button>
+            {customerPhone && (
+              <a href={buildShareHref()} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                <MessageCircle className="h-3.5 w-3.5" /> Share
+              </a>
+            )}
+          </div>
         )}
       </div>
 
@@ -205,49 +332,171 @@ export default function TaxInvoiceSection({
             <Receipt className="h-6 w-6 text-brand/60" />
           </div>
           <p className="text-sm font-semibold text-gray-700 dark:text-white/70">No tax invoice yet</p>
-          <p className="text-xs text-gray-400 dark:text-white/30">Auto-created as a draft when the job is marked delivered</p>
+          <p className="text-xs text-gray-400 dark:text-white/30">Auto-created as draft when the job is delivered</p>
+          {canCreate && (
+            <button onClick={handleCreate} disabled={creating} className="btn-primary mt-1">
+              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Create Tax Invoice
+            </button>
+          )}
         </div>
       ) : (
         <>
+          {/* Amendment notice for issued/paid invoices */}
+          {(isIssued || isPaid) && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-500/20 dark:bg-amber-500/10">
+              <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                This invoice is {invoice.status}. Edits are permitted — per UAE FTA regulations, significant amendments should be documented with a credit/debit note.
+              </p>
+            </div>
+          )}
+
           {/* Draft notice */}
           {isDraft && (
             <div className="flex items-start gap-3 rounded-xl border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 px-3 py-2.5">
               <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 dark:text-amber-300">
-                Draft — apply any final discount below, then issue to lock the invoice.
+                Draft — review items and apply any final discount, then issue to finalise.
               </p>
             </div>
           )}
 
-          {/* Items table */}
+          {/* Items table — always editable */}
           {invoice.items.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-white/[0.06]">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
+              <table className="min-w-[480px] w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                    {['Type', 'Description', 'Qty', 'Unit Price', 'Total'].map(h => (
-                      <th key={h} className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">{h}</th>
-                    ))}
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-20">Type</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">Description</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-12">Qty</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Unit Price</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Total</th>
+                    <th className="w-16" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
-                  {invoice.items.map(item => (
-                    <tr key={item.id}>
-                      <td className="px-3 py-2">
-                        <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase', ITEM_TYPE_CLS[item.item_type])}>
-                          {item.item_type}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-gray-800 dark:text-white/80">{item.description}</td>
-                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50">{item.quantity}</td>
-                      <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50">{formatAED(item.unit_price)}</td>
-                      <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white">{formatAED(item.total_price)}</td>
-                    </tr>
-                  ))}
+                  {invoice.items.map(item => {
+                    const isEditing = editingItem?.id === item.id
+                    const liveTotal = isEditing
+                      ? (parseFloat(editingItem!.quantity) || 0) * (parseFloat(editingItem!.unit_price) || 0)
+                      : item.total_price
+                    return (
+                      <tr key={item.id} className="group">
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase', ITEM_TYPE_CLS[item.item_type])}>
+                            {item.item_type}
+                          </span>
+                        </td>
+                        {isEditing ? (
+                          <>
+                            <td className="px-2 py-1.5 min-w-[160px]">
+                              <input value={editingItem!.description}
+                                onChange={e => setEditingItem(prev => prev && { ...prev, description: e.target.value })}
+                                className={cn(inpCls, 'w-full')} />
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input type="number" min={0.5} step={0.5} value={editingItem!.quantity}
+                                onChange={e => setEditingItem(prev => prev && { ...prev, quantity: e.target.value })}
+                                className={cn(inpCls, 'w-16')} />
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <input type="number" min={0} value={editingItem!.unit_price}
+                                onChange={e => setEditingItem(prev => prev && { ...prev, unit_price: e.target.value })}
+                                className={cn(inpCls, 'w-24')} />
+                            </td>
+                            <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">
+                              {formatAED(liveTotal)}
+                            </td>
+                            <td className="px-2 py-1.5">
+                              <div className="flex gap-1">
+                                <button onClick={handleSaveEditItem} disabled={isPending}
+                                  className="flex items-center justify-center rounded-md bg-brand p-1.5 text-white hover:bg-brand/80 disabled:opacity-50">
+                                  <Check className="h-3 w-3" />
+                                </button>
+                                <button onClick={() => setEditingItem(null)} disabled={isPending}
+                                  className="flex items-center justify-center rounded-md border border-gray-200 p-1.5 text-gray-500 hover:bg-gray-50 dark:border-white/10 dark:text-white/50">
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-3 py-2 text-gray-800 dark:text-white/80 min-w-[160px]">{item.description}</td>
+                            <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{item.quantity}</td>
+                            <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{formatAED(item.unit_price)}</td>
+                            <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">{formatAED(item.total_price)}</td>
+                            <td className="px-2 py-2">
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                <button
+                                  onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
+                                  disabled={isPending}
+                                  className="text-gray-300 hover:text-brand transition-colors dark:text-white/20 dark:hover:text-brand">
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                </button>
+                                <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
+                                  className="text-gray-300 hover:text-red-400 transition-colors dark:text-white/20">
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
           )}
+
+          {/* Add item — always available */}
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <div className="relative w-28 flex-none">
+                <select value={itemType} onChange={e => {
+                  setItemType(e.target.value as 'service' | 'part' | 'labor')
+                  setItemDesc(''); setItemPrice('')
+                }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
+                  <option value="service">Service</option>
+                  <option value="part">Part</option>
+                  <option value="labor">Labor</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+              </div>
+              {itemType === 'service' ? (
+                <div className="relative flex-1">
+                  <select value={itemDesc} onChange={e => {
+                    const name = e.target.value
+                    setItemDesc(name)
+                    const match = catalog.find(s => s.name === name)
+                    if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
+                    else if (!name) setItemPrice('')
+                  }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
+                    <option value="">— Select service —</option>
+                    {catalog.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+                </div>
+              ) : (
+                <input value={itemDesc} onChange={e => setItemDesc(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                  placeholder="Description" className={cn(inputSm, 'flex-1')} />
+              )}
+            </div>
+            <div className="flex gap-2">
+              <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
+                type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-20 flex-none')} />
+              <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
+                type="number" min={0} className={cn(inputSm, 'flex-1')} />
+              <button onClick={handleAddItem} disabled={isPending || !itemDesc.trim() || !itemPrice}
+                className="btn-primary text-xs px-3 py-2 h-auto flex-none">
+                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Add</>}
+              </button>
+            </div>
+          </div>
 
           {/* Totals */}
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2 dark:border-white/[0.07] dark:bg-surface-900">
@@ -257,7 +506,7 @@ export default function TaxInvoiceSection({
             </div>
             {invoice.discount > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-white/50">Completion Discount</span>
+                <span className="text-gray-500 dark:text-white/50">Discount</span>
                 <span className="tabular-nums text-emerald-500">−{formatAED(invoice.discount)}</span>
               </div>
             )}
@@ -269,29 +518,29 @@ export default function TaxInvoiceSection({
               <span className="font-bold text-gray-900 dark:text-white">Total (incl. VAT)</span>
               <span className="font-bold text-xl text-brand tabular-nums">{formatAED(invoice.total)}</span>
             </div>
-            <p className="text-[10px] text-gray-400 dark:text-white/25 text-right">Prices in AED · VAT applicable</p>
+            <p className="text-[10px] text-gray-400 dark:text-white/25 text-right">Prices in AED · 5% UAE VAT</p>
           </div>
 
-          {/* Completion Discount — draft only */}
-          {isDraft && (
-            <div className="flex items-end gap-2">
-              <div className="flex-1">
-                <label className="label">Completion Discount (AED)</label>
-                <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
-              </div>
-              <button onClick={handleDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
+          {/* Discount — always editable */}
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <label className="label">Discount (AED)</label>
+              <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
             </div>
-          )}
+            <button onClick={handleDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
+          </div>
 
-          {/* Notes */}
+          {/* Notes — always editable */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="label">Notes</label>
-              {isDraft && !editingNotes && (
-                <button onClick={() => setEditingNotes(true)} className="text-xs text-brand hover:underline">Edit</button>
+              {!editingNotes && (
+                <button onClick={() => setEditingNotes(true)} className="text-xs text-brand hover:underline flex items-center gap-1">
+                  <Edit2 className="h-3 w-3" /> Edit
+                </button>
               )}
             </div>
-            {isDraft && editingNotes ? (
+            {editingNotes ? (
               <div className="space-y-2">
                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
                   className="input-base w-full min-h-[80px] resize-none"
@@ -306,9 +555,9 @@ export default function TaxInvoiceSection({
               </div>
             ) : invoice.notes ? (
               <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{invoice.notes}</p>
-            ) : isDraft ? (
+            ) : (
               <p className="text-xs text-gray-300 dark:text-white/20 italic">No notes — click Edit to add</p>
-            ) : null}
+            )}
           </div>
 
           {/* Issue button — draft only */}
@@ -326,7 +575,7 @@ export default function TaxInvoiceSection({
             <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3">
                 <Check className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Tax Invoice Issued — Locked</span>
+                <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">Tax Invoice Issued</span>
               </div>
               <button onClick={handleMarkPaid} disabled={isPending}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400">
@@ -338,7 +587,7 @@ export default function TaxInvoiceSection({
 
           {/* Paid — final state */}
           {isPaid && (
-            <div className="flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 px-4 py-3 pt-1 mt-1 border-t border-gray-100 dark:border-white/[0.06]">
+            <div className="flex items-center gap-3 rounded-xl border border-blue-200 dark:border-blue-500/20 bg-blue-50 dark:bg-blue-500/10 px-4 py-3 mt-1 border-t border-gray-100 dark:border-white/[0.06]">
               <BadgeCheck className="h-5 w-5 text-blue-500 shrink-0" />
               <div>
                 <p className="text-sm font-bold text-blue-700 dark:text-blue-400">Invoice Paid</p>
