@@ -57,11 +57,13 @@ export default function TaxInvoiceSection({
   jobNumber,
   customerPhone,
   canCreate,
+  onJobUpdate,
 }: {
   jobId: string
   jobNumber: string
   customerPhone?: string
   canCreate?: boolean
+  onJobUpdate?: () => void
 }) {
   const [invoice, setInvoice] = useState<TaxInvoice | null | undefined>(undefined)
   const [isPending, startTransition] = useTransition()
@@ -186,6 +188,7 @@ export default function TaxInvoiceSection({
         if (!res.ok) { toast.error(d.error || 'Failed'); return }
         setInvoice(d.invoice)
         toast.success('Invoice marked as paid')
+        onJobUpdate?.()
       } catch { toast.error('Failed to mark as paid') }
     })
   }
