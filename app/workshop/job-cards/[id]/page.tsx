@@ -13,7 +13,7 @@ import PhotoUpload from '@/components/job-card/PhotoUpload'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2 } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2, Printer, Download } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -42,6 +42,69 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
+
+  function handlePrint() {
+    window.open(`/workshop/job-cards/${id}/print`, '_blank')
+  }
+
+  async function handleExportExcel() {
+    if (!job) return
+    const XLSX = await import('xlsx')
+    const summary = [
+      { Field: 'Job Number', Value: job.job_number },
+      { Field: 'Status', Value: job.status },
+      { Field: 'Job Type', Value: job.job_type },
+      { Field: 'Date In', Value: job.date_in },
+      { Field: 'Date Out', Value: job.date_out ?? '' },
+      { Field: 'Customer Name', Value: job.customer?.name ?? '' },
+      { Field: 'Customer Phone', Value: job.customer?.phone ?? '' },
+      { Field: 'Customer Email', Value: job.customer?.email ?? '' },
+      { Field: 'Company', Value: job.customer?.company_name ?? '' },
+      { Field: 'Plate Number', Value: job.vehicle?.plate_number ?? '' },
+      { Field: 'Vehicle', Value: `${job.vehicle?.make ?? ''} ${job.vehicle?.model ?? ''} ${job.vehicle?.year ?? ''}`.trim() },
+      { Field: 'Color', Value: job.vehicle?.color ?? '' },
+      { Field: 'Mileage In', Value: job.mileage_in ?? '' },
+      { Field: 'Technician', Value: job.technician?.name ?? '' },
+      { Field: 'Payment Status', Value: job.payment_status },
+      { Field: 'Payment Method', Value: job.payment_method ?? '' },
+      { Field: 'Subtotal (AED)', Value: job.subtotal },
+      { Field: 'Discount (AED)', Value: job.discount },
+      { Field: 'VAT 5% (AED)', Value: job.vat_amount },
+      { Field: 'Total (AED)', Value: job.total },
+      { Field: 'Customer Complaint', Value: job.customer_complaint ?? '' },
+    ]
+    const serviceRows = (job.services ?? []).map(s => ({
+      Type: 'Service',
+      Description: s.description,
+      Qty: s.quantity,
+      'Unit Price (AED)': s.unit_price,
+      'Total (AED)': s.total_price,
+      Completed: s.completed ? 'Yes' : 'No',
+    }))
+    const partRows = (job.parts ?? []).map(p => ({
+      Type: 'Part',
+      Description: p.part_name,
+      'Part Number': p.part_number ?? '',
+      Qty: p.quantity,
+      'Unit Price (AED)': p.unit_price,
+      'Total (AED)': p.total_price,
+    }))
+    const wb = XLSX.utils.book_new()
+    const ws1 = XLSX.utils.json_to_sheet(summary)
+    ws1['!cols'] = [{ wch: 22 }, { wch: 36 }]
+    XLSX.utils.book_append_sheet(wb, ws1, 'Job Summary')
+    if (serviceRows.length > 0) {
+      const ws2 = XLSX.utils.json_to_sheet(serviceRows)
+      ws2['!cols'] = [{ wch: 10 }, { wch: 40 }, { wch: 6 }, { wch: 16 }, { wch: 14 }, { wch: 10 }]
+      XLSX.utils.book_append_sheet(wb, ws2, 'Services')
+    }
+    if (partRows.length > 0) {
+      const ws3 = XLSX.utils.json_to_sheet(partRows)
+      ws3['!cols'] = [{ wch: 8 }, { wch: 36 }, { wch: 14 }, { wch: 6 }, { wch: 16 }, { wch: 14 }]
+      XLSX.utils.book_append_sheet(wb, ws3, 'Parts')
+    }
+    XLSX.writeFile(wb, `JobCard_${job.job_number}.xlsx`)
+  }
 
   async function handleNotifyEmail() {
     if (!job) return
@@ -136,6 +199,12 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           <div className="flex items-center gap-2">
             <button onClick={load} className="btn-ghost text-xs px-3 py-2 h-auto">
               <RefreshCw className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={handlePrint} className="btn-ghost text-xs px-3 py-2 h-auto flex items-center gap-1.5">
+              <Printer className="h-3.5 w-3.5" /> Print
+            </button>
+            <button onClick={handleExportExcel} className="btn-ghost text-xs px-3 py-2 h-auto flex items-center gap-1.5">
+              <Download className="h-3.5 w-3.5" /> Excel
             </button>
             {/* Delete — admin only, only for inspection/cancelled jobs */}
             {(role === 'admin') && job && ['inspection', 'cancelled'].includes(job.status) && (
