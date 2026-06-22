@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
-import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle, MessageCircle, Mail, X, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useTransition, useRef } from 'react'
+import { FileText, Plus, Trash2, Loader2, Send, Edit2, Check, ChevronDown, AlertTriangle, MessageCircle, Mail, X, RefreshCw, Download, Upload } from 'lucide-react'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -88,6 +88,73 @@ export default function QuotationSection({
   const [discount, setDiscount] = useState('0')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
+  const importRef = useRef<HTMLInputElement>(null)
+  const [importing, setImporting] = useState(false)
+
+  async function exportExcel() {
+    if (!quotation) return
+    const XLSX = await import('xlsx')
+    const rows = quotation.items.map(i => ({
+      Type: i.item_type,
+      Description: i.description,
+      Qty: i.quantity,
+      'Unit Price (AED)': i.unit_price,
+      'Total (AED)': i.total_price,
+    }))
+    const summary = [
+      { Field: 'Quotation Number', Value: quotation.quotation_number },
+      { Field: 'Status', Value: quotation.status },
+      { Field: 'Subtotal (AED)', Value: quotation.subtotal },
+      { Field: 'Discount (AED)', Value: quotation.discount },
+      { Field: 'VAT 5% (AED)', Value: quotation.vat_amount },
+      { Field: 'Total (AED)', Value: quotation.total },
+    ]
+    const wb = XLSX.utils.book_new()
+    const ws1 = XLSX.utils.json_to_sheet(rows)
+    ws1['!cols'] = [{ wch: 10 }, { wch: 42 }, { wch: 6 }, { wch: 18 }, { wch: 14 }]
+    XLSX.utils.book_append_sheet(wb, ws1, 'Items')
+    const ws2 = XLSX.utils.json_to_sheet(summary)
+    ws2['!cols'] = [{ wch: 22 }, { wch: 16 }]
+    XLSX.utils.book_append_sheet(wb, ws2, 'Summary')
+    XLSX.writeFile(wb, `${quotation.quotation_number}.xlsx`)
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !quotation) return
+    e.target.value = ''
+    setImporting(true)
+    try {
+      const XLSX = await import('xlsx')
+      const buf = await file.arrayBuffer()
+      const wb = XLSX.read(buf, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const rows = XLSX.utils.sheet_to_json<Record<string, string | number>>(ws, { defval: '' })
+      let added = 0, failed = 0
+      for (const row of rows) {
+        const description = String(row['Description'] || row['description'] || '').trim()
+        const rawType = String(row['Type'] || row['type'] || 'service').toLowerCase().trim()
+        const item_type = (['service', 'part', 'labor'].includes(rawType) ? rawType : 'service') as 'service' | 'part' | 'labor'
+        const quantity = parseFloat(String(row['Qty'] || row['qty'] || row['Quantity'] || '1')) || 1
+        const unit_price = parseFloat(String(row['Unit Price (AED)'] || row['Unit Price'] || row['unit_price'] || row['Price'] || '0'))
+        if (!description || !unit_price) { failed++; continue }
+        try {
+          const res = await fetch(`/api/quotations/${quotation.id}/items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_type, description, quantity, unit_price }),
+          })
+          if (res.ok) added++; else failed++
+        } catch { failed++ }
+      }
+      await load()
+      toast.success(`Imported ${added} item${added !== 1 ? 's' : ''}${failed ? ` · ${failed} skipped` : ''}`)
+    } catch {
+      toast.error('Failed to read file')
+    } finally {
+      setImporting(false)
+    }
+  }
 
   async function load() {
     try {
@@ -349,9 +416,29 @@ export default function QuotationSection({
         {quotation && (
           <>
             <span className="font-mono text-xs text-gray-400 dark:text-white/40">{quotation.quotation_number}</span>
-            <span className={cn('ml-auto rounded-full px-2.5 py-0.5 text-xs font-bold', STATUS_BADGE[quotation.status]?.cls)}>
-              {STATUS_BADGE[quotation.status]?.label}
-            </span>
+            <div className="ml-auto flex items-center gap-1.5">
+              <button
+                onClick={() => importRef.current?.click()}
+                disabled={importing || isPending}
+                title="Import items from Excel"
+                className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-500 hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-colors disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/40 dark:hover:text-brand"
+              >
+                {importing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                Import
+              </button>
+              <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+              <button
+                onClick={exportExcel}
+                disabled={quotation.items.length === 0}
+                title="Export to Excel"
+                className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-500 hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-colors disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/40 dark:hover:text-brand"
+              >
+                <Download className="h-3 w-3" /> Export
+              </button>
+              <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold', STATUS_BADGE[quotation.status]?.cls)}>
+                {STATUS_BADGE[quotation.status]?.label}
+              </span>
+            </div>
           </>
         )}
       </div>
