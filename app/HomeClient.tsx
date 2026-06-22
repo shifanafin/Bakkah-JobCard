@@ -130,7 +130,7 @@ const FAQ_ITEMS = [
   { q: "Can you remove deep scratches and swirl marks?", a: "In most cases, yes. Our multi-stage machine polishing removes up to 90% of light scratches, swirl marks, and oxidation. We give you an honest assessment before starting." },
   { q: "Do you document existing damage before starting?", a: "Absolutely. We conduct a full 360° walkaround with photos uploaded to your digital job card — complete transparency on how your car arrived." },
   { q: "What vehicles do you service?", a: "All vehicles — sedans, SUVs, sports cars, and exotics. Daily drivers to Porsche, BMW, Mercedes, Rolls-Royce, and everything in between." },
-  { q: "How do I track my car while it's with you?", a: "Every job gets a unique number (e.g. JC-2025-0001). Track live status at bakkah.ae/track — no login needed. You also get a WhatsApp update the moment your car is ready." },
+  { q: "How do I track my car while it's with you?", a: "Every job gets a unique number (e.g. JC-2025-0001). Track live status on our Track page — no login needed. You also get a WhatsApp update the moment your car is ready." },
   { q: "Where are you located in Dubai?", a: "We're in Al Qusais Industrial Area, Dubai. Open Monday–Saturday 8 AM–8 PM and Sunday 9 AM–5 PM. WhatsApp us at +971 54 588 6999 for directions." },
 ];
 

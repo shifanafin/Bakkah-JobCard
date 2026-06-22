@@ -507,7 +507,7 @@ export default function TechniciansPage() {
                     type="email"
                     value={createForm.email}
                     onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))}
-                    placeholder="tech@bakkah.ae"
+                    placeholder="technician@email.com"
                     className={inputCls}
                     required
                   />

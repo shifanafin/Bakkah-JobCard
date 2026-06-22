@@ -512,7 +512,10 @@ export default function JobCardsPage() {
                             <p className="text-xs text-gray-500 dark:text-white/50">{job.vehicle?.make} {job.vehicle?.model} · {job.customer?.name}</p>
                             <div className="mt-1.5 flex items-center justify-between">
                               <p className="text-xs text-gray-400 dark:text-white/40">{formatDate(job.date_in)}</p>
-                              <p className="text-sm font-bold text-gray-900 dark:text-white">{formatAED(job.total)}</p>
+                              <div className="flex items-center gap-1.5">
+                                <span className={cn('text-[10px] font-semibold capitalize', PAYMENT_STATUS_COLOR[job.payment_status])}>{job.payment_status}</span>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white">{formatAED(job.total)}</p>
+                              </div>
                             </div>
                           </div>
                         </Link>
