@@ -83,7 +83,7 @@ export default function LineItems({ job, onUpdate }: LineItemsProps) {
             <div className="overflow-hidden rounded-lg border border-gray-100 dark:border-white/[0.06]">
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                  {['Description','Qty','Unit Price','Total',''].map(h => <th key={h} className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">{h}</th>)}
+                  {['Description','Qty','Unit Price','Total (AED)',''].map(h => <th key={h} className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">{h}</th>)}
                 </tr></thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
                   {services.map(s => (
