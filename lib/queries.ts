@@ -132,36 +132,58 @@ export async function updateJobStatus(jobId: string, status: JobStatus, changedB
 
 // ── Services & Parts ──────────────────────────────────────────
 
+async function recalcJobTotals(jobId: string) {
+  const sb = createClient()
+  const [{ data: svcs }, { data: prts }, { data: job }] = await Promise.all([
+    sb.from('job_card_services').select('total_price').eq('job_card_id', jobId),
+    sb.from('job_card_parts').select('total_price').eq('job_card_id', jobId),
+    sb.from('job_cards').select('discount').eq('id', jobId).single(),
+  ])
+  const subtotal = [...(svcs ?? []), ...(prts ?? [])].reduce((sum, r) => sum + (r.total_price ?? 0), 0)
+  const discount = job?.discount ?? 0
+  const vatBase = Math.max(0, subtotal - discount)
+  const vat_amount = parseFloat((vatBase * 0.05).toFixed(2))
+  const total = parseFloat((vatBase + vat_amount).toFixed(2))
+  await sb.from('job_cards').update({ subtotal, vat_amount, total, updated_at: new Date().toISOString() }).eq('id', jobId)
+}
+
 export async function addService(jobId: string, s: Omit<JobCardService, 'id' | 'job_card_id' | 'total_price'>) {
   const sb = createClient()
   const { data, error } = await sb.from('job_card_services').insert({ ...s, job_card_id: jobId }).select().single()
   if (error) throw error
+  await recalcJobTotals(jobId)
   return data
 }
 
 export async function deleteService(id: string) {
   const sb = createClient()
+  const { data: row } = await sb.from('job_card_services').select('job_card_id').eq('id', id).single()
   const { error } = await sb.from('job_card_services').delete().eq('id', id)
   if (error) throw error
+  if (row?.job_card_id) await recalcJobTotals(row.job_card_id)
 }
 
 export async function addPart(jobId: string, p: Omit<JobCardPart, 'id' | 'job_card_id' | 'total_price'>) {
   const sb = createClient()
   const { data, error } = await sb.from('job_card_parts').insert({ ...p, job_card_id: jobId }).select().single()
   if (error) throw error
+  await recalcJobTotals(jobId)
   return data
 }
 
 export async function deletePart(id: string) {
   const sb = createClient()
+  const { data: row } = await sb.from('job_card_parts').select('job_card_id').eq('id', id).single()
   const { error } = await sb.from('job_card_parts').delete().eq('id', id)
   if (error) throw error
+  if (row?.job_card_id) await recalcJobTotals(row.job_card_id)
 }
 
 export async function updateDiscount(jobId: string, discount: number) {
   const sb = createClient()
   const { error } = await sb.from('job_cards').update({ discount, updated_at: new Date().toISOString() }).eq('id', jobId)
   if (error) throw error
+  await recalcJobTotals(jobId)
 }
 
 export async function updatePayment(jobId: string, status: string, method?: string) {
