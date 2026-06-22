@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
-import { FileText, Plus, Trash2, Loader2, Check, ChevronDown, MessageCircle, Edit2, X, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useTransition, useRef } from 'react'
+import { FileText, Plus, Trash2, Loader2, Check, ChevronDown, MessageCircle, Edit2, X, RefreshCw, Download, Upload } from 'lucide-react'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -63,6 +63,8 @@ export default function ProformaSection({
   const [discount, setDiscount] = useState('0')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const importRef = useRef<HTMLInputElement>(null)
 
   async function load() {
     try {
@@ -192,6 +194,62 @@ export default function ProformaSection({
     })
   }
 
+  async function exportExcel() {
+    if (!proforma) return
+    const XLSX = await import('xlsx')
+    const rows = proforma.items.map(it => ({
+      'Type': it.item_type,
+      'Description': it.description,
+      'Qty': it.quantity,
+      'Unit Price (AED)': it.unit_price,
+      'Total (AED)': it.total_price,
+    }))
+    const summary = [{
+      'Proforma Number': proforma.proforma_number,
+      'Subtotal (AED)': proforma.subtotal,
+      'Discount (AED)': proforma.discount,
+      'VAT 5% (AED)': proforma.vat_amount,
+      'Total (AED)': proforma.total,
+    }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), 'Summary')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Items')
+    XLSX.writeFile(wb, `${proforma.proforma_number}.xlsx`)
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!proforma) return
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setImporting(true)
+    try {
+      const XLSX = await import('xlsx')
+      const buf = await file.arrayBuffer()
+      const wb = XLSX.read(buf, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws)
+      let imported = 0; let skipped = 0
+      for (const row of rows) {
+        const desc = (row['Description'] ?? row['description'] ?? '') as string
+        if (!desc.trim()) { skipped++; continue }
+        const rawType = ((row['Type'] ?? row['type'] ?? 'service') as string).toLowerCase().trim()
+        const item_type = (['service', 'part', 'labor'].includes(rawType) ? rawType : 'service') as 'service' | 'part' | 'labor'
+        const quantity = parseFloat((row['Qty'] ?? row['qty'] ?? row['quantity'] ?? '1') as string) || 1
+        const unit_price = parseFloat((row['Unit Price (AED)'] ?? row['Unit Price'] ?? row['unit_price'] ?? row['Price'] ?? '0') as string) || 0
+        const res = await fetch(`/api/proforma-invoices/${proforma.id}/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item_type, description: desc.trim(), quantity, unit_price }),
+        })
+        if (res.ok) { imported++ } else { skipped++ }
+      }
+      toast.success(`Imported ${imported} item${imported !== 1 ? 's' : ''}${skipped ? ` · ${skipped} skipped` : ''}`)
+      await load()
+    } catch { toast.error('Failed to import file') }
+    finally { setImporting(false) }
+  }
+
   function buildShareHref() {
     if (!customerPhone) return '#'
     const origin = typeof window !== 'undefined' ? window.location.origin : ''
@@ -224,6 +282,20 @@ export default function ProformaSection({
         <h3 className="section-title">Proforma Invoice</h3>
         <span className="font-mono text-xs text-gray-400 dark:text-white/40">{proforma.proforma_number}</span>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => importRef.current?.click()}
+            disabled={importing}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
+            {importing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+            Import
+          </button>
+          <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+          <button
+            onClick={exportExcel}
+            disabled={!proforma.items.length}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
+            <Download className="h-3.5 w-3.5" /> Export
+          </button>
           {proforma.quotation_id && (
             <button
               onClick={handleSyncFromQuotation}

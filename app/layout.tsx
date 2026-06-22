@@ -19,7 +19,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bakkah.ae"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
   title: {
     default: "Bakkah Premium Auto Care | Car Detailing Dubai — Al Qusais",
     template: "%s | Bakkah Premium Auto Care Dubai",
