@@ -12,6 +12,7 @@ type PrintJob = {
   job_type: string
   date_in: string
   date_out?: string
+  date_delivered?: string
   mileage_in?: number
   mileage_out?: number
   subtotal: number
@@ -30,7 +31,6 @@ type PrintJob = {
   parts?: { id: string; part_name: string; part_number?: string; quantity: number; unit_price: number; total_price: number }[]
 }
 
-function fmt(n: number) { return `AED ${n.toFixed(2)}` }
 function fmtDate(s: string) {
   return new Date(s).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' })
 }
@@ -73,6 +73,11 @@ export default function PrintJobCardPage({ params }: { params: Promise<{ id: str
 
   const services = job.services ?? []
   const parts = job.parts ?? []
+  const subtotal = [...services.map(s => s.total_price), ...parts.map(p => p.total_price)].reduce((a, b) => a + b, 0)
+  const discount = job.discount || 0
+  const vatBase = Math.max(0, subtotal - discount)
+  const vat = parseFloat((vatBase * 0.05).toFixed(2))
+  const total = parseFloat((vatBase + vat).toFixed(2))
 
   return (
     <>
@@ -166,10 +171,16 @@ export default function PrintJobCardPage({ params }: { params: Promise<{ id: str
             <div style={{ background: '#f5f5f5', borderBottom: '1px solid #e0e0e0', padding: '5px 10px', fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#555' }}>Job Details</div>
             <div style={{ padding: '8px 10px', fontSize: '11px', lineHeight: '1.7', color: '#222' }}>
               Type: <strong>{JOB_TYPE_LABEL[job.job_type] ?? job.job_type}</strong><br />
-              {job.mileage_in && <>Mileage: <strong>{job.mileage_in.toLocaleString()} km</strong><br /></>}
+              {job.mileage_in != null && <>Mileage In: <strong>{job.mileage_in.toLocaleString()} km</strong><br /></>}
+              {job.mileage_out != null && <>Mileage Out: <strong>{job.mileage_out.toLocaleString()} km</strong><br /></>}
               {job.technician?.name && <>Technician: <strong>{job.technician.name}</strong><br /></>}
-              Payment: <strong style={{ textTransform: 'capitalize' }}>{job.payment_status}</strong>
-              {job.payment_method && <> ({job.payment_method})</>}
+              {job.date_delivered && <>Delivered: <strong>{fmtDate(job.date_delivered)}</strong><br /></>}
+              Payment:{' '}
+              <strong style={{
+                textTransform: 'capitalize',
+                color: job.payment_status === 'paid' ? '#166534' : job.payment_status === 'partial' ? '#92400e' : '#991b1b',
+              }}>{job.payment_status}</strong>
+              {job.payment_method && <> · {job.payment_method.replace('_', ' ')}</>}
             </div>
           </div>
         </div>
@@ -258,21 +269,21 @@ export default function PrintJobCardPage({ params }: { params: Promise<{ id: str
             <tbody>
               <tr>
                 <td style={{ border: 'none', padding: '3px 8px', color: '#555' }}>Subtotal</td>
-                <td style={{ border: 'none', padding: '3px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{job.subtotal.toFixed(2)} AED</td>
+                <td style={{ border: 'none', padding: '3px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{subtotal.toFixed(2)} AED</td>
               </tr>
-              {job.discount > 0 && (
+              {discount > 0 && (
                 <tr>
                   <td style={{ border: 'none', padding: '3px 8px', color: '#555' }}>Discount</td>
-                  <td style={{ border: 'none', padding: '3px 8px', textAlign: 'right', fontFamily: 'monospace', color: '#e44' }}>−{job.discount.toFixed(2)} AED</td>
+                  <td style={{ border: 'none', padding: '3px 8px', textAlign: 'right', fontFamily: 'monospace', color: '#e44' }}>−{discount.toFixed(2)} AED</td>
                 </tr>
               )}
               <tr>
                 <td style={{ border: 'none', padding: '3px 8px', color: '#555' }}>VAT (5%)</td>
-                <td style={{ border: 'none', padding: '3px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{job.vat_amount.toFixed(2)} AED</td>
+                <td style={{ border: 'none', padding: '3px 8px', textAlign: 'right', fontFamily: 'monospace' }}>{vat.toFixed(2)} AED</td>
               </tr>
               <tr>
                 <td style={{ borderTop: '2px solid #C9A227', padding: '6px 8px', fontWeight: '800', fontSize: '13px' }}>TOTAL</td>
-                <td style={{ borderTop: '2px solid #C9A227', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: '800', fontSize: '14px', color: '#1b2009' }}>{job.total.toFixed(2)} AED</td>
+                <td style={{ borderTop: '2px solid #C9A227', padding: '6px 8px', textAlign: 'right', fontFamily: 'monospace', fontWeight: '800', fontSize: '14px', color: '#1b2009' }}>{total.toFixed(2)} AED</td>
               </tr>
             </tbody>
           </table>
