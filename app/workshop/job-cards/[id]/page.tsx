@@ -9,6 +9,7 @@ import StatusStepper from '@/components/job-card/StatusStepper'
 import QuotationSection from '@/components/job-card/QuotationSection'
 import ProformaSection from '@/components/job-card/ProformaSection'
 import TaxInvoiceSection from '@/components/job-card/TaxInvoiceSection'
+import PrintableJobCard from '@/components/job-card/PrintableJobCard'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
@@ -44,7 +45,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [notifying, setNotifying] = useState(false)
 
   function handlePrint() {
-    window.open(`/workshop/job-cards/${id}/print`, '_blank')
+    window.print()
   }
 
   async function handleExportExcel() {
@@ -497,6 +498,9 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
         )}
 
       </div>
+
+      {/* Inline print target — hidden on screen, full-page on Ctrl+P / Print button */}
+      <PrintableJobCard job={job} />
     </div>
   )
 }
