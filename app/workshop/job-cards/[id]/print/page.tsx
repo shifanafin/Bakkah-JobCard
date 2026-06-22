@@ -46,8 +46,7 @@ export default function PrintJobCardPage({ params }: { params: Promise<{ id: str
       .select('*, customer:customers(*), vehicle:vehicles(*), technician:technicians(name), services:job_card_services(*), parts:job_card_parts(*)')
       .eq('id', id)
       .single()
-      .then(({ data }) => { setJob(data as PrintJob); setLoading(false) })
-      .catch(() => setLoading(false))
+      .then(({ data, error }) => { if (!error) setJob(data as PrintJob); setLoading(false) })
   }, [id])
 
   useEffect(() => {
