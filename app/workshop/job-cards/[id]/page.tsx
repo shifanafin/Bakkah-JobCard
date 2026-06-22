@@ -401,6 +401,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobNumber={job.job_number}
           customerPhone={job.customer?.phone}
           canCreate={canAssign}
+          onJobUpdate={load}
         />
 
 

@@ -52,6 +52,15 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       if (inv.status !== 'issued') return NextResponse.json({ error: 'Can only mark as paid after issuing' }, { status: 400 })
       const { data, error } = await sb.from('tax_invoices').update({ status: 'paid', updated_at: now }).eq('id', id).select().single()
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      // Sync financial summary and payment status back to the job card
+      await sb.from('job_cards').update({
+        payment_status: 'paid',
+        subtotal: inv.subtotal,
+        discount: inv.discount,
+        vat_amount: inv.vat_amount,
+        total: inv.total,
+        updated_at: now,
+      }).eq('id', inv.job_card_id)
       return NextResponse.json({ invoice: data })
     }
 
