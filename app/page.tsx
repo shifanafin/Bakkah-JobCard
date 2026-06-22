@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_AE",
-    url: "https://bakkah.ae",
+    url: "/",
     siteName: "Bakkah Premium Auto Care",
     title: "Bakkah Premium Auto Care | Car Detailing Studio in Dubai",
     description:
@@ -52,16 +52,18 @@ export const metadata: Metadata = {
     images: ["/opengraph-image"],
   },
   alternates: {
-    canonical: "https://bakkah.ae",
+    canonical: "/",
   },
 };
+
+const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
 
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
       "@type": ["AutoRepair", "LocalBusiness"],
-      "@id": "https://bakkah.ae/#business",
+      "@id": `${BASE}/#business`,
       name: "Bakkah Premium Auto Care",
       alternateName: [
         "Bakkah Auto Detailing Dubai",
@@ -69,7 +71,7 @@ const jsonLd = {
       ],
       description:
         "A trusted vehicle detailing studio in Al Qusais, Dubai. Specialising in ceramic coating, paint correction, full interior & exterior detailing, RTA inspection preparation, and corporate fleet services. Serving Dubai since 2012 with 5,000+ satisfied customers.",
-      url: "https://bakkah.ae",
+      url: BASE,
       telephone: "+971545886999",
       email: "info@bakkah.ae",
       foundingDate: "2012",
@@ -192,13 +194,13 @@ const jsonLd = {
       },
       image: {
         "@type": "ImageObject",
-        url: "https://bakkah.ae/logo.png",
+        url: `${BASE}/logo.png`,
         width: 512,
         height: 512,
       },
       logo: {
         "@type": "ImageObject",
-        url: "https://bakkah.ae/logo.png",
+        url: `${BASE}/logo.png`,
         width: 512,
         height: 512,
       },
@@ -213,7 +215,7 @@ const jsonLd = {
     },
     {
       "@type": "FAQPage",
-      "@id": "https://bakkah.ae/#faq",
+      "@id": `${BASE}/#faq`,
       mainEntity: [
         {
           "@type": "Question",
@@ -260,7 +262,7 @@ const jsonLd = {
           name: "How can I track my car while it is being detailed?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Every job gets a unique number (e.g. JC-2025-0001). Track your vehicle's live service status on our Track page at bakkah.ae/track — no login needed. You also receive a WhatsApp update the moment your car is ready for collection.",
+            text: "Every job gets a unique number (e.g. JC-2025-0001). Track your vehicle's live service status on our Track page — no login needed. You also receive a WhatsApp update the moment your car is ready for collection.",
           },
         },
         {
@@ -275,33 +277,33 @@ const jsonLd = {
     },
     {
       "@type": "WebSite",
-      "@id": "https://bakkah.ae/#website",
-      url: "https://bakkah.ae",
+      "@id": `${BASE}/#website`,
+      url: BASE,
       name: "Bakkah Premium Auto Care",
       description:
         "Trusted car detailing, ceramic coating and auto care studio in Al Qusais, Dubai",
       publisher: {
-        "@id": "https://bakkah.ae/#business",
+        "@id": `${BASE}/#business`,
       },
       inLanguage: ["en-AE", "ar-AE"],
       potentialAction: {
         "@type": "SearchAction",
         target: {
           "@type": "EntryPoint",
-          urlTemplate: "https://bakkah.ae/track?q={search_term_string}",
+          urlTemplate: `${BASE}/track?q={search_term_string}`,
         },
         "query-input": "required name=search_term_string",
       },
     },
     {
       "@type": "BreadcrumbList",
-      "@id": "https://bakkah.ae/#breadcrumb",
+      "@id": `${BASE}/#breadcrumb`,
       itemListElement: [
         {
           "@type": "ListItem",
           position: 1,
           name: "Home",
-          item: "https://bakkah.ae",
+          item: BASE,
         },
       ],
     },

@@ -10,5 +10,3 @@ Disallow: /invoice/
 Allow: /icons/
 Allow: /logo.png
 Allow: /logo.svg
-
-Sitemap: https://bakkah.ae/sitemap.xml

@@ -69,6 +69,8 @@ export default function TaxInvoiceSection({
   const [discount, setDiscount] = useState('0')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const importRef = useRef<HTMLInputElement>(null)
   const [catalog, setCatalog] = useState<{ id: string; name: string; default_price: number }[]>([])
 
   const [itemType, setItemType] = useState<'service' | 'part' | 'labor'>('service')
@@ -280,6 +282,63 @@ export default function TaxInvoiceSection({
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
   }
 
+  async function exportExcel() {
+    if (!invoice) return
+    const XLSX = await import('xlsx')
+    const rows = invoice.items.map(it => ({
+      'Type': it.item_type,
+      'Description': it.description,
+      'Qty': it.quantity,
+      'Unit Price (AED)': it.unit_price,
+      'Total (AED)': it.total_price,
+    }))
+    const summary = [{
+      'Invoice Number': invoice.invoice_number,
+      'Status': STATUS_LABEL[invoice.status] ?? invoice.status,
+      'Subtotal (AED)': invoice.subtotal,
+      'Discount (AED)': invoice.discount,
+      'VAT 5% (AED)': invoice.vat_amount,
+      'Total (AED)': invoice.total,
+    }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), 'Summary')
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Items')
+    XLSX.writeFile(wb, `${invoice.invoice_number}.xlsx`)
+  }
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!invoice) return
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setImporting(true)
+    try {
+      const XLSX = await import('xlsx')
+      const buf = await file.arrayBuffer()
+      const wb = XLSX.read(buf, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws)
+      let imported = 0; let skipped = 0
+      for (const row of rows) {
+        const desc = (row['Description'] ?? row['description'] ?? '') as string
+        if (!desc.trim()) { skipped++; continue }
+        const rawType = ((row['Type'] ?? row['type'] ?? 'service') as string).toLowerCase().trim()
+        const item_type = (['service', 'part', 'labor'].includes(rawType) ? rawType : 'service') as 'service' | 'part' | 'labor'
+        const quantity = parseFloat((row['Qty'] ?? row['qty'] ?? row['quantity'] ?? '1') as string) || 1
+        const unit_price = parseFloat((row['Unit Price (AED)'] ?? row['Unit Price'] ?? row['unit_price'] ?? row['Price'] ?? '0') as string) || 0
+        const res = await fetch(`/api/tax-invoices/${invoice.id}/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ item_type, description: desc.trim(), quantity, unit_price }),
+        })
+        if (res.ok) { imported++ } else { skipped++ }
+      }
+      toast.success(`Imported ${imported} item${imported !== 1 ? 's' : ''}${skipped ? ` · ${skipped} skipped` : ''}`)
+      await load()
+    } catch { toast.error('Failed to import file') }
+    finally { setImporting(false) }
+  }
+
   if (invoice === undefined) {
     return (
       <div className="card flex items-center justify-center py-8">
@@ -315,6 +374,20 @@ export default function TaxInvoiceSection({
               className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 disabled:opacity-50">
               {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
               Sync from Proforma
+            </button>
+            <button
+              onClick={() => importRef.current?.click()}
+              disabled={importing}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
+              {importing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+              Import
+            </button>
+            <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+            <button
+              onClick={exportExcel}
+              disabled={!invoice.items.length}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
+              <Download className="h-3.5 w-3.5" /> Export
             </button>
             {customerPhone && (
               <a href={buildShareHref()} target="_blank" rel="noopener noreferrer"
