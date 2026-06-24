@@ -43,6 +43,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [notifying, setNotifying] = useState(false)
+  const isDelivered = job?.status === 'delivered'
 
   function handlePrint() {
     window.print()
@@ -264,6 +265,19 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           )
         })()}
 
+        {/* Delivered lock banner */}
+        {isDelivered && (
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-500/20 shrink-0">
+              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Job Delivered — Locked</p>
+              <p className="text-xs text-emerald-600/70 dark:text-emerald-400/60">This job has been delivered. No further changes are allowed.</p>
+            </div>
+          </div>
+        )}
+
         {/* Status stepper */}
         <StatusStepper
           jobId={job.id}
@@ -273,8 +287,8 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           onUpdate={s => { setJob(j => j ? { ...j, status: s } : j); load() }}
         />
 
-        {/* Assign Technician — admin / supervisor / manager */}
-        {canAssign && (
+        {/* Assign Technician — admin / supervisor / manager, not allowed after delivery */}
+        {canAssign && !isDelivered && (
           <div className="card space-y-3">
             <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/15">
@@ -387,6 +401,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           canApprove={canAssign}
           onEmailNotify={handleNotifyEmail}
           onJobUpdate={load}
+          readOnly={isDelivered}
         />
 
         {/* Proforma Invoice — always rendered; section hides itself when no proforma exists */}
@@ -394,6 +409,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobId={job.id}
           jobNumber={job.job_number}
           customerPhone={job.customer?.phone}
+          readOnly={isDelivered}
         />
 
         {/* Tax Invoice — always rendered; canCreate allows admin/supervisor to create manually */}
@@ -403,6 +419,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           customerPhone={job.customer?.phone}
           canCreate={canAssign}
           onJobUpdate={load}
+          readOnly={isDelivered}
         />
 
 
@@ -411,6 +428,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobCardId={job.id}
           photos={job.photos ?? []}
           onPhotosChange={photos => setJob(j => j ? { ...j, photos } : j)}
+          readOnly={isDelivered}
         />
 
         {/* Status History Timeline */}
