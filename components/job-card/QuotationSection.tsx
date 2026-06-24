@@ -55,6 +55,7 @@ export default function QuotationSection({
   onStatusChange,
   onEmailNotify,
   onJobUpdate,
+  readOnly,
 }: {
   jobId: string
   jobNumber?: string
@@ -65,6 +66,7 @@ export default function QuotationSection({
   onStatusChange?: (status: string | null) => void
   onEmailNotify?: () => void
   onJobUpdate?: () => void
+  readOnly?: boolean
 }) {
   const [quotation, setQuotation] = useState<Quotation | null | undefined>(undefined)
 
@@ -417,16 +419,20 @@ export default function QuotationSection({
           <>
             <span className="font-mono text-xs text-gray-400 dark:text-white/40">{quotation.quotation_number}</span>
             <div className="ml-auto flex items-center gap-1.5">
-              <button
-                onClick={() => importRef.current?.click()}
-                disabled={importing || isPending}
-                title="Import items from Excel"
-                className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-500 hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-colors disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/40 dark:hover:text-brand"
-              >
-                {importing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                Import
-              </button>
-              <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+              {!readOnly && (
+                <>
+                  <button
+                    onClick={() => importRef.current?.click()}
+                    disabled={importing || isPending}
+                    title="Import items from Excel"
+                    className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-500 hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-colors disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/40 dark:hover:text-brand"
+                  >
+                    {importing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                    Import
+                  </button>
+                  <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+                </>
+              )}
               <button
                 onClick={exportExcel}
                 disabled={quotation.items.length === 0}
@@ -453,10 +459,12 @@ export default function QuotationSection({
             <p className="text-sm font-semibold text-gray-700 dark:text-white/70">No quotation yet</p>
             <p className="text-xs text-gray-400 dark:text-white/30 mt-0.5">Create a quotation to send to the customer for approval</p>
           </div>
-          <button onClick={handleCreate} disabled={creating} className="btn-primary">
-            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-            Create Quotation
-          </button>
+          {!readOnly && (
+            <button onClick={handleCreate} disabled={creating} className="btn-primary">
+              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              Create Quotation
+            </button>
+          )}
         </div>
       )}
 
@@ -494,7 +502,7 @@ export default function QuotationSection({
                     <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-12">Qty</th>
                     <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Unit Price</th>
                     <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Total (AED)</th>
-                    <th className="w-16" />
+                    {!readOnly && <th className="w-16" />}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
@@ -510,7 +518,7 @@ export default function QuotationSection({
                             {item.item_type}
                           </span>
                         </td>
-                        {isEditing ? (
+                        {!readOnly && isEditing ? (
                           <>
                             <td className="px-2 py-1.5 min-w-[160px]">
                               <input value={editingItem!.description}
@@ -549,20 +557,22 @@ export default function QuotationSection({
                             <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{item.quantity}</td>
                             <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{formatAED(item.unit_price)}</td>
                             <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">{formatAED(item.total_price)}</td>
-                            <td className="px-2 py-2">
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                <button
-                                  onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
-                                  disabled={isPending}
-                                  className="text-gray-300 hover:text-brand transition-colors dark:text-white/20 dark:hover:text-brand">
-                                  <Edit2 className="h-3.5 w-3.5" />
-                                </button>
-                                <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
-                                  className="text-gray-300 hover:text-red-400 transition-colors dark:text-white/20">
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            </td>
+                            {!readOnly && (
+                              <td className="px-2 py-2">
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                  <button
+                                    onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
+                                    disabled={isPending}
+                                    className="text-gray-300 hover:text-brand transition-colors dark:text-white/20 dark:hover:text-brand">
+                                    <Edit2 className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
+                                    className="text-gray-300 hover:text-red-400 transition-colors dark:text-white/20">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
                           </>
                         )}
                       </tr>
@@ -573,64 +583,66 @@ export default function QuotationSection({
             </div>
           )}
 
-          {/* Add item — always available */}
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <div className="relative w-28 flex-none">
-                <select value={itemType} onChange={e => {
-                  setItemType(e.target.value as 'service' | 'part' | 'labor')
-                  setItemDesc('')
-                  setItemPrice('')
-                }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
-                  <option value="service">Service</option>
-                  <option value="part">Part</option>
-                  <option value="labor">Labor</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
-              </div>
-
-              {itemType === 'service' ? (
-                <div className="relative flex-1">
-                  <select
-                    value={itemDesc}
-                    onChange={e => {
-                      const name = e.target.value
-                      setItemDesc(name)
-                      const match = catalog.find(s => s.name === name)
-                      if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
-                      else if (!name) setItemPrice('')
-                    }}
-                    className={cn(inputSm, 'w-full appearance-none pr-7')}
-                  >
-                    <option value="">— Select Service —</option>
-                    {catalog.map(s => (
-                      <option key={s.id} value={s.name}>{s.name}</option>
-                    ))}
+          {/* Add item — hidden when locked */}
+          {!readOnly && (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="relative w-28 flex-none">
+                  <select value={itemType} onChange={e => {
+                    setItemType(e.target.value as 'service' | 'part' | 'labor')
+                    setItemDesc('')
+                    setItemPrice('')
+                  }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
+                    <option value="service">Service</option>
+                    <option value="part">Part</option>
+                    <option value="labor">Labor</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
                 </div>
-              ) : (
-                <input
-                  value={itemDesc}
-                  onChange={e => setItemDesc(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-                  placeholder="Description"
-                  className={cn(inputSm, 'flex-1')}
-                />
-              )}
-            </div>
 
-            <div className="flex gap-2">
-              <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
-                type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-20 flex-none')} />
-              <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
-                type="number" min={0} className={cn(inputSm, 'flex-1')} />
-              <button onClick={handleAddItem} disabled={isPending || !itemDesc.trim() || !itemPrice}
-                className="btn-primary text-xs px-3 py-2 h-auto flex-none">
-                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Add</>}
-              </button>
+                {itemType === 'service' ? (
+                  <div className="relative flex-1">
+                    <select
+                      value={itemDesc}
+                      onChange={e => {
+                        const name = e.target.value
+                        setItemDesc(name)
+                        const match = catalog.find(s => s.name === name)
+                        if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
+                        else if (!name) setItemPrice('')
+                      }}
+                      className={cn(inputSm, 'w-full appearance-none pr-7')}
+                    >
+                      <option value="">— Select Service —</option>
+                      {catalog.map(s => (
+                        <option key={s.id} value={s.name}>{s.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+                  </div>
+                ) : (
+                  <input
+                    value={itemDesc}
+                    onChange={e => setItemDesc(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                    placeholder="Description"
+                    className={cn(inputSm, 'flex-1')}
+                  />
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
+                  type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-20 flex-none')} />
+                <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
+                  type="number" min={0} className={cn(inputSm, 'flex-1')} />
+                <button onClick={handleAddItem} disabled={isPending || !itemDesc.trim() || !itemPrice}
+                  className="btn-primary text-xs px-3 py-2 h-auto flex-none">
+                  {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Add</>}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Totals */}
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2 dark:border-white/[0.07] dark:bg-surface-900">
@@ -654,27 +666,29 @@ export default function QuotationSection({
             </div>
           </div>
 
-          {/* Discount — always editable */}
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <label className="label">Discount (AED)</label>
-              <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
+          {/* Discount — hidden when locked */}
+          {!readOnly && (
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="label">Discount (AED)</label>
+                <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
+              </div>
+              <button onClick={handleDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
             </div>
-            <button onClick={handleDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
-          </div>
+          )}
 
-          {/* Notes — always editable */}
+          {/* Notes */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="label">Notes to Customer</label>
-              {!editingNotes && (
+              {!readOnly && !editingNotes && (
                 <button onClick={() => setEditingNotes(true)}
                   className="text-xs text-brand hover:underline flex items-center gap-1">
                   <Edit2 className="h-3 w-3" /> Edit
                 </button>
               )}
             </div>
-            {editingNotes ? (
+            {!readOnly && editingNotes ? (
               <div className="space-y-2">
                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
                   className="input-base w-full min-h-[80px] resize-none"
@@ -689,12 +703,12 @@ export default function QuotationSection({
             ) : (
               quotation.notes
                 ? <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{quotation.notes}</p>
-                : <p className="text-xs text-gray-300 dark:text-white/20 italic">No notes — click Edit to add</p>
+                : <p className="text-xs text-gray-300 dark:text-white/20 italic">No notes</p>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
+          {/* Actions — hidden when locked */}
+          {!readOnly && <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
             {quotation.status === 'draft' && (
               <>
                 <button onClick={handleSend} disabled={isPending || quotation.items.length === 0}
@@ -787,10 +801,10 @@ export default function QuotationSection({
                 </p>
               </div>
             )}
-          </div>
+          </div>}
 
-          {/* Send via WhatsApp shortcut for draft */}
-          {quotation.status === 'draft' && customerPhone && quotation.items.length > 0 && (
+          {/* Send via WhatsApp shortcut for draft — hidden when locked */}
+          {!readOnly && quotation.status === 'draft' && customerPhone && quotation.items.length > 0 && (
             <div className="flex gap-2">
               <a href={buildWhatsAppHref()} target="_blank" rel="noopener noreferrer"
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:text-emerald-300">

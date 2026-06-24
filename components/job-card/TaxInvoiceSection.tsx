@@ -58,12 +58,14 @@ export default function TaxInvoiceSection({
   customerPhone,
   canCreate,
   onJobUpdate,
+  readOnly,
 }: {
   jobId: string
   jobNumber: string
   customerPhone?: string
   canCreate?: boolean
   onJobUpdate?: () => void
+  readOnly?: boolean
 }) {
   const [invoice, setInvoice] = useState<TaxInvoice | null | undefined>(undefined)
   const [isPending, startTransition] = useTransition()
@@ -370,22 +372,26 @@ export default function TaxInvoiceSection({
         )}
         {invoice && (
           <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={handleSyncFromProforma}
-              disabled={isPending}
-              title="Sync items and totals from the proforma invoice"
-              className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 disabled:opacity-50">
-              {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-              Sync from Proforma
-            </button>
-            <button
-              onClick={() => importRef.current?.click()}
-              disabled={importing}
-              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
-              {importing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-              Import
-            </button>
-            <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+            {!readOnly && (
+              <>
+                <button
+                  onClick={handleSyncFromProforma}
+                  disabled={isPending}
+                  title="Sync items and totals from the proforma invoice"
+                  className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 disabled:opacity-50">
+                  {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  Sync from Proforma
+                </button>
+                <button
+                  onClick={() => importRef.current?.click()}
+                  disabled={importing}
+                  className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
+                  {importing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                  Import
+                </button>
+                <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
+              </>
+            )}
             <button
               onClick={exportExcel}
               disabled={!invoice.items.length}
@@ -409,7 +415,7 @@ export default function TaxInvoiceSection({
           </div>
           <p className="text-sm font-semibold text-gray-700 dark:text-white/70">No tax invoice yet</p>
           <p className="text-xs text-gray-400 dark:text-white/30">Auto-created as draft when the job is delivered</p>
-          {canCreate && (
+          {!readOnly && canCreate && (
             <button onClick={handleCreate} disabled={creating} className="btn-primary mt-1">
               {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
               Create Tax Invoice
@@ -449,7 +455,7 @@ export default function TaxInvoiceSection({
                     <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-12">Qty</th>
                     <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Unit Price</th>
                     <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 w-24">Total (AED)</th>
-                    <th className="w-16" />
+                    {!readOnly && <th className="w-16" />}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
@@ -465,7 +471,7 @@ export default function TaxInvoiceSection({
                             {item.item_type}
                           </span>
                         </td>
-                        {isEditing ? (
+                        {!readOnly && isEditing ? (
                           <>
                             <td className="px-2 py-1.5 min-w-[160px]">
                               <input value={editingItem!.description}
@@ -504,20 +510,22 @@ export default function TaxInvoiceSection({
                             <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{item.quantity}</td>
                             <td className="px-3 py-2 text-gray-500 tabular-nums dark:text-white/50 whitespace-nowrap">{formatAED(item.unit_price)}</td>
                             <td className="px-3 py-2 font-semibold text-gray-900 tabular-nums dark:text-white whitespace-nowrap">{formatAED(item.total_price)}</td>
-                            <td className="px-2 py-2">
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                <button
-                                  onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
-                                  disabled={isPending}
-                                  className="text-gray-300 hover:text-brand transition-colors dark:text-white/20 dark:hover:text-brand">
-                                  <Edit2 className="h-3.5 w-3.5" />
-                                </button>
-                                <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
-                                  className="text-gray-300 hover:text-red-400 transition-colors dark:text-white/20">
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            </td>
+                            {!readOnly && (
+                              <td className="px-2 py-2">
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                  <button
+                                    onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
+                                    disabled={isPending}
+                                    className="text-gray-300 hover:text-brand transition-colors dark:text-white/20 dark:hover:text-brand">
+                                    <Edit2 className="h-3.5 w-3.5" />
+                                  </button>
+                                  <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
+                                    className="text-gray-300 hover:text-red-400 transition-colors dark:text-white/20">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+                            )}
                           </>
                         )}
                       </tr>
@@ -528,51 +536,53 @@ export default function TaxInvoiceSection({
             </div>
           )}
 
-          {/* Add item — always available */}
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <div className="relative w-28 flex-none">
-                <select value={itemType} onChange={e => {
-                  setItemType(e.target.value as 'service' | 'part' | 'labor')
-                  setItemDesc(''); setItemPrice('')
-                }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
-                  <option value="service">Service</option>
-                  <option value="part">Part</option>
-                  <option value="labor">Labor</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
-              </div>
-              {itemType === 'service' ? (
-                <div className="relative flex-1">
-                  <select value={itemDesc} onChange={e => {
-                    const name = e.target.value
-                    setItemDesc(name)
-                    const match = catalog.find(s => s.name === name)
-                    if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
-                    else if (!name) setItemPrice('')
+          {/* Add item — hidden when locked */}
+          {!readOnly && (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <div className="relative w-28 flex-none">
+                  <select value={itemType} onChange={e => {
+                    setItemType(e.target.value as 'service' | 'part' | 'labor')
+                    setItemDesc(''); setItemPrice('')
                   }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
-                    <option value="">— Select service —</option>
-                    {catalog.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    <option value="service">Service</option>
+                    <option value="part">Part</option>
+                    <option value="labor">Labor</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
                 </div>
-              ) : (
-                <input value={itemDesc} onChange={e => setItemDesc(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddItem()}
-                  placeholder="Description" className={cn(inputSm, 'flex-1')} />
-              )}
+                {itemType === 'service' ? (
+                  <div className="relative flex-1">
+                    <select value={itemDesc} onChange={e => {
+                      const name = e.target.value
+                      setItemDesc(name)
+                      const match = catalog.find(s => s.name === name)
+                      if (match && match.default_price > 0) setItemPrice(match.default_price.toString())
+                      else if (!name) setItemPrice('')
+                    }} className={cn(inputSm, 'w-full appearance-none pr-7')}>
+                      <option value="">— Select service —</option>
+                      {catalog.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400 dark:text-white/30" />
+                  </div>
+                ) : (
+                  <input value={itemDesc} onChange={e => setItemDesc(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddItem()}
+                    placeholder="Description" className={cn(inputSm, 'flex-1')} />
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
+                  type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-20 flex-none')} />
+                <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
+                  type="number" min={0} className={cn(inputSm, 'flex-1')} />
+                <button onClick={handleAddItem} disabled={isPending || !itemDesc.trim() || !itemPrice}
+                  className="btn-primary text-xs px-3 py-2 h-auto flex-none">
+                  {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Add</>}
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <input value={itemQty} onChange={e => setItemQty(e.target.value)} placeholder="Qty"
-                type="number" min={0.5} step={0.5} className={cn(inputSm, 'w-20 flex-none')} />
-              <input value={itemPrice} onChange={e => setItemPrice(e.target.value)} placeholder="Price (AED)"
-                type="number" min={0} className={cn(inputSm, 'flex-1')} />
-              <button onClick={handleAddItem} disabled={isPending || !itemDesc.trim() || !itemPrice}
-                className="btn-primary text-xs px-3 py-2 h-auto flex-none">
-                {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <><Plus className="h-3.5 w-3.5" /> Add</>}
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* Totals */}
           <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2 dark:border-white/[0.07] dark:bg-surface-900">
@@ -597,26 +607,28 @@ export default function TaxInvoiceSection({
             <p className="text-[10px] text-gray-400 dark:text-white/25 text-right">Prices in AED · 5% UAE VAT</p>
           </div>
 
-          {/* Discount — always editable */}
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <label className="label">Discount (AED)</label>
-              <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
+          {/* Discount — hidden when locked */}
+          {!readOnly && (
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="label">Discount (AED)</label>
+                <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
+              </div>
+              <button onClick={handleDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
             </div>
-            <button onClick={handleDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
-          </div>
+          )}
 
-          {/* Notes — always editable */}
+          {/* Notes */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="label">Notes</label>
-              {!editingNotes && (
+              {!readOnly && !editingNotes && (
                 <button onClick={() => setEditingNotes(true)} className="text-xs text-brand hover:underline flex items-center gap-1">
                   <Edit2 className="h-3 w-3" /> Edit
                 </button>
               )}
             </div>
-            {editingNotes ? (
+            {!readOnly && editingNotes ? (
               <div className="space-y-2">
                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
                   className="input-base w-full min-h-[80px] resize-none"
@@ -632,12 +644,12 @@ export default function TaxInvoiceSection({
             ) : invoice.notes ? (
               <p className="text-sm text-gray-600 dark:text-white/60 leading-relaxed">{invoice.notes}</p>
             ) : (
-              <p className="text-xs text-gray-300 dark:text-white/20 italic">No notes — click Edit to add</p>
+              <p className="text-xs text-gray-300 dark:text-white/20 italic">No notes</p>
             )}
           </div>
 
-          {/* Issue button — draft only */}
-          {isDraft && (
+          {/* Issue button — draft only, hidden when locked */}
+          {!readOnly && isDraft && (
             <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
               <button onClick={handleIssue} disabled={isPending} className="btn-primary flex-1">
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
@@ -646,8 +658,8 @@ export default function TaxInvoiceSection({
             </div>
           )}
 
-          {/* Issued — show Mark as Paid */}
-          {isIssued && (
+          {/* Issued — show Mark as Paid, hidden when locked */}
+          {!readOnly && isIssued && (
             <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3">
                 <Check className="h-4 w-4 text-emerald-500 shrink-0" />

@@ -227,6 +227,7 @@ export async function approveJob(jobId: string, approvedBy?: string) {
 export async function assignTechnician(jobId: string, technicianId: string, changedBy?: string) {
   const sb = createClient()
   const { data: cur } = await sb.from('job_cards').select('status').eq('id', jobId).single()
+  if (cur?.status === 'delivered') throw new Error('Cannot modify a delivered job')
   const shouldAdvance = cur?.status === 'pending' || cur?.status === 'received'
   const updates: Record<string, unknown> = { technician_id: technicianId, updated_at: new Date().toISOString() }
   if (shouldAdvance) updates.status = 'assigned'
