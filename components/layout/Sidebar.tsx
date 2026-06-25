@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { signOut, useSession } from "@/lib/auth-client";
 import {
   LayoutDashboard,
@@ -22,10 +23,12 @@ import {
   Globe,
   UserRound,
   Receipt,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useShell } from "@/components/layout/WorkshopShell";
 import AttendanceWidget from "@/components/AttendanceWidget";
+import { createClient } from "@/lib/supabase/client";
 
 const NAV = {
   workshop: 'Workshop', admin: 'Admin',
@@ -75,6 +78,28 @@ export default function Sidebar() {
   );
 }
 
+function useChatNotificationCount() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const sb = createClient();
+
+    async function fetch() {
+      const { count: n } = await sb
+        .from("chat_notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("is_read", false);
+      setCount(n ?? 0);
+    }
+
+    fetch();
+    const interval = setInterval(fetch, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return count;
+}
+
 function SidebarContent({
   path,
   onClose,
@@ -85,6 +110,7 @@ function SidebarContent({
   showClose: boolean;
 }) {
   const { data: session } = useSession();
+  const chatCount = useChatNotificationCount();
   const nav = NAV;
   const role =
     (session?.user as { role?: string } | undefined)?.role ?? "receptionist";
@@ -261,6 +287,20 @@ function SidebarContent({
 
       {/* Bottom */}
       <div className="p-3 space-y-0.5">
+        {/* Website chat requests notification */}
+        <Link
+          href="/workshop/job-cards"
+          onClick={onClose}
+          className="relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-500 hover:bg-amber-50 hover:text-amber-600 transition-all dark:text-white/40 dark:hover:bg-amber-500/10 dark:hover:text-amber-400"
+        >
+          <Bell className="h-4 w-4" />
+          <span className="flex-1">Website Requests</span>
+          {chatCount > 0 && (
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#C9A227] px-1.5 text-[10px] font-bold text-black animate-pulse">
+              {chatCount > 9 ? "9+" : chatCount}
+            </span>
+          )}
+        </Link>
         <Link
           href="/workshop/settings"
           onClick={onClose}
