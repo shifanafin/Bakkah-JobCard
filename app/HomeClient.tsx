@@ -11,6 +11,7 @@ import {
   BadgeCheck, Gem, Users, Navigation,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
+import ChatWidget from "@/components/ChatWidget";
 
 type CloudImg = { url: string; public_id: string };
 type SiteContent = {
@@ -1007,6 +1008,9 @@ export default function BakkahHomePage() {
           </div>
         </div>
       </footer>
+
+      {/* ── Website Chat Widget ───────────────────────────── */}
+      <ChatWidget />
 
       {/* ── Sticky Mobile CTA Bar ─────────────────────────── */}
       <div className="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-white/96 dark:bg-[#0c0c0e]/96 backdrop-blur-xl border-t border-gray-200 dark:border-white/[0.08] px-4 py-3 flex gap-2 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]">
