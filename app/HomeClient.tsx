@@ -1,4 +1,4 @@
-                                                                  "use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
@@ -135,7 +135,7 @@ type Review = { id: string; customer_name: string; rating: number; comment: stri
 
 // ── Gold gradient text helper (applied via className) ─────────
 const goldGrad = "bg-gradient-to-r from-[#C9A227] via-[#f0d060] to-[#C9A227] bg-clip-text text-transparent";
-const goldBtn  = "inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#C9A227] to-[#d4ab2a] px-7 py-3.5 text-sm font-bold text-black shadow-[0_4px_24px_rgba(201,162,39,0.4)] hover:shadow-[0_4px_32px_rgba(201,162,39,0.6)] hover:scale-[1.02] transition-all duration-300";
+const goldBtn = "inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-[#C9A227] to-[#d4ab2a] px-7 py-3.5 text-sm font-bold text-black shadow-[0_4px_24px_rgba(201,162,39,0.4)] hover:shadow-[0_4px_32px_rgba(201,162,39,0.6)] hover:scale-[1.02] transition-all duration-300";
 
 export default function BakkahHomePage() {
   const { theme, toggle } = useTheme();
@@ -149,14 +149,14 @@ export default function BakkahHomePage() {
   const [cms, setCms] = useState<SiteContent>({});
 
   useEffect(() => {
-    fetch("/api/site-content").then(r => r.json()).then(d => setCms(d as SiteContent)).catch(() => {});
+    fetch("/api/site-content").then(r => r.json()).then(d => setCms(d as SiteContent)).catch(() => { });
   }, []);
 
-  const HERO_IMAGES   = cms.hero?.images?.length       ? cms.hero.images.map(i => i.url)                                        : [];
-  const SERVICE_IMGS  = Object.fromEntries(SERVICE_KEYS.map(k => [k, cms.services?.[k]?.url ?? ""]));
-  const GALLERY       = cms.gallery?.images?.length     ? cms.gallery.images.map(i => ({ src: i.url, alt: i.alt, wide: i.wide })) : [];
-  const PHOTO_STRIP   = cms.strip?.images?.length       ? cms.strip.images.map(i => i.url)                                       : [];
-  const BEFORE_AFTER  = cms.before_after?.images?.length ? cms.before_after.images.map(i => ({ src: i.url, type: i.type }))       : [];
+  const HERO_IMAGES = cms.hero?.images?.length ? cms.hero.images.map(i => i.url) : [];
+  const SERVICE_IMGS = Object.fromEntries(SERVICE_KEYS.map(k => [k, cms.services?.[k]?.url ?? ""]));
+  const GALLERY = cms.gallery?.images?.length ? cms.gallery.images.map(i => ({ src: i.url, alt: i.alt, wide: i.wide })) : [];
+  const PHOTO_STRIP = cms.strip?.images?.length ? cms.strip.images.map(i => i.url) : [];
+  const BEFORE_AFTER = cms.before_after?.images?.length ? cms.before_after.images.map(i => ({ src: i.url, type: i.type })) : [];
 
   useEffect(() => { const fn = () => setScrolled(window.scrollY > 40); window.addEventListener("scroll", fn, { passive: true }); return () => window.removeEventListener("scroll", fn); }, []);
   useEffect(() => { if (!HERO_IMAGES.length) return; const t = setInterval(() => setHeroIdx(i => (i + 1) % HERO_IMAGES.length), 4500); return () => clearInterval(t); }, [HERO_IMAGES.length]); // eslint-disable-line
@@ -191,9 +191,8 @@ export default function BakkahHomePage() {
       <motion.nav
         initial={{ y: -72, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: easeOut }}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled ? "bg-white/96 dark:bg-[#050507]/92 backdrop-blur-2xl border-b border-gray-200 dark:border-white/[0.07] shadow-[0_2px_24px_rgba(0,0,0,0.1)]" : ""
-        }`}
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "bg-white/96 dark:bg-[#050507]/92 backdrop-blur-2xl border-b border-gray-200 dark:border-white/[0.07] shadow-[0_2px_24px_rgba(0,0,0,0.1)]" : ""
+          }`}
       >
         {/* Announcement bar */}
         <div className="bg-[#C9A227] px-4 py-1.5 text-center text-[11px] font-bold text-black flex items-center justify-center flex-wrap gap-x-4 gap-y-0.5">
@@ -212,13 +211,13 @@ export default function BakkahHomePage() {
             </div>
             <div className="leading-none">
               <p className="font-display text-xl tracking-[0.22em] text-gray-900 dark:text-white leading-none">BAKKAH</p>
-              <p className="text-[8px] tracking-[0.18em] text-[#C9A227]/80 uppercase font-medium">AUTO PREMIUM CARE</p>
+              <p className="text-[8px] tracking-[0.18em] text-[#C9A227]/80 uppercase font-medium">PREMIUM AUTO CARE</p>
             </div>
           </a>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-500 dark:text-white/45">
-            {[["#services","Services"],["#gallery","Gallery"],["#how-it-works","How It Works"],["#reviews","Reviews"],["#contact","Contact"]].map(([href,label]) => (
+            {[["#services", "Services"], ["#gallery", "Gallery"], ["#how-it-works", "How It Works"], ["#reviews", "Reviews"], ["#contact", "Contact"]].map(([href, label]) => (
               <a key={href} href={href} className="hover:text-gray-900 dark:hover:text-white transition-colors duration-200">{label}</a>
             ))}
           </div>
@@ -226,9 +225,9 @@ export default function BakkahHomePage() {
           {/* Right actions */}
           <div className="flex items-center gap-2">
             {/* Instagram */}
-            <a href="https://www.instagram.com/bakkahpremiumautocare/" target="_blank" rel="noopener noreferrer"
+            <a href="https://www.instagram.com/bakkah_premium_auto_care/" target="_blank" rel="noopener noreferrer"
               className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/40 hover:border-pink-400/50 hover:text-pink-500 transition-colors" aria-label="Instagram">
-              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
             </a>
             {/* Call */}
             <a href="tel:+971545886999"
@@ -257,7 +256,7 @@ export default function BakkahHomePage() {
           {mobileNavOpen && (
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}
               className="md:hidden border-t border-gray-100 dark:border-white/[0.06] bg-white/98 dark:bg-[#050507]/95 backdrop-blur-2xl px-5 pb-5 pt-3 space-y-1">
-              {[["#services","Services"],["#gallery","Gallery"],["#how-it-works","How It Works"],["#reviews","Reviews"],["#contact","Contact"]].map(([href,label]) => (
+              {[["#services", "Services"], ["#gallery", "Gallery"], ["#how-it-works", "How It Works"], ["#reviews", "Reviews"], ["#contact", "Contact"]].map(([href, label]) => (
                 <a key={href} href={href} onClick={() => setMobileNavOpen(false)} className="flex items-center py-3 text-sm font-medium text-gray-600 dark:text-white/60 hover:text-[#C9A227] transition-colors border-b border-gray-50 dark:border-white/[0.04] last:border-0">
                   {label}
                 </a>
@@ -298,7 +297,7 @@ export default function BakkahHomePage() {
           <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#C9A227]/30 bg-[#C9A227]/10 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#C9A227]">
             <Star className="h-3 w-3 fill-[#C9A227]" />
-            Established 2012 — Al Qusais, Dubai 🇦🇪
+            Established  — Al Qusais, Dubai 🇦🇪
             <Star className="h-3 w-3 fill-[#C9A227]" />
           </motion.div>
 
@@ -308,9 +307,8 @@ export default function BakkahHomePage() {
               <motion.h1
                 initial={{ y: 120, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.7, delay: 0.2 + i * 0.1, ease: easeOut }}
-                className={`font-display leading-[0.88] tracking-[0.05em] text-[clamp(3rem,10.5vw,8.5rem)] ${
-                  i === 1 ? goldGrad : "text-gray-900 dark:text-white"
-                }`}
+                className={`font-display leading-[0.88] tracking-[0.05em] text-[clamp(3rem,10.5vw,8.5rem)] ${i === 1 ? goldGrad : "text-gray-900 dark:text-white"
+                  }`}
               >
                 {word}
               </motion.h1>
@@ -845,7 +843,7 @@ export default function BakkahHomePage() {
                 <img src="/logo.svg" alt="Bakkah Premium Auto Care" className="h-11 w-11 rounded-full shadow-[0_0_20px_rgba(201,162,39,0.3)]" />
                 <div className="leading-none">
                   <p className="font-display text-xl tracking-[0.22em] text-gray-900 dark:text-white leading-none">BAKKAH</p>
-                  <p className="text-[8px] tracking-[0.18em] text-[#C9A227]/80 uppercase font-medium">AUTO PREMIUM CARE</p>
+                  <p className="text-[8px] tracking-[0.18em] text-[#C9A227]/80 uppercase font-medium">PREMIUM AUTO CARE</p>
                 </div>
               </div>
               <p className="text-sm text-gray-500 dark:text-white/38 leading-relaxed max-w-xs">
@@ -959,10 +957,10 @@ export default function BakkahHomePage() {
                 </div>
               </a>
               {/* Instagram */}
-              <a href="https://www.instagram.com/bakkahpremiumautocare/" target="_blank" rel="noopener noreferrer"
+              <a href="https://www.instagram.com/bakkah_premium_auto_care/" target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-3.5 rounded-xl border border-pink-400/25 bg-pink-500/[0.07] px-5 py-4 hover:bg-pink-500/15 hover:border-pink-400/45 hover:scale-[1.03] transition-all duration-200">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#833ab4] via-[#fd1d1d] to-[#fcb045] shadow-[0_4px_16px_rgba(225,48,108,0.45)]">
-                  <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                  <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900 dark:text-white">Instagram</p>
@@ -973,7 +971,7 @@ export default function BakkahHomePage() {
               <a href="https://maps.google.com/?q=Bakkah+Premium+Auto+Care+Al+Qusais+Dubai" target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-3.5 rounded-xl border border-blue-400/25 bg-blue-500/[0.07] px-5 py-4 hover:bg-blue-500/15 hover:border-blue-400/45 hover:scale-[1.03] transition-all duration-200">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-[0_4px_16px_rgba(66,133,244,0.35)]">
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900 dark:text-white">Google Reviews</p>

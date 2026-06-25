@@ -74,7 +74,7 @@ const jsonLd = {
       url: BASE,
       telephone: "+971545886999",
       email: "info@bakkah.ae",
-      foundingDate: "2012",
+      foundingDate: "2025",
       address: {
         "@type": "PostalAddress",
         streetAddress: "Al Qusais Industrial Area",
