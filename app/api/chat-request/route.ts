@@ -13,8 +13,8 @@ function normalizePhone(raw: string): string {
 async function sendWhatsAppNotification(message: string) {
   const apiKey = process.env.CALLMEBOT_API_KEY
   if (!apiKey) return
-  const url = `https://api.callmebot.com/whatsapp.php?phone=%2B971589397610&text=${encodeURIComponent(message)}&apikey=${apiKey}`
-  await fetch(url).catch(() => {})
+  const url = `https://api.callmebot.com/whatsapp.php?phone=%2B971545886999&text=${encodeURIComponent(message)}&apikey=${apiKey}`
+  await fetch(url).catch(() => { })
 }
 
 export async function POST(req: NextRequest) {
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
       job_card_id: jc.id,
       new_status: 'inspection',
       notes: 'Created via website chat request',
-    }).catch(() => {})
+    }).catch(() => { })
 
     // Store in-app notification
     await sb.from('chat_notifications').insert({
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       remarks: remarks?.trim() || null,
       job_number: jc.job_number,
       job_card_id: jc.id,
-    }).catch(() => {})
+    }).catch(() => { })
 
     // Send WhatsApp notification to workshop owner
     const vehicleInfo = plate?.trim()
