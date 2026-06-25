@@ -4,6 +4,54 @@ import { getServerSession } from '@/lib/server-session'
 
 type Params = { params: Promise<{ id: string }> }
 
+// PATCH /api/job-cards/[id]
+export async function PATCH(req: NextRequest, { params }: Params) {
+  try {
+    const session = await getServerSession()
+    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+
+    const { id } = await params
+    const body = await req.json()
+    const sb = createServiceClient()
+
+    const { data: job, error: fetchErr } = await sb
+      .from('job_cards')
+      .select('id, status, customer_id, vehicle_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchErr || !job) return NextResponse.json({ error: 'Job card not found' }, { status: 404 })
+    if (job.status === 'delivered') return NextResponse.json({ error: 'Cannot edit a delivered job' }, { status: 400 })
+
+    const { customer, vehicle, ...jobFields } = body
+
+    if (customer && job.customer_id) {
+      await sb.from('customers').update(customer).eq('id', job.customer_id)
+    }
+
+    if (vehicle && job.vehicle_id) {
+      await sb.from('vehicles').update(vehicle).eq('id', job.vehicle_id)
+    }
+
+    const allowedJobFields = ['job_type', 'date_in', 'date_out', 'mileage_in', 'customer_complaint', 'work_instructions']
+    const jobUpdate: Record<string, unknown> = {}
+    for (const key of allowedJobFields) {
+      if (key in jobFields) jobUpdate[key] = jobFields[key]
+    }
+
+    if (Object.keys(jobUpdate).length > 0) {
+      await sb.from('job_cards').update(jobUpdate).eq('id', id)
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Update failed' },
+      { status: 500 }
+    )
+  }
+}
+
 // DELETE /api/job-cards/[id]
 // Admin only. Hard-deletes a job card and all related records (via DB cascade).
 // Jobs that have progressed past 'inspection' require status=cancelled first.
