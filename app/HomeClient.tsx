@@ -82,7 +82,7 @@ const fadeUp = {
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.07 } } };
 
 // ── Content ────────────────────────────────────────────────────
-const SERVICE_KEYS = ["fullDetail", "ceramic", "paintCorrection", "interior", "rta", "fleet"] as const;
+const SERVICE_KEYS = ["fullDetail", "ceramic", "paintCorrection", "interior", "fleet"] as const;
 
 const SERVICES = [
   {
@@ -104,11 +104,6 @@ const SERVICES = [
     icon: Droplets, emoji: "🫧", key: "interior",
     title: "Interior Detailing", tag: "Full Sanitize",
     desc: "Steam clean every crack, condition the leather, extract the carpets, eliminate every odour. You'll think you bought a new car.",
-  },
-  {
-    icon: ClipboardCheck, emoji: "📋", key: "rta",
-    title: "RTA Inspection Prep", tag: "Same Day",
-    desc: "First-time pass guaranteed (almost always). We prep your vehicle perfectly for RTA registration — no stress, no re-visits, no drama.",
   },
   {
     icon: Truck, emoji: "🚛", key: "fleet",
@@ -134,7 +129,7 @@ const FAQ_ITEMS = [
   { q: "Where are you located in Dubai?", a: "We're in Al Qusais Industrial Area, Dubai. Open Monday–Saturday 8 AM–8 PM and Sunday 9 AM–5 PM. WhatsApp us at +971 54 588 6999 for directions." },
 ];
 
-const TICKER = ["CERAMIC COATING", "PAINT CORRECTION", "FULL DETAIL", "INTERIOR DEEP CLEAN", "RTA INSPECTION", "FLEET SERVICES", "NANO COATING", "CLAY BAR TREATMENT", "STEAM CLEANING", "SCRATCH REMOVAL"];
+const TICKER = ["CERAMIC COATING", "PAINT CORRECTION", "FULL DETAIL", "INTERIOR DEEP CLEAN", "FLEET SERVICES", "NANO COATING", "CLAY BAR TREATMENT", "STEAM CLEANING", "SCRATCH REMOVAL", "PPF PROTECTION"];
 
 type Review = { id: string; customer_name: string; rating: number; comment: string | null; created_at: string };
 
@@ -177,7 +172,7 @@ export default function BakkahHomePage() {
   const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#050507] text-gray-900 dark:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-white dark:bg-[#050507] text-gray-900 dark:text-white overflow-x-hidden pb-[72px] sm:pb-0">
 
       {/* ── Floating WhatsApp ──────────────────────────────── */}
       <motion.a
@@ -186,7 +181,7 @@ export default function BakkahHomePage() {
         initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 1.8, type: "spring", stiffness: 260, damping: 20 }}
         whileHover={{ scale: 1.06 }} whileTap={{ scale: 0.94 }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-full bg-[#25D366] px-5 py-3.5 text-sm font-bold text-white shadow-[0_8px_32px_rgba(37,211,102,0.5)] hover:shadow-[0_8px_40px_rgba(37,211,102,0.7)] transition-shadow duration-300"
+        className="fixed bottom-6 right-6 z-50 hidden sm:flex items-center gap-2.5 rounded-full bg-[#25D366] px-5 py-3.5 text-sm font-bold text-white shadow-[0_8px_32px_rgba(37,211,102,0.5)] hover:shadow-[0_8px_40px_rgba(37,211,102,0.7)] transition-shadow duration-300"
       >
         <MessageCircle className="h-5 w-5 fill-white" />
         <span className="hidden sm:block">WhatsApp Us</span>
@@ -200,6 +195,15 @@ export default function BakkahHomePage() {
           scrolled ? "bg-white/96 dark:bg-[#050507]/92 backdrop-blur-2xl border-b border-gray-200 dark:border-white/[0.07] shadow-[0_2px_24px_rgba(0,0,0,0.1)]" : ""
         }`}
       >
+        {/* Announcement bar */}
+        <div className="bg-[#C9A227] px-4 py-1.5 text-center text-[11px] font-bold text-black flex items-center justify-center flex-wrap gap-x-4 gap-y-0.5">
+          <span>⏰ Open Today: 8 AM – 8 PM</span>
+          <span className="hidden sm:inline h-3 w-px bg-black/20" />
+          <a href="tel:+971545886999" className="hover:underline">📞 +971 54 588 6999</a>
+          <span className="hidden sm:inline h-3 w-px bg-black/20" />
+          <a href="https://wa.me/971545886999?text=Hi+Bakkah!+I'd+like+to+book" target="_blank" rel="noopener noreferrer" className="hover:underline">💬 WhatsApp to Book Now →</a>
+        </div>
+
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
           {/* Logo */}
           <a href="#top" className="flex items-center gap-3 group select-none">
@@ -221,6 +225,16 @@ export default function BakkahHomePage() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
+            {/* Instagram */}
+            <a href="https://www.instagram.com/bakkahpremiumautocare/" target="_blank" rel="noopener noreferrer"
+              className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/40 hover:border-pink-400/50 hover:text-pink-500 transition-colors" aria-label="Instagram">
+              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </a>
+            {/* Call */}
+            <a href="tel:+971545886999"
+              className="hidden lg:flex items-center gap-1.5 rounded-lg border border-[#C9A227]/30 bg-[#C9A227]/10 px-3 py-2 text-xs font-bold text-[#C9A227] hover:bg-[#C9A227]/20 hover:border-[#C9A227]/50 transition-all duration-200">
+              <Phone className="h-3.5 w-3.5" /> Call Now
+            </a>
             <button onClick={toggle} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors" aria-label="Toggle theme">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
@@ -264,7 +278,7 @@ export default function BakkahHomePage() {
       {/* ═══════════════════════════════════════════════════════
           HERO
       ═══════════════════════════════════════════════════════ */}
-      <section id="top" className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 pt-16 text-center">
+      <section id="top" className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 pt-24 text-center">
         {/* Hero background images */}
         {HERO_IMAGES.map((src, i) => (
           <motion.div key={src} className="pointer-events-none absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: heroIdx === i ? 1 : 0 }} transition={{ duration: 1.8 }}>
@@ -319,7 +333,8 @@ export default function BakkahHomePage() {
           {/* Inspection note */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.68 }}
             className="mt-3 text-sm text-gray-500 dark:text-white/35">
-            Free vehicle inspection on arrival · Honest advice · No pressure
+            Free inspection on arrival · Reply in under 2 minutes ·{" "}
+            <span className="font-semibold text-[#C9A227]">Limited slots — WhatsApp to book today</span>
           </motion.p>
 
           {/* CTAs */}
@@ -344,7 +359,7 @@ export default function BakkahHomePage() {
             <div className="h-3 w-px bg-gray-300 dark:bg-white/10" />
             <span className="text-gray-400 dark:text-white/30">Certified Detailers</span>
             <div className="h-3 w-px bg-gray-300 dark:bg-white/10" />
-            <span className="text-gray-400 dark:text-white/30">📞 +971 54 588 6999</span>
+            <a href="tel:+971545886999" className="text-gray-400 dark:text-white/30 hover:text-[#C9A227] transition-colors font-semibold">📞 +971 54 588 6999</a>
           </motion.div>
 
           {/* Slideshow dots */}
@@ -654,7 +669,7 @@ export default function BakkahHomePage() {
           <motion.div variants={fadeUp} custom={4} initial="hidden" whileInView="visible" viewport={{ once: true }}
             className="mt-14 flex flex-wrap items-center justify-center gap-4">
             {[
-              { icon: BadgeCheck, label: "RTA Approved" },
+              { icon: BadgeCheck, label: "Dubai Certified" },
               { icon: Gem, label: "Premium Products" },
               { icon: Users, label: "Certified Team" },
               { icon: Shield, label: "Fully Insured" },
@@ -917,6 +932,57 @@ export default function BakkahHomePage() {
             </div>
           </div>
 
+          {/* ── Social / Connect Row ──────────────────────────── */}
+          <div className="mb-10 rounded-2xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] p-7">
+            <p className="mb-6 text-center text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400 dark:text-white/25">Find Us · Contact Us · Follow Us</p>
+            <div className="flex flex-wrap items-stretch justify-center gap-3">
+              {/* WhatsApp */}
+              <a href="https://wa.me/971545886999?text=Hi+Bakkah!+I'd+like+to+book+a+service" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3.5 rounded-xl border border-[#25D366]/30 bg-[#25D366]/10 px-5 py-4 text-[#25D366] hover:bg-[#25D366]/20 hover:border-[#25D366]/50 hover:scale-[1.03] transition-all duration-200">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#25D366] shadow-[0_4px_16px_rgba(37,211,102,0.45)]">
+                  <MessageCircle className="h-5 w-5 fill-white text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">WhatsApp</p>
+                  <p className="text-[11px] text-[#25D366] font-medium">Book instantly — 2 min reply</p>
+                </div>
+              </a>
+              {/* Call */}
+              <a href="tel:+971545886999"
+                className="flex items-center gap-3.5 rounded-xl border border-[#C9A227]/30 bg-[#C9A227]/10 px-5 py-4 hover:bg-[#C9A227]/20 hover:border-[#C9A227]/50 hover:scale-[1.03] transition-all duration-200">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#C9A227] shadow-[0_4px_16px_rgba(201,162,39,0.45)]">
+                  <Phone className="h-5 w-5 text-black" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Call Now</p>
+                  <p className="text-[11px] text-[#C9A227] font-medium">+971 54 588 6999</p>
+                </div>
+              </a>
+              {/* Instagram */}
+              <a href="https://www.instagram.com/bakkahpremiumautocare/" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3.5 rounded-xl border border-pink-400/25 bg-pink-500/[0.07] px-5 py-4 hover:bg-pink-500/15 hover:border-pink-400/45 hover:scale-[1.03] transition-all duration-200">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#833ab4] via-[#fd1d1d] to-[#fcb045] shadow-[0_4px_16px_rgba(225,48,108,0.45)]">
+                  <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Instagram</p>
+                  <p className="text-[11px] text-pink-400 font-medium">Before & after transformations</p>
+                </div>
+              </a>
+              {/* Google */}
+              <a href="https://maps.google.com/?q=Bakkah+Premium+Auto+Care+Al+Qusais+Dubai" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3.5 rounded-xl border border-blue-400/25 bg-blue-500/[0.07] px-5 py-4 hover:bg-blue-500/15 hover:border-blue-400/45 hover:scale-[1.03] transition-all duration-200">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-[0_4px_16px_rgba(66,133,244,0.35)]">
+                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Google Reviews</p>
+                  <p className="text-[11px] text-blue-400 font-medium">⭐ 5.0 · 1,200+ reviews</p>
+                </div>
+              </a>
+            </div>
+          </div>
+
           {/* Gold divider */}
           <div className="h-px bg-gradient-to-r from-transparent via-[#C9A227]/30 to-transparent mb-6" />
 
@@ -932,6 +998,19 @@ export default function BakkahHomePage() {
           </div>
         </div>
       </footer>
+
+      {/* ── Sticky Mobile CTA Bar ─────────────────────────── */}
+      <div className="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-white/96 dark:bg-[#0c0c0e]/96 backdrop-blur-xl border-t border-gray-200 dark:border-white/[0.08] px-4 py-3 flex gap-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]">
+        <a href="tel:+971545886999"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#C9A227]/40 bg-[#C9A227]/10 py-3.5 text-sm font-bold text-[#C9A227]">
+          <Phone className="h-4 w-4" /> Call
+        </a>
+        <a href="https://wa.me/971545886999?text=Hi+Bakkah!+I'd+like+to+book+a+service" target="_blank" rel="noopener noreferrer"
+          className="flex flex-[2] items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(37,211,102,0.45)]">
+          <MessageCircle className="h-4 w-4 fill-white" /> WhatsApp Now
+        </a>
+      </div>
+
     </div>
   );
 }
