@@ -8,7 +8,7 @@ import {
   MapPin, Phone, Mail, ChevronRight, ArrowRight, Star,
   Car, MessageCircle, CheckCircle, Quote, Sun, Moon,
   Play, ChevronDown, Award, Clock, ThumbsUp, Eye, Menu, X,
-  BadgeCheck, Gem, Users,
+  BadgeCheck, Gem, Users, Navigation,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -297,7 +297,7 @@ export default function BakkahHomePage() {
           <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#C9A227]/30 bg-[#C9A227]/10 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#C9A227]">
             <Star className="h-3 w-3 fill-[#C9A227]" />
-            Established  — Al Qusais, Dubai 🇦🇪
+            Al Qusais, Dubai 🇦🇪
             <Star className="h-3 w-3 fill-[#C9A227]" />
           </motion.div>
 
@@ -641,14 +641,14 @@ export default function BakkahHomePage() {
             <motion.p variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-[#C9A227]">Our Track Record</motion.p>
             <motion.h2 variants={fadeUp} custom={1} initial="hidden" whileInView="visible" viewport={{ once: true }} className="font-display text-[clamp(2rem,5vw,3.5rem)] tracking-[0.05em] text-gray-900 dark:text-white">WHY CHOOSE BAKKAH</motion.h2>
             <motion.p variants={fadeUp} custom={2} initial="hidden" whileInView="visible" viewport={{ once: true }} className="mx-auto mt-4 max-w-sm text-sm text-gray-500 dark:text-white/38">
-              Numbers don't lie. Transforming cars in Dubai since 2012.
+              Numbers don't lie. Transforming cars in Dubai since 2025.
             </motion.p>
           </div>
           <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
             {[
-              { value: 5000, suffix: "+", label: "Cars Transformed", sub: "Since 2012" },
+              { value: 5000, suffix: "+", label: "Cars Transformed", sub: "Since 2025" },
               { value: 98, suffix: "%", label: "Client Satisfaction", sub: "Verified reviews" },
-              { value: 12, suffix: "+", label: "Years in Dubai", sub: "Est. 2012" },
+              { value: 12, suffix: "+", label: "Years in Dubai", sub: "Est. 2025" },
               { value: 500, suffix: "+", label: "Cars Per Month", sub: "Busy workshop!" },
             ].map((stat, i) => (
               <motion.div key={stat.label} variants={fadeUp} custom={i * 0.7} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center group">
@@ -877,7 +877,7 @@ export default function BakkahHomePage() {
               <h4 className="mb-5 text-[10px] font-bold uppercase tracking-[0.25em] text-gray-400 dark:text-white/25">Get In Touch</h4>
               <ul className="space-y-4">
                 {[
-                  { icon: MapPin, text: "Al Qusais Industrial Area\nDubai, UAE 🇦🇪", href: "https://maps.google.com/?q=Al+Qusais+Industrial+Area+Dubai" },
+                  { icon: MapPin, text: "Al Qusais Industrial Area\nDubai, UAE 🇦🇪", href: "https://www.google.com/maps/dir/?api=1&destination=Bakkah+Premium+Auto+Care+Al+Qusais+Industrial+Area+Dubai" },
                   { icon: Phone, text: "+971 54 588 6999", href: "tel:+971545886999" },
                   { icon: Mail, text: "info@bakkah.ae", href: "mailto:info@bakkah.ae" },
                 ].map(({ icon: Icon, text, href }) => (
@@ -978,6 +978,17 @@ export default function BakkahHomePage() {
                   <p className="text-[11px] text-blue-400 font-medium">⭐ 5.0 · 1,200+ reviews</p>
                 </div>
               </a>
+              {/* Get Directions */}
+              <a href="https://www.google.com/maps/dir/?api=1&destination=Bakkah+Premium+Auto+Care+Al+Qusais+Industrial+Area+Dubai" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-3.5 rounded-xl border border-emerald-400/25 bg-emerald-500/[0.07] px-5 py-4 hover:bg-emerald-500/15 hover:border-emerald-400/45 hover:scale-[1.03] transition-all duration-200">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500 shadow-[0_4px_16px_rgba(16,185,129,0.45)]">
+                  <Navigation className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Get Directions</p>
+                  <p className="text-[11px] text-emerald-400 font-medium">Al Qusais Industrial Area</p>
+                </div>
+              </a>
             </div>
           </div>
 
@@ -986,7 +997,7 @@ export default function BakkahHomePage() {
 
           {/* Bottom row */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400 dark:text-white/20">
-            <p>© 2025 Bakkah Premium Auto Care LLC. All rights reserved. Proudly serving Dubai since 2012.</p>
+            <p>© 2025 Bakkah Premium Auto Care LLC. All rights reserved. Proudly serving Dubai since 2025.</p>
             <p className="text-center sm:text-right">
               <span className="text-gray-300 dark:text-white/15">VAT Reg. No: </span>
               <span className="font-mono">100XXXXXXXXX00003</span>
@@ -998,13 +1009,17 @@ export default function BakkahHomePage() {
       </footer>
 
       {/* ── Sticky Mobile CTA Bar ─────────────────────────── */}
-      <div className="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-white/96 dark:bg-[#0c0c0e]/96 backdrop-blur-xl border-t border-gray-200 dark:border-white/[0.08] px-4 py-3 flex gap-3 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]">
+      <div className="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-white/96 dark:bg-[#0c0c0e]/96 backdrop-blur-xl border-t border-gray-200 dark:border-white/[0.08] px-4 py-3 flex gap-2 shadow-[0_-8px_32px_rgba(0,0,0,0.12)]">
         <a href="tel:+971545886999"
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#C9A227]/40 bg-[#C9A227]/10 py-3.5 text-sm font-bold text-[#C9A227]">
+          className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-[#C9A227]/40 bg-[#C9A227]/10 py-2.5 text-[11px] font-bold text-[#C9A227]">
           <Phone className="h-4 w-4" /> Call
         </a>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=Bakkah+Premium+Auto+Care+Al+Qusais+Industrial+Area+Dubai" target="_blank" rel="noopener noreferrer"
+          className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border-2 border-emerald-400/40 bg-emerald-500/10 py-2.5 text-[11px] font-bold text-emerald-500">
+          <Navigation className="h-4 w-4" /> Directions
+        </a>
         <a href="https://wa.me/971545886999?text=Hi+Bakkah!+I'd+like+to+book+a+service" target="_blank" rel="noopener noreferrer"
-          className="flex flex-[2] items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3.5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(37,211,102,0.45)]">
+          className="flex flex-[2] items-center justify-center gap-2 rounded-xl bg-[#25D366] py-2.5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(37,211,102,0.45)]">
           <MessageCircle className="h-4 w-4 fill-white" /> WhatsApp Now
         </a>
       </div>
