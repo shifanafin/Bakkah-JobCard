@@ -46,24 +46,13 @@ const SERVICES = [
   { label: "💬 Other / Not Sure", value: "Other" },
 ];
 
-// ── Animated car SVG icon ────────────────────────────────────────
+// ── Animated car SVG ─────────────────────────────────────────────
 
 function CarIcon({ size = 28 }: { size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="8" y="26" width="48" height="20" rx="5" fill="#C9A227" />
-      <path
-        d="M14 26L20 14H44L50 26"
-        stroke="#C9A227"
-        strokeWidth="2"
-        fill="#d4b22e"
-      />
+      <path d="M14 26L20 14H44L50 26" stroke="#C9A227" strokeWidth="2" fill="#d4b22e" />
       <rect x="14" y="26" width="36" height="16" rx="3" fill="#d4b22e" />
       <rect x="18" y="18" width="12" height="10" rx="2" fill="#050507" opacity="0.6" />
       <rect x="34" y="18" width="12" height="10" rx="2" fill="#050507" opacity="0.6" />
@@ -77,9 +66,9 @@ function CarIcon({ size = 28 }: { size?: number }) {
   );
 }
 
-// ── Floating trigger button ──────────────────────────────────────
+// ── Trigger button (works on all screen sizes) ───────────────────
 
-function TriggerButton({ onClick, hasNew }: { onClick: () => void; hasNew: boolean }) {
+function TriggerButton({ onClick }: { onClick: () => void }) {
   return (
     <motion.button
       onClick={onClick}
@@ -88,7 +77,8 @@ function TriggerButton({ onClick, hasNew }: { onClick: () => void; hasNew: boole
       transition={{ delay: 2.2, type: "spring", stiffness: 260, damping: 20 }}
       whileHover={{ scale: 1.06 }}
       whileTap={{ scale: 0.94 }}
-      className="fixed bottom-6 left-6 z-50 hidden sm:flex flex-col items-center gap-1 group"
+      // On mobile: bottom-20 to sit above the sticky CTA bar; sm+: bottom-6
+      className="fixed bottom-20 left-4 sm:bottom-6 sm:left-6 z-50 flex flex-col items-center gap-1"
       aria-label="Open chat"
     >
       <motion.div
@@ -97,11 +87,6 @@ function TriggerButton({ onClick, hasNew }: { onClick: () => void; hasNew: boole
         className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#C9A227] to-[#d4b22e] shadow-[0_8px_32px_rgba(201,162,39,0.55)] hover:shadow-[0_8px_40px_rgba(201,162,39,0.7)] transition-shadow duration-300"
       >
         <CarIcon size={30} />
-        {hasNew && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white animate-pulse">
-            1
-          </span>
-        )}
       </motion.div>
       <motion.span
         initial={{ opacity: 0, y: 4 }}
@@ -115,7 +100,7 @@ function TriggerButton({ onClick, hasNew }: { onClick: () => void; hasNew: boole
   );
 }
 
-// ── Bot message bubble ───────────────────────────────────────────
+// ── Bot bubble ───────────────────────────────────────────────────
 
 function BotBubble({ text }: { text: string }) {
   return (
@@ -128,14 +113,14 @@ function BotBubble({ text }: { text: string }) {
       <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#C9A227] to-[#d4b22e] shadow-sm mb-0.5">
         <CarIcon size={16} />
       </div>
-      <div className="rounded-2xl rounded-bl-sm bg-gray-100 dark:bg-white/[0.08] px-4 py-2.5 text-sm text-gray-800 dark:text-white/90 leading-relaxed">
+      <div className="rounded-2xl rounded-bl-sm bg-gray-100 dark:bg-white/[0.08] px-4 py-2.5 text-sm text-gray-800 dark:text-white/90 leading-relaxed whitespace-pre-line">
         {text}
       </div>
     </motion.div>
   );
 }
 
-// ── User message bubble ──────────────────────────────────────────
+// ── User bubble ──────────────────────────────────────────────────
 
 function UserBubble({ text }: { text: string }) {
   return (
@@ -176,9 +161,7 @@ export default function ChatWidget() {
   }, [messages]);
 
   useEffect(() => {
-    if (open && step === "idle") {
-      startChat();
-    }
+    if (open && step === "idle") startChat();
   }, [open]); // eslint-disable-line
 
   useEffect(() => {
@@ -198,9 +181,7 @@ export default function ChatWidget() {
   function startChat() {
     setMessages([]);
     setForm({ name: "", phone: "", plate: "", make: "", model: "", service_type: "", remarks: "" });
-    setInput("");
-    setInput2("");
-    setError("");
+    setInput(""); setInput2(""); setError(""); setJobNumber("");
     setTimeout(() => {
       addBot("👋 Hi! Welcome to Bakkah Premium Auto Care.");
       setTimeout(() => {
@@ -214,57 +195,39 @@ export default function ChatWidget() {
   function handleNameSubmit() {
     const val = input.trim();
     if (val.length < 2) { setError("Please enter your full name."); return; }
-    setError("");
-    addUser(val);
-    setForm((f) => ({ ...f, name: val }));
-    setInput("");
+    setError(""); addUser(val);
+    setForm((f) => ({ ...f, name: val })); setInput("");
     setStep("phone");
     setTimeout(() => addBot(`Nice to meet you, ${val.split(" ")[0]}! 🤝\nWhat's your WhatsApp number?`), 400);
   }
 
   function handlePhoneSubmit() {
     const val = input.trim();
-    const digits = val.replace(/\D/g, "");
-    if (digits.length < 9) { setError("Please enter a valid UAE phone number."); return; }
-    setError("");
-    addUser(val);
-    setForm((f) => ({ ...f, phone: val }));
-    setInput("");
+    if (val.replace(/\D/g, "").length < 9) { setError("Enter a valid UAE phone number."); return; }
+    setError(""); addUser(val);
+    setForm((f) => ({ ...f, phone: val })); setInput("");
     setStep("plate");
-    setTimeout(() => addBot("What's your vehicle plate number?\n(e.g. ABC 1234 — skip by typing \"skip\")"), 400);
+    setTimeout(() => addBot("What's your vehicle plate number?\n(e.g. ABC 1234 — type skip to continue)"), 400);
   }
 
   function handlePlateSubmit() {
     const val = input.trim();
     setError("");
-    addUser(val.toLowerCase() === "skip" ? "Skip" : val.toUpperCase());
-    setForm((f) => ({ ...f, plate: val.toLowerCase() === "skip" ? "" : val }));
-    setInput("");
+    const skip = val.toLowerCase() === "skip" || !val;
+    addUser(skip ? "Skip" : val.toUpperCase());
+    setForm((f) => ({ ...f, plate: skip ? "" : val })); setInput("");
     setStep("make_model");
-    setTimeout(() =>
-      addBot("What's the make and model of your vehicle?\n(e.g. Toyota, Land Cruiser — type \"skip\" to skip)"),
-      400
-    );
+    setTimeout(() => addBot("Vehicle make and model?\n(e.g. Toyota, Land Cruiser — type skip to continue)"), 400);
   }
 
   function handleMakeModelSubmit() {
-    const makeVal = input.trim();
-    const modelVal = input2.trim();
-    if (!makeVal && !modelVal) {
-      setError("Please enter at least the make, or type \"skip\".");
-      return;
-    }
+    const makeVal = input.trim(); const modelVal = input2.trim();
     setError("");
-    const display = makeVal && modelVal ? `${makeVal} ${modelVal}` : makeVal || modelVal || "Skipped";
-    if (display.toLowerCase() === "skip") {
-      addUser("Skip");
-      setForm((f) => ({ ...f, make: "", model: "" }));
-    } else {
-      addUser(display);
-      setForm((f) => ({ ...f, make: makeVal, model: modelVal }));
-    }
-    setInput("");
-    setInput2("");
+    const skip = makeVal.toLowerCase() === "skip" || (!makeVal && !modelVal);
+    const display = skip ? "Skip" : [makeVal, modelVal].filter(Boolean).join(" ");
+    addUser(display);
+    setForm((f) => ({ ...f, make: skip ? "" : makeVal, model: skip ? "" : modelVal }));
+    setInput(""); setInput2("");
     setStep("service");
     setTimeout(() => addBot("What type of service do you need? 🔧"), 400);
   }
@@ -273,7 +236,7 @@ export default function ChatWidget() {
     addUser(service);
     setForm((f) => ({ ...f, service_type: service }));
     setStep("remarks");
-    setTimeout(() => addBot("Any specific concerns, damage, or additional remarks?\n(Type \"none\" to skip)"), 400);
+    setTimeout(() => addBot("Any specific concerns or remarks?\n(Type none to skip)"), 400);
   }
 
   function handleRemarksSubmit() {
@@ -281,8 +244,7 @@ export default function ChatWidget() {
     setError("");
     const remarks = val.toLowerCase() === "none" || !val ? "" : val;
     addUser(val || "No remarks");
-    setForm((f) => ({ ...f, remarks }));
-    setInput("");
+    setForm((f) => ({ ...f, remarks })); setInput("");
     setStep("confirm");
     setTimeout(() => addBot("Great! Here's your request summary — please confirm:"), 400);
   }
@@ -294,8 +256,7 @@ export default function ChatWidget() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: form.name,
-          phone: form.phone,
+          name: form.name, phone: form.phone,
           plate: form.plate || undefined,
           make: form.make || undefined,
           model: form.model || undefined,
@@ -308,19 +269,15 @@ export default function ChatWidget() {
       setJobNumber(data.job_number ?? "");
       setStep("done");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Something went wrong.");
       setStep("confirm");
     }
   }
 
   function reset() {
-    setStep("idle");
-    setMessages([]);
-    setInput("");
-    setInput2("");
+    setStep("idle"); setMessages([]); setInput(""); setInput2("");
     setForm({ name: "", phone: "", plate: "", make: "", model: "", service_type: "", remarks: "" });
-    setError("");
-    setJobNumber("");
+    setError(""); setJobNumber("");
     startChat();
   }
 
@@ -331,12 +288,11 @@ export default function ChatWidget() {
     step === "name" ? "Your full name…" :
     step === "phone" ? "05X XXX XXXX" :
     step === "plate" ? "ABC 1234 or skip" :
-    step === "remarks" ? "Any details… or type none" : "";
+    "Any details… or type none";
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+      e.preventDefault(); handleSend();
     }
   }
 
@@ -349,10 +305,12 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* Trigger button */}
-      {!open && <TriggerButton onClick={() => setOpen(true)} hasNew={false} />}
+      {/* Trigger — visible on all sizes */}
+      {!open && <TriggerButton onClick={() => setOpen(true)} />}
 
-      {/* Chat panel */}
+      {/* Chat panel
+          Mobile  : fixed, full-width with some margin, sits above sticky bar
+          Desktop : fixed 360px panel, bottom-left */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -360,10 +318,11 @@ export default function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-            className="fixed bottom-4 left-4 z-50 hidden sm:flex flex-col w-[360px] max-h-[580px] rounded-2xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#111113] shadow-[0_24px_80px_rgba(0,0,0,0.2)] overflow-hidden"
+            // Mobile: inset-x-2, bottom above sticky bar; sm+: fixed 360px on left
+            className="fixed inset-x-2 bottom-[76px] z-50 flex flex-col max-h-[78vh] rounded-2xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#111113] shadow-[0_24px_80px_rgba(0,0,0,0.2)] overflow-hidden sm:inset-x-auto sm:left-4 sm:bottom-6 sm:w-[360px] sm:max-h-[580px]"
           >
             {/* Header */}
-            <div className="flex items-center gap-3 bg-gradient-to-r from-[#C9A227] to-[#d4b22e] px-4 py-3.5">
+            <div className="flex items-center gap-3 bg-gradient-to-r from-[#C9A227] to-[#d4b22e] px-4 py-3.5 shrink-0">
               <motion.div
                 animate={{ rotate: [0, -8, 8, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -391,13 +350,9 @@ export default function ChatWidget() {
                   : <UserBubble key={msg.id} text={msg.text} />
               )}
 
-              {/* Make/Model step */}
+              {/* Make/Model */}
               {step === "make_model" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-2"
-                >
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
                   <input
                     ref={inputRef}
                     value={input}
@@ -421,18 +376,14 @@ export default function ChatWidget() {
                 </motion.div>
               )}
 
-              {/* Service selection */}
+              {/* Service buttons */}
               {step === "service" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="grid grid-cols-1 gap-1.5"
-                >
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 gap-1.5">
                   {SERVICES.map((s) => (
                     <button
                       key={s.value}
                       onClick={() => handleServiceSelect(s.value)}
-                      className="w-full rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] px-3.5 py-2.5 text-left text-sm font-medium text-gray-700 dark:text-white/80 hover:border-[#C9A227]/50 hover:bg-[#C9A227]/[0.06] hover:text-[#C9A227] transition-all duration-150"
+                      className="w-full rounded-xl border border-gray-200 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.04] px-3.5 py-2.5 text-left text-sm font-medium text-gray-700 dark:text-white/80 hover:border-[#C9A227]/50 hover:bg-[#C9A227]/[0.06] hover:text-[#C9A227] active:scale-[0.98] transition-all duration-150"
                     >
                       {s.label}
                     </button>
@@ -442,16 +393,12 @@ export default function ChatWidget() {
 
               {/* Confirmation card */}
               {step === "confirm" && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-2xl border border-[#C9A227]/30 bg-[#C9A227]/[0.06] p-4 space-y-2"
-                >
+                <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-[#C9A227]/30 bg-[#C9A227]/[0.06] p-4 space-y-2">
                   {[
                     { label: "Name", value: form.name },
                     { label: "Phone", value: form.phone },
                     { label: "Plate", value: form.plate || "—" },
-                    { label: "Vehicle", value: form.make && form.model ? `${form.make} ${form.model}` : form.make || "—" },
+                    { label: "Vehicle", value: [form.make, form.model].filter(Boolean).join(" ") || "—" },
                     { label: "Service", value: form.service_type },
                     { label: "Remarks", value: form.remarks || "—" },
                   ].map(({ label, value }) => (
@@ -460,19 +407,14 @@ export default function ChatWidget() {
                       <span className="text-gray-700 dark:text-white/80 break-words">{value}</span>
                     </div>
                   ))}
-                  {error && (
-                    <p className="text-xs text-red-500 mt-1">{error}</p>
-                  )}
+                  {error && <p className="text-xs text-red-500">{error}</p>}
                   <button
                     onClick={handleConfirm}
-                    className="mt-2 w-full rounded-xl bg-gradient-to-r from-[#C9A227] to-[#d4b22e] py-2.5 text-sm font-bold text-black hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                    className="mt-2 w-full rounded-xl bg-gradient-to-r from-[#C9A227] to-[#d4b22e] py-2.5 text-sm font-bold text-black hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                   >
                     <CheckCircle className="h-4 w-4" /> Confirm Request
                   </button>
-                  <button
-                    onClick={reset}
-                    className="w-full text-xs text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/50 transition-colors"
-                  >
+                  <button onClick={reset} className="w-full text-xs text-gray-400 dark:text-white/30 hover:text-gray-600 dark:hover:text-white/50 transition-colors">
                     Start over
                   </button>
                 </motion.div>
@@ -480,11 +422,7 @@ export default function ChatWidget() {
 
               {/* Submitting */}
               {step === "submitting" && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center gap-3 py-4"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-3 py-4">
                   <Loader2 className="h-8 w-8 animate-spin text-[#C9A227]" />
                   <p className="text-sm text-gray-500 dark:text-white/40">Submitting your request…</p>
                 </motion.div>
@@ -492,11 +430,7 @@ export default function ChatWidget() {
 
               {/* Done */}
               {step === "done" && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-2xl border border-emerald-400/30 bg-emerald-50 dark:bg-emerald-500/10 p-5 text-center space-y-3"
-                >
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-2xl border border-emerald-400/30 bg-emerald-50 dark:bg-emerald-500/10 p-5 text-center space-y-3">
                   <div className="flex justify-center">
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15">
                       <CheckCircle className="h-8 w-8 text-emerald-500" />
@@ -511,7 +445,7 @@ export default function ChatWidget() {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 dark:text-white/40 leading-relaxed">
-                    Our team will contact you shortly on WhatsApp to confirm your booking. 🚗
+                    Our team will contact you on WhatsApp shortly. 🚗
                   </p>
                   <button
                     onClick={reset}
@@ -525,12 +459,12 @@ export default function ChatWidget() {
               <div ref={bottomRef} />
             </div>
 
-            {/* Input area */}
+            {/* Input bar */}
             {showInput && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="border-t border-gray-100 dark:border-white/[0.06] px-3 py-3 flex gap-2 items-center"
+                className="border-t border-gray-100 dark:border-white/[0.06] px-3 py-3 flex gap-2 items-center shrink-0"
               >
                 <div className="flex-1">
                   <input
@@ -546,7 +480,7 @@ export default function ChatWidget() {
                 <button
                   onClick={handleSend}
                   disabled={!input.trim()}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#C9A227] to-[#d4b22e] shadow-[0_4px_16px_rgba(201,162,39,0.4)] hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#C9A227] to-[#d4b22e] shadow-[0_4px_16px_rgba(201,162,39,0.4)] hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   aria-label="Send"
                 >
                   <Send className="h-4 w-4 text-black" />
