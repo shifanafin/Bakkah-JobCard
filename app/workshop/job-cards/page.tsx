@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header'
 import { useSession } from '@/lib/auth-client'
 import { getJobCards } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
-import { Plus, Search, FileSpreadsheet, Car, Eye, X, Trash2, CheckSquare, Square, Upload, Download, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Plus, Search, FileSpreadsheet, Car, Eye, X, Trash2, CheckSquare, Square, Upload, Download, Loader2, AlertCircle, CheckCircle2, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -474,6 +474,12 @@ export default function JobCardsPage() {
                                   className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-500 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
                                   <Eye className="h-3.5 w-3.5" /> View
                                 </Link>
+                                {!isDelivered && (
+                                  <Link href={`/workshop/job-cards/${job.id}/edit`}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-500 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+                                    <Pencil className="h-3.5 w-3.5" /> Edit
+                                  </Link>
+                                )}
                                 {canDelete && !isDelivered && (
                                   <button onClick={() => { setSelectedIds(new Set([job.id])); handleBulkDelete() }}
                                     className="inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50 px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-100 hover:text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20">
