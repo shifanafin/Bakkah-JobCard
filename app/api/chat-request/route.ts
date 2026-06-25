@@ -11,10 +11,18 @@ function normalizePhone(raw: string): string {
 }
 
 async function sendWhatsAppNotification(message: string) {
-  const apiKey = process.env.CALLMEBOT_API_KEY
-  if (!apiKey) return
-  const url = `https://api.callmebot.com/whatsapp.php?phone=%2B971545886999&text=${encodeURIComponent(message)}&apikey=${apiKey}`
-  await fetch(url).catch(() => { })
+  const instanceId = process.env.GREEN_API_INSTANCE_ID
+  const token = process.env.GREEN_API_TOKEN
+  if (!instanceId || !token) return
+
+  // Green API — sends from your own connected WhatsApp number
+  // chatId format: countrycode+number@c.us  (no + sign, no spaces)
+  const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${token}`
+  await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chatId: '971589397610@c.us', message }),
+  }).catch(() => {})
 }
 
 export async function POST(req: NextRequest) {
