@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
           date_in: r.date_in.trim(),
           customer_complaint: r.customer_complaint?.trim() || null,
           status: 'received',
+          source: 'import',
         }).select('id, job_number').single()
         if (jcErr) throw new Error(`Job card: ${jcErr.message}`)
 

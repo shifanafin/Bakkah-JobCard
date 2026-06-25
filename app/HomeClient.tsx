@@ -302,19 +302,20 @@ export default function BakkahHomePage() {
             <Star className="h-3 w-3 fill-[#C9A227]" />
           </motion.div>
 
-          {/* Main headline */}
-          {(["EXCELLENCE", "IN EVERY", "DETAIL."] as const).map((word, i) => (
-            <div key={i} className="overflow-hidden">
-              <motion.h1
-                initial={{ y: 120, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.2 + i * 0.1, ease: easeOut }}
-                className={`font-display leading-[0.88] tracking-[0.05em] text-[clamp(3rem,10.5vw,8.5rem)] ${i === 1 ? goldGrad : "text-gray-900 dark:text-white"
-                  }`}
-              >
-                {word}
-              </motion.h1>
-            </div>
-          ))}
+          {/* Main headline — single H1 wrapping animated spans */}
+          <h1 className="font-display leading-[0.88] tracking-[0.05em] text-[clamp(3rem,10.5vw,8.5rem)]">
+            {(["EXCELLENCE", "IN EVERY", "DETAIL."] as const).map((word, i) => (
+              <div key={i} className="overflow-hidden">
+                <motion.span
+                  initial={{ y: 120, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.7, delay: 0.2 + i * 0.1, ease: easeOut }}
+                  className={`block ${i === 1 ? goldGrad : "text-gray-900 dark:text-white"}`}
+                >
+                  {word}
+                </motion.span>
+              </div>
+            ))}
+          </h1>
 
           {/* Arabic tagline */}
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.52 }}
@@ -647,9 +648,9 @@ export default function BakkahHomePage() {
           </div>
           <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
             {[
-              { value: 5000, suffix: "+", label: "Cars Transformed", sub: "Since 2025" },
+              { value: 5000, suffix: "+", label: "Cars Transformed", sub: "And counting" },
               { value: 98, suffix: "%", label: "Client Satisfaction", sub: "Verified reviews" },
-              { value: 12, suffix: "+", label: "Years in Dubai", sub: "Est. 2025" },
+              { value: 100, suffix: "%", label: "Hand Washed", sub: "Never machine wash" },
               { value: 500, suffix: "+", label: "Cars Per Month", sub: "Busy workshop!" },
             ].map((stat, i) => (
               <motion.div key={stat.label} variants={fadeUp} custom={i * 0.7} initial="hidden" whileInView="visible" viewport={{ once: true }} className="text-center group">
@@ -995,6 +996,12 @@ export default function BakkahHomePage() {
 
           {/* Gold divider */}
           <div className="h-px bg-gradient-to-r from-transparent via-[#C9A227]/30 to-transparent mb-6" />
+
+          {/* Service area — local SEO signal for "near me" searches */}
+          <p className="mb-5 text-center text-[11px] text-gray-400 dark:text-white/18 leading-relaxed">
+            <span className="font-semibold text-gray-500 dark:text-white/28">Car detailing near you:</span>{" "}
+            Al Qusais · Deira · Al Nahda · Muhaisnah · Mirdif · Al Rashidiya · Al Mizhar · Sharjah · Dubai International Airport area · and all of Dubai, UAE.
+          </p>
 
           {/* Bottom row */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-400 dark:text-white/20">

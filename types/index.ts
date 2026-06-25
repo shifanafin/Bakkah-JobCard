@@ -5,6 +5,7 @@
 export type JobStatus = 'inspection' | 'waiting_for_approval' | 'pending' | 'assigned' | 'received' | 'in_progress' | 'qc_check' | 'ready' | 'delivered' | 'cancelled'
 export type JobType = string
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
+export type JobSource = 'application' | 'website_chat' | 'import'
 export type PhotoCategory = 'exterior_front' | 'exterior_rear' | 'exterior_left' | 'exterior_right' | 'interior' | 'engine_bay' | 'damage' | 'before_work' | 'after_work' | 'other'
 export type UserRole = 'admin' | 'supervisor' | 'technician' | 'receptionist'
 
@@ -72,6 +73,7 @@ export interface JobCard {
   discount: number
   total: number
   payment_status: PaymentStatus
+  source?: JobSource
   payment_method?: string
   internal_notes?: string
   customer_signature_url?: string

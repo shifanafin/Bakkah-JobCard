@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Header from '@/components/layout/Header'
 import { useSession } from '@/lib/auth-client'
 import { getJobCards } from '@/lib/queries'
-import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
+import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus, type JobSource } from '@/types'
 import { Plus, Search, FileSpreadsheet, Car, Eye, X, Trash2, CheckSquare, Square, Upload, Download, Loader2, AlertCircle, CheckCircle2, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatAED, formatDate } from '@/lib/utils/format'
@@ -14,6 +14,23 @@ import * as XLSX from 'xlsx'
 import Pagination from '@/components/ui/Pagination'
 
 const PAGE_SIZE = 20
+
+const SOURCE_BADGE: Record<JobSource, { label: string; className: string }> = {
+  application: { label: 'Workshop', className: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  website_chat: { label: 'Website', className: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
+  import:       { label: 'Import',  className: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
+}
+
+function SourceBadge({ source }: { source?: JobSource | null }) {
+  if (!source) return null
+  const s = SOURCE_BADGE[source]
+  if (!s) return null
+  return (
+    <span className={cn('inline-block rounded border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider', s.className)}>
+      {s.label}
+    </span>
+  )
+}
 
 const TABS: { value: JobStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -450,6 +467,7 @@ export default function JobCardsPage() {
                             )}
                             <td className="px-4 py-3">
                               <span className="font-mono text-xs font-semibold text-brand">{job.job_number}</span>
+                              <div className="mt-1"><SourceBadge source={job.source} /></div>
                             </td>
                             <td className="px-4 py-3">
                               <p className="text-sm font-bold text-gray-900 tracking-wider dark:text-white">{job.vehicle?.plate_number}</p>
@@ -515,7 +533,10 @@ export default function JobCardsPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2 mb-1">
-                              <span className="font-mono text-xs font-semibold text-brand">{job.job_number}</span>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-mono text-xs font-semibold text-brand">{job.job_number}</span>
+                                <SourceBadge source={job.source} />
+                              </div>
                               <span className={cn('badge text-[10px]', JOB_STATUS_COLOR[job.status])}>{JOB_STATUS_LABEL[job.status]}</span>
                             </div>
                             <p className="text-sm font-bold text-gray-900 tracking-wider dark:text-white">{job.vehicle?.plate_number}</p>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { sendChatRequestNotificationEmail } from '@/lib/email'
 
 function normalizePhone(raw: string): string {
   const d = raw.replace(/\D/g, '')
@@ -10,18 +11,15 @@ function normalizePhone(raw: string): string {
   return raw.startsWith('+') ? raw : `+${d}`
 }
 
-async function sendWhatsAppNotification(message: string) {
-  const instanceId = process.env.GREEN_API_INSTANCE_ID
-  const token = process.env.GREEN_API_TOKEN
-  if (!instanceId || !token) return
+async function sendTelegramNotification(message: string) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN
+  const chatId = process.env.TELEGRAM_CHAT_ID
+  if (!botToken || !chatId) return
 
-  // Green API — sends from your own connected WhatsApp number
-  // chatId format: countrycode+number@c.us  (no + sign, no spaces)
-  const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${token}`
-  await fetch(url, {
+  await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chatId: '971589397610@c.us', message }),
+    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' }),
   }).catch(() => {})
 }
 
@@ -88,6 +86,7 @@ export async function POST(req: NextRequest) {
       date_in: today,
       status: 'inspection',
       customer_complaint: remarks?.trim() || service_type,
+      source: 'website_chat',
     }).select('id, job_number').single()
 
     if (jcErr) throw new Error(`Job card creation failed: ${jcErr.message}`)
@@ -112,7 +111,7 @@ export async function POST(req: NextRequest) {
       job_card_id: jc.id,
     })
 
-    // Send WhatsApp notification to workshop owner
+    // Telegram notification to workshop owner
     const vehicleInfo = plate?.trim()
       ? `${plate.trim().toUpperCase()}${make?.trim() ? ` (${make.trim()} ${model?.trim() || ''})` : ''}`
       : 'Not provided'
@@ -124,7 +123,20 @@ export async function POST(req: NextRequest) {
       `Vehicle: ${vehicleInfo}\n` +
       `Service: ${service_type}\n` +
       `Remarks: ${remarks?.trim() || '—'}`
-    await sendWhatsAppNotification(msg)
+    await sendTelegramNotification(msg)
+
+    // Email notification to workshop owner (non-blocking)
+    sendChatRequestNotificationEmail({
+      name: name.trim(),
+      phone: normalizedPhone,
+      plate: plate?.trim().toUpperCase() || null,
+      make: make?.trim() || null,
+      model: model?.trim() || null,
+      service_type,
+      remarks: remarks?.trim() || null,
+      job_number: jc.job_number,
+      job_card_id: jc.id,
+    }).catch(() => {})
 
     return NextResponse.json({ success: true, job_number: jc.job_number }, { status: 201 })
   } catch (err) {
