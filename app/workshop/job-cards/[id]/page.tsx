@@ -232,6 +232,12 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
                 <span className="font-mono text-lg font-bold text-brand">{job.job_number}</span>
                 <span className={cn('badge', JOB_STATUS_COLOR[job.status])}>{JOB_STATUS_LABEL[job.status]}</span>
                 <span className="badge border-gray-200 bg-gray-100 text-gray-500 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40">{JOB_TYPE_LABEL[job.job_type]}</span>
+                {job.source === 'website_chat' && (
+                  <span className="badge border-amber-500/20 bg-amber-500/10 text-amber-400">🌐 Website Request</span>
+                )}
+                {job.source === 'import' && (
+                  <span className="badge border-purple-500/20 bg-purple-500/10 text-purple-400">↑ Imported</span>
+                )}
               </div>
               <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-white/50">
                 <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> In: {formatDate(job.date_in)}</span>

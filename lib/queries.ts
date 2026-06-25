@@ -111,6 +111,7 @@ export async function createJobCard(input: {
     job_type: input.job_type, date_in: input.date_in, date_out: input.date_out || null,
     mileage_in: input.mileage_in || null, customer_complaint: input.customer_complaint || null,
     work_instructions: input.work_instructions || null, status: initialStatus,
+    source: 'application',
   }).select('id').single()
   if (je) throw new Error(`Failed to create job card: ${je.message}`)
 

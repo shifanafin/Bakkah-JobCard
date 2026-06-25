@@ -204,6 +204,115 @@ export async function sendQuotationEmail(params: QuotationEmailParams) {
   return data;
 }
 
+// ── New chat/website request notification (to workshop owner) ─────────────────
+
+interface ChatRequestNotificationParams {
+  name: string;
+  phone: string;
+  plate: string | null;
+  make: string | null;
+  model: string | null;
+  service_type: string;
+  remarks: string | null;
+  job_number: string;
+  job_card_id: string;
+}
+
+export async function sendChatRequestNotificationEmail(params: ChatRequestNotificationParams) {
+  const ownerEmail = process.env.OWNER_NOTIFICATION_EMAIL;
+  if (!ownerEmail) return; // skip silently if not configured
+
+  const { name, phone, plate, make, model, service_type, remarks, job_number } = params;
+  const vehicleInfo = plate
+    ? `${plate}${make ? ` — ${make} ${model || ""}`.trim() : ""}`
+    : "Not provided";
+  const jobUrl = `${BASE_URL}/workshop/job-cards`;
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#566020,#6b7a28);padding:24px 36px;text-align:center;">
+            <div style="display:inline-flex;align-items:center;gap:10px;">
+              <div style="width:40px;height:40px;border-radius:50%;background:#C9A845;font-size:20px;font-weight:900;color:#566020;line-height:40px;text-align:center;">B</div>
+              <span style="color:#fff;font-size:18px;font-weight:700;letter-spacing:0.3px;">New Website Request</span>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Alert banner -->
+        <tr>
+          <td style="padding:0;">
+            <div style="background:#fff8e1;border-bottom:3px solid #C9A845;padding:14px 36px;text-align:center;">
+              <p style="margin:0;font-size:13px;color:#7a6010;font-weight:600;">
+                🚗 A customer submitted a request via the website chat widget
+              </p>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Details -->
+        <tr>
+          <td style="padding:28px 36px 8px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f0f0f0;border-radius:10px;overflow:hidden;">
+              ${[
+                ["Job Number", `<span style="font-family:monospace;font-weight:700;color:#566020;font-size:15px;">${job_number}</span>`],
+                ["Customer Name", name],
+                ["Phone", `<a href="tel:${phone}" style="color:#566020;font-weight:600;">${phone}</a>`],
+                ["Vehicle", vehicleInfo],
+                ["Service Requested", `<strong>${service_type}</strong>`],
+                ["Remarks", remarks || "—"],
+              ]
+                .map(
+                  ([label, value], i) => `
+              <tr style="background:${i % 2 === 0 ? "#f8f8f8" : "#fff"};">
+                <td style="padding:11px 16px;font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;width:38%;border-right:1px solid #f0f0f0;">${label}</td>
+                <td style="padding:11px 16px;font-size:14px;color:#1a1a1a;">${value}</td>
+              </tr>`
+                )
+                .join("")}
+            </table>
+          </td>
+        </tr>
+
+        <!-- CTA -->
+        <tr>
+          <td style="padding:24px 36px 32px;text-align:center;">
+            <a href="${jobUrl}" style="display:inline-block;background:#566020;color:#fff;text-decoration:none;padding:13px 32px;border-radius:8px;font-size:14px;font-weight:700;letter-spacing:0.3px;">
+              Open Workshop Dashboard →
+            </a>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f8f8f8;padding:16px 36px;text-align:center;border-top:1px solid #f0f0f0;">
+            <p style="margin:0;font-size:11px;color:#aaa;">Bakkah Premium Auto Care · Al Qusais, Dubai · This is an automated alert.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  const { error } = await resend.emails.send({
+    from: FROM,
+    to: ownerEmail,
+    subject: `🚗 New Website Request — ${job_number} (${name})`,
+    html,
+  });
+  if (error) throw new Error(`Owner notification email failed: ${error.message}`);
+}
+
 // ── Status update email ───────────────────────────────────────────────────────
 
 interface StatusUpdateEmailParams {
