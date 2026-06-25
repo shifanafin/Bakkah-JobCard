@@ -14,7 +14,7 @@ import PhotoUpload from '@/components/job-card/PhotoUpload'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2, Printer, Download } from 'lucide-react'
+import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2, Printer, Download, Pencil } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -208,6 +208,12 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             <button onClick={handleExportExcel} className="btn-ghost text-xs px-3 py-2 h-auto flex items-center gap-1.5">
               <Download className="h-3.5 w-3.5" /> Excel
             </button>
+            {!isDelivered && (
+              <Link href={`/workshop/job-cards/${id}/edit`}
+                className="btn-ghost text-xs px-3 py-2 h-auto flex items-center gap-1.5">
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </Link>
+            )}
             {/* Delete — admin only, only for inspection/cancelled jobs */}
             {(role === 'admin') && job && ['inspection', 'cancelled'].includes(job.status) && (
               <button onClick={handleDelete}
