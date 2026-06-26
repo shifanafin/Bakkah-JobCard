@@ -221,6 +221,7 @@ export default function BakkahHomePage() {
             {[["#services", "Services"], ["#gallery", "Gallery"], ["#how-it-works", "How It Works"], ["#reviews", "Reviews"], ["#contact", "Contact"]].map(([href, label]) => (
               <a key={href} href={href} className="hover:text-gray-900 dark:hover:text-white transition-colors duration-200">{label}</a>
             ))}
+            <Link href="/blog" className="hover:text-gray-900 dark:hover:text-white transition-colors duration-200">Blog</Link>
           </div>
 
           {/* Right actions */}
@@ -262,6 +263,9 @@ export default function BakkahHomePage() {
                   {label}
                 </a>
               ))}
+              <Link href="/blog" onClick={() => setMobileNavOpen(false)} className="flex items-center py-3 text-sm font-medium text-gray-600 dark:text-white/60 hover:text-[#C9A227] transition-colors border-b border-gray-50 dark:border-white/[0.04]">
+                Blog
+              </Link>
               <div className="pt-3 flex flex-col gap-2.5">
                 <Link href="/track" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-white/10 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-white/60 hover:border-[#C9A227]/40 hover:text-[#C9A227] transition-all">
                   <Car className="h-4 w-4" /> Track My Vehicle

@@ -183,6 +183,7 @@ function SidebarContent({
         label: nav.announcements,
       },
       { href: "/workshop/admin/website", icon: Globe, label: nav.website },
+      { href: "/workshop/admin/promotions", icon: Tag, label: 'Promotions' },
     );
   }
 
