@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, ChevronRight, CheckCircle, Loader2, RotateCcw } from "lucide-react";
+import { X, Send, ChevronRight, CheckCircle, Loader2, RotateCcw, Sparkles } from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -10,6 +10,7 @@ type Step =
   | "idle"
   | "name"
   | "phone"
+  | "checking"       // checking customer + fetching promo after phone entered
   | "plate"
   | "make_model"
   | "service"
@@ -36,10 +37,10 @@ type Message = {
 
 type Promotion = {
   code: string;
-  title: string;
+  name: string;
   discount_pct: number;
-  free_service: string;
-  message: string;
+  free_service: string | null;
+  description: string | null;
 };
 
 // ── Service options ──────────────────────────────────────────────
@@ -74,9 +75,9 @@ function CarIcon({ size = 28 }: { size?: number }) {
   );
 }
 
-// ── Trigger button (works on all screen sizes) ───────────────────
+// ── Trigger button ───────────────────────────────────────────────
 
-function TriggerButton({ onClick }: { onClick: () => void }) {
+function TriggerButton({ onClick, hasPromo }: { onClick: () => void; hasPromo: boolean }) {
   return (
     <motion.button
       onClick={onClick}
@@ -85,7 +86,6 @@ function TriggerButton({ onClick }: { onClick: () => void }) {
       transition={{ delay: 2.2, type: "spring", stiffness: 260, damping: 20 }}
       whileHover={{ scale: 1.06 }}
       whileTap={{ scale: 0.94 }}
-      // On mobile: bottom-20 to sit above the sticky CTA bar; sm+: bottom-6
       className="fixed bottom-20 left-4 sm:bottom-6 sm:left-6 z-50 flex flex-col items-center gap-1"
       aria-label="Open chat"
     >
@@ -95,6 +95,15 @@ function TriggerButton({ onClick }: { onClick: () => void }) {
         className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#C9A227] to-[#d4b22e] shadow-[0_8px_32px_rgba(201,162,39,0.55)] hover:shadow-[0_8px_40px_rgba(201,162,39,0.7)] transition-shadow duration-300"
       >
         <CarIcon size={30} />
+        {hasPromo && (
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[9px] font-bold text-white shadow"
+          >
+            %
+          </motion.span>
+        )}
       </motion.div>
       <motion.span
         initial={{ opacity: 0, y: 4 }}
@@ -145,6 +154,42 @@ function UserBubble({ text }: { text: string }) {
   );
 }
 
+// ── Promotion card shown inline in chat ──────────────────────────
+
+function PromoBubble({ promo }: { promo: Promotion }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="rounded-2xl border border-[#C9A227]/40 bg-gradient-to-br from-[#C9A227]/12 to-[#d4b22e]/6 p-4 space-y-2.5"
+    >
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-[#C9A227] shrink-0" />
+        <p className="font-bold text-[#C9A227] text-sm">{promo.name}</p>
+      </div>
+      {promo.description && (
+        <p className="text-xs text-gray-600 dark:text-white/70 leading-relaxed">{promo.description}</p>
+      )}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-white/75">
+          <span className="text-emerald-500 font-bold">✓</span>
+          <span><span className="font-semibold">{promo.discount_pct}% off</span> all services on your first visit</span>
+        </div>
+        {promo.free_service && (
+          <div className="flex items-center gap-2 text-xs text-gray-700 dark:text-white/75">
+            <span className="text-emerald-500 font-bold">✓</span>
+            <span><span className="font-semibold">{promo.free_service}</span> — complimentary</span>
+          </div>
+        )}
+      </div>
+      <p className="text-[10px] text-gray-400 dark:text-white/30 border-t border-[#C9A227]/20 pt-2">
+        Code <span className="font-mono font-bold text-[#C9A227]">{promo.code}</span> · Applied automatically. No action needed.
+      </p>
+    </motion.div>
+  );
+}
+
 // ── Main widget ──────────────────────────────────────────────────
 
 export default function ChatWidget() {
@@ -159,11 +204,22 @@ export default function ChatWidget() {
   const [jobNumber, setJobNumber] = useState("");
   const [error, setError] = useState("");
   const [promotion, setPromotion] = useState<Promotion | null>(null);
+  // active promo fetched on widget open (for teaser in opening message)
+  const [activePromo, setActivePromo] = useState<Promotion | null>(null);
+
   const msgIdRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const nextId = () => ++msgIdRef.current;
+
+  // Fetch active promo once when widget mounts (for teaser badge on trigger)
+  useEffect(() => {
+    fetch('/api/chat-request/check?phone=__teaser__')
+      .then(r => r.json())
+      .then(d => { if (d.promotion) setActivePromo(d.promotion) })
+      .catch(() => {})
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -174,7 +230,7 @@ export default function ChatWidget() {
   }, [open]); // eslint-disable-line
 
   useEffect(() => {
-    if (open && inputRef.current && !["idle", "service", "confirm", "submitting", "done"].includes(step)) {
+    if (open && inputRef.current && !["idle", "checking", "service", "confirm", "submitting", "done"].includes(step)) {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [step, open]);
@@ -191,12 +247,22 @@ export default function ChatWidget() {
     setMessages([]);
     setForm({ name: "", phone: "", plate: "", make: "", model: "", service_type: "", remarks: "" });
     setInput(""); setInput2(""); setError(""); setJobNumber("");
+    setPromotion(null); setIsNewCustomer(false);
     setTimeout(() => {
       addBot("👋 Hi! Welcome to Bakkah Premium Auto Care.");
       setTimeout(() => {
-        addBot("I'll help you raise a quick service request. It takes less than 2 minutes!");
-        setStep("name");
-        setTimeout(() => addBot("What's your full name? 😊"), 600);
+        // Show promo teaser in opening message if active promo exists
+        if (activePromo) {
+          addBot(`🎁 New customers get our *${activePromo.name}* — ${activePromo.discount_pct}% off${activePromo.free_service ? ` + free ${activePromo.free_service}` : ''}!`);
+          setTimeout(() => {
+            addBot("Let's get your service request started. What's your full name? 😊");
+            setStep("name");
+          }, 700);
+        } else {
+          addBot("I'll help you raise a quick service request. It takes less than 2 minutes!");
+          setStep("name");
+          setTimeout(() => addBot("What's your full name? 😊"), 600);
+        }
       }, 500);
     }, 300);
   }
@@ -210,13 +276,41 @@ export default function ChatWidget() {
     setTimeout(() => addBot(`Nice to meet you, ${val.split(" ")[0]}! 🤝\nWhat's your WhatsApp number?`), 400);
   }
 
-  function handlePhoneSubmit() {
+  async function handlePhoneSubmit() {
     const val = input.trim();
     if (val.replace(/\D/g, "").length < 9) { setError("Enter a valid UAE phone number."); return; }
     setError(""); addUser(val);
     setForm((f) => ({ ...f, phone: val })); setInput("");
-    setStep("plate");
-    setTimeout(() => addBot("What's your vehicle plate number?\n(e.g. ABC 1234 — type skip to continue)"), 400);
+    setStep("checking");
+
+    // Check if new customer + fetch active promo
+    try {
+      const res = await fetch(`/api/chat-request/check?phone=${encodeURIComponent(val)}`);
+      const data = await res.json();
+        if (data.is_new && data.promotion) {
+        setPromotion(data.promotion);
+        // Show promo reveal in chat
+        setTimeout(() => {
+          addBot(`🎉 Great news, ${form.name.split(" ")[0]}! As a first-time customer, you've unlocked a special offer:`);
+          // PromoBubble is rendered below based on promotion state + step
+          setTimeout(() => {
+            addBot("Now, what's your vehicle plate number?\n(e.g. ABC 1234 — type skip to continue)");
+            setStep("plate");
+          }, 800);
+        }, 500);
+      } else {
+        setTimeout(() => {
+          addBot("What's your vehicle plate number?\n(e.g. ABC 1234 — type skip to continue)");
+          setStep("plate");
+        }, 400);
+      }
+    } catch {
+      // If check fails, just continue
+      setTimeout(() => {
+        addBot("What's your vehicle plate number?\n(e.g. ABC 1234 — type skip to continue)");
+        setStep("plate");
+      }, 400);
+    }
   }
 
   function handlePlateSubmit() {
@@ -276,6 +370,7 @@ export default function ChatWidget() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Request failed");
       setJobNumber(data.job_number ?? "");
+      // Update promotion from server response (source of truth)
       if (data.promotion) setPromotion(data.promotion);
       setStep("done");
     } catch (err) {
@@ -291,6 +386,7 @@ export default function ChatWidget() {
     startChat();
   }
 
+  const showPromoInline = promotion !== null && (step === "plate" || step === "make_model" || step === "service" || step === "remarks");
   const inputSteps: Step[] = ["name", "phone", "plate", "remarks"];
   const showInput = inputSteps.includes(step);
 
@@ -315,12 +411,8 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* Trigger — visible on all sizes */}
-      {!open && <TriggerButton onClick={() => setOpen(true)} />}
+      {!open && <TriggerButton onClick={() => setOpen(true)} hasPromo={!!activePromo} />}
 
-      {/* Chat panel
-          Mobile  : fixed, full-width with some margin, sits above sticky bar
-          Desktop : fixed 360px panel, bottom-left */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -328,7 +420,6 @@ export default function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.96 }}
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-            // Mobile: inset-x-2, bottom above sticky bar; sm+: fixed 360px on left
             className="fixed inset-x-2 bottom-[76px] z-50 flex flex-col max-h-[78vh] rounded-2xl border border-gray-200 dark:border-white/[0.1] bg-white dark:bg-[#111113] shadow-[0_24px_80px_rgba(0,0,0,0.2)] overflow-hidden sm:inset-x-auto sm:left-4 sm:bottom-6 sm:w-[360px] sm:max-h-[580px]"
           >
             {/* Header */}
@@ -358,6 +449,18 @@ export default function ChatWidget() {
                 msg.from === "bot"
                   ? <BotBubble key={msg.id} text={msg.text} />
                   : <UserBubble key={msg.id} text={msg.text} />
+              )}
+
+              {/* Inline promo card shown right after phone check reveals new customer */}
+              {showPromoInline && promotion && (
+                <PromoBubble promo={promotion} />
+              )}
+
+              {/* Checking spinner */}
+              {step === "checking" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-xs text-gray-400 dark:text-white/30 py-1">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking your details…
+                </motion.div>
               )}
 
               {/* Make/Model */}
@@ -417,6 +520,12 @@ export default function ChatWidget() {
                       <span className="text-gray-700 dark:text-white/80 break-words">{value}</span>
                     </div>
                   ))}
+                  {promotion && (
+                    <div className="border-t border-[#C9A227]/20 pt-2 flex items-center gap-1.5 text-xs text-[#C9A227] font-semibold">
+                      <Sparkles className="h-3 w-3" />
+                      {promotion.name} ({promotion.code}) applied
+                    </div>
+                  )}
                   {error && <p className="text-xs text-red-500">{error}</p>}
                   <button
                     onClick={handleConfirm}
@@ -441,35 +550,6 @@ export default function ChatWidget() {
               {/* Done */}
               {step === "done" && (
                 <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
-                  {/* Welcome promotion banner for new customers */}
-                  {promotion && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="rounded-2xl border border-[#C9A227]/40 bg-gradient-to-br from-[#C9A227]/10 to-[#d4b22e]/5 p-4 space-y-2.5"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">🎉</span>
-                        <p className="font-bold text-[#C9A227] text-sm leading-tight">{promotion.title}</p>
-                      </div>
-                      <div className="space-y-1.5">
-                        <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-white/75">
-                          <span className="text-emerald-500 shrink-0 mt-0.5">✓</span>
-                          <span><span className="font-semibold">{promotion.discount_pct}% off</span> all labour charges on your first visit</span>
-                        </div>
-                        <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-white/75">
-                          <span className="text-emerald-500 shrink-0 mt-0.5">✓</span>
-                          <span><span className="font-semibold">{promotion.free_service}</span> — on us</span>
-                        </div>
-                      </div>
-                      <p className="text-[10px] text-gray-400 dark:text-white/35 leading-relaxed border-t border-[#C9A227]/20 pt-2">
-                        Code <span className="font-mono font-bold text-[#C9A227]">{promotion.code}</span> · Your advisor applies this at checkout. No action needed.
-                      </p>
-                    </motion.div>
-                  )}
-
-                  {/* Success card */}
                   <div className="rounded-2xl border border-emerald-400/30 bg-emerald-50 dark:bg-emerald-500/10 p-5 text-center space-y-3">
                     <div className="flex justify-center">
                       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15">
@@ -484,6 +564,12 @@ export default function ChatWidget() {
                         </p>
                       )}
                     </div>
+                    {promotion && (
+                      <div className="rounded-xl border border-[#C9A227]/30 bg-[#C9A227]/[0.06] px-3 py-2 text-xs text-left space-y-1">
+                        <p className="font-bold text-[#C9A227] flex items-center gap-1"><Sparkles className="h-3 w-3" /> {promotion.name}</p>
+                        <p className="text-gray-500 dark:text-white/40">Your {promotion.discount_pct}% discount{promotion.free_service ? ` + ${promotion.free_service}` : ''} will be applied at checkout.</p>
+                      </div>
+                    )}
                     <p className="text-xs text-gray-500 dark:text-white/40 leading-relaxed">
                       Our team will contact you on WhatsApp shortly. 🚗
                     </p>
@@ -520,7 +606,7 @@ export default function ChatWidget() {
                 </div>
                 <button
                   onClick={handleSend}
-                  disabled={!input.trim()}
+                  disabled={!input.trim() || step === "checking"}
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#C9A227] to-[#d4b22e] shadow-[0_4px_16px_rgba(201,162,39,0.4)] hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   aria-label="Send"
                 >
