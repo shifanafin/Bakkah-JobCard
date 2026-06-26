@@ -12,11 +12,17 @@ export const metadata: Metadata = {
     "car wash near me dubai",
     "ceramic coating near me",
     "paint correction near me",
-    // Brand
+    // Brand — all spelling variants people type
     "bakkah",
+    "bakka",
+    "bakk",
+    "baka auto care",
+    "bakah car wash",
     "bakkah auto care",
     "bakkah premium auto care",
     "bakkah car detailing dubai",
+    "bakkah al qusais",
+    "bakkah dubai",
     // Primary service + location
     "car detailing dubai",
     "car detailing al qusais",
