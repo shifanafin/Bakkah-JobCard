@@ -10,7 +10,10 @@ export default async function middleware(req: NextRequest) {
     pathname === '/' ||
     pathname.startsWith('/auth') ||
     pathname.startsWith('/track') ||
-    pathname.startsWith('/invoice')
+    pathname.startsWith('/invoice') ||
+    pathname.startsWith('/blog') ||
+    pathname.startsWith('/api/chat-request') ||
+    pathname.startsWith('/googlec09f403101dc4724')
   ) return NextResponse.next()
 
   const { data: sessionData } = await betterFetch<{ session: Session['session']; user: Session['user'] }>(
