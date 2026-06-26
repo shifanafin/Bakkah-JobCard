@@ -52,6 +52,9 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
     title: "Bakkah Auto Care",
   },
+  verification: {
+    google: "c09f403101dc4724",
+  },
   applicationName: "Bakkah Premium Auto Care",
   authors: [{ name: "Bakkah Premium Auto Care LLC" }],
   creator: "Bakkah Premium Auto Care LLC",
