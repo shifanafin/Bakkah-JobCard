@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { sendChatRequestNotificationEmail } from '@/lib/email'
 
+const WELCOME_PROMO = {
+  code: 'WELCOME10',
+  title: 'First Visit Welcome Offer',
+  discount_pct: 10,
+  free_service: 'Complimentary Headlight Lens Restoration',
+  message:
+    '🎉 Welcome to Bakkah! As a first-time customer you\'ve unlocked our *First Visit Welcome Offer* — 10% off all labour + a complimentary headlight lens restoration on us. Your advisor will apply this at checkout.',
+}
+
 function normalizePhone(raw: string): string {
   const d = raw.replace(/\D/g, '')
   if (!d) return raw
@@ -36,15 +45,22 @@ export async function POST(req: NextRequest) {
     const normalizedPhone = normalizePhone(phone.trim())
     const today = new Date().toISOString().split('T')[0]
 
-    // Upsert customer
+    // Upsert customer — track whether this is their first visit
     let customerId: string
-    const { data: ec, error: ecErr } = await sb.from('customers').select('id').eq('phone', normalizedPhone).maybeSingle()
+    let isNewCustomer = false
+
+    const { data: ec, error: ecErr } = await sb
+      .from('customers')
+      .select('id')
+      .eq('phone', normalizedPhone)
+      .maybeSingle()
     if (ecErr) throw new Error(`Customer lookup failed: ${ecErr.message}`)
 
     if (ec) {
       customerId = ec.id
       await sb.from('customers').update({ name: name.trim() }).eq('id', customerId)
     } else {
+      isNewCustomer = true
       const { data: nc, error } = await sb.from('customers').insert({
         name: name.trim(),
         phone: normalizedPhone,
@@ -78,7 +94,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create job card
+    // Create job card — stamp with promotion if new customer
+    const promoFields = isNewCustomer
+      ? {
+          promotion_code: WELCOME_PROMO.code,
+          promotion_discount_pct: WELCOME_PROMO.discount_pct,
+          internal_notes: `🎉 FIRST VISIT WELCOME OFFER (${WELCOME_PROMO.code}): ${WELCOME_PROMO.discount_pct}% off labour + ${WELCOME_PROMO.free_service}. Apply percentage discount on confirmed subtotal before issuing invoice.`,
+        }
+      : {}
+
     const { data: jc, error: jcErr } = await sb.from('job_cards').insert({
       customer_id: customerId,
       vehicle_id: vehicleId,
@@ -87,15 +111,29 @@ export async function POST(req: NextRequest) {
       status: 'inspection',
       customer_complaint: remarks?.trim() || service_type,
       source: 'website_chat',
+      ...promoFields,
     }).select('id, job_number').single()
 
     if (jcErr) throw new Error(`Job card creation failed: ${jcErr.message}`)
+
+    // If new customer: pre-add the complimentary headlight service at AED 0
+    if (isNewCustomer) {
+      await sb.from('job_card_services').insert({
+        job_card_id: jc.id,
+        description: `🎁 ${WELCOME_PROMO.free_service} (First Visit Welcome Offer — Complimentary)`,
+        quantity: 1,
+        unit_price: 0,
+        completed: false,
+      }).then(() => {})  // non-blocking, best-effort
+    }
 
     // Log history
     await sb.from('job_card_history').insert({
       job_card_id: jc.id,
       new_status: 'inspection',
-      notes: 'Created via website chat request',
+      notes: isNewCustomer
+        ? `Created via website chat — First Visit Welcome Offer (${WELCOME_PROMO.code}) applied`
+        : 'Created via website chat request',
     })
 
     // Store in-app notification
@@ -111,10 +149,13 @@ export async function POST(req: NextRequest) {
       job_card_id: jc.id,
     })
 
-    // Telegram notification to workshop owner
+    // Telegram notification
     const vehicleInfo = plate?.trim()
       ? `${plate.trim().toUpperCase()}${make?.trim() ? ` (${make.trim()} ${model?.trim() || ''})` : ''}`
       : 'Not provided'
+    const promoLine = isNewCustomer
+      ? `\n🎉 *NEW CUSTOMER — Welcome Offer Applied*\n   ${WELCOME_PROMO.discount_pct}% discount + ${WELCOME_PROMO.free_service}`
+      : ''
     const msg =
       `🚗 *New Website Request!*\n` +
       `Job: *${jc.job_number}*\n` +
@@ -122,10 +163,11 @@ export async function POST(req: NextRequest) {
       `Phone: ${normalizedPhone}\n` +
       `Vehicle: ${vehicleInfo}\n` +
       `Service: ${service_type}\n` +
-      `Remarks: ${remarks?.trim() || '—'}`
+      `Remarks: ${remarks?.trim() || '—'}` +
+      promoLine
     await sendTelegramNotification(msg)
 
-    // Email notification to workshop owner (non-blocking)
+    // Email notification (non-blocking)
     sendChatRequestNotificationEmail({
       name: name.trim(),
       phone: normalizedPhone,
@@ -138,7 +180,13 @@ export async function POST(req: NextRequest) {
       job_card_id: jc.id,
     }).catch(() => {})
 
-    return NextResponse.json({ success: true, job_number: jc.job_number }, { status: 201 })
+    return NextResponse.json({
+      success: true,
+      job_number: jc.job_number,
+      is_new_customer: isNewCustomer,
+      promotion: isNewCustomer ? WELCOME_PROMO : null,
+    }, { status: 201 })
+
   } catch (err) {
     console.error('[chat-request]', err)
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Request failed' }, { status: 500 })

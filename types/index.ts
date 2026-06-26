@@ -78,6 +78,8 @@ export interface JobCard {
   internal_notes?: string
   customer_signature_url?: string
   supervisor_signature_url?: string
+  promotion_code?: string
+  promotion_discount_pct?: number
   created_at: string
   updated_at: string
   customer?: Customer
