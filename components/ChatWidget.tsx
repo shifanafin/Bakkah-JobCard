@@ -247,7 +247,7 @@ export default function ChatWidget() {
     setMessages([]);
     setForm({ name: "", phone: "", plate: "", make: "", model: "", service_type: "", remarks: "" });
     setInput(""); setInput2(""); setError(""); setJobNumber("");
-    setPromotion(null); setIsNewCustomer(false);
+    setPromotion(null);
     setTimeout(() => {
       addBot("👋 Hi! Welcome to Bakkah Premium Auto Care.");
       setTimeout(() => {
