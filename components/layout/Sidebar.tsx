@@ -24,6 +24,7 @@ import {
   UserRound,
   Receipt,
   Bell,
+  Tag,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useShell } from "@/components/layout/WorkshopShell";
