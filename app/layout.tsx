@@ -53,7 +53,7 @@ export const metadata: Metadata = {
     title: "Bakkah Auto Care",
   },
   verification: {
-    google: "c09f403101dc4724",
+    google: "5W4RoeWT2P55uMsWOXMSx1l-HXvpYt67B_4O7sBUki0",
   },
   applicationName: "Bakkah Premium Auto Care",
   authors: [{ name: "Bakkah Premium Auto Care LLC" }],
