@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { addService, deleteService, addPart, deletePart, updateDiscount, updatePayment } from '@/lib/queries'
 import { formatAED } from '@/lib/utils/format'
 import { type JobCard } from '@/types'
-import { Plus, Trash2, Loader2, ChevronDown } from 'lucide-react'
+import { Plus, Trash2, Loader2, ChevronDown, Tag, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/cn'
 
@@ -15,6 +15,10 @@ export default function LineItems({ job, onUpdate }: LineItemsProps) {
   const [isPending, startTransition] = useTransition()
   const [svc, setSvc] = useState({ description: '', quantity: '1', unit_price: '' })
   const [prt, setPrt] = useState({ part_name: '', part_number: '', quantity: '1', unit_price: '' })
+  const promoDiscountAED = job.promotion_discount_pct && job.subtotal > 0
+    ? parseFloat(((job.promotion_discount_pct / 100) * job.subtotal).toFixed(2))
+    : null
+
   const [discount, setDiscount] = useState(job.discount.toString())
   const [payStatus, setPayStatus] = useState(job.payment_status)
   const [payMethod, setPayMethod] = useState(job.payment_method ?? '')
@@ -157,36 +161,77 @@ export default function LineItems({ job, onUpdate }: LineItemsProps) {
       {/* Payment */}
       {tab === 'payment' && (
         <div className="space-y-4">
-          {/* Totals */}
-          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-2 dark:border-white/[0.07] dark:bg-surface-900">
-            {[['Subtotal', job.subtotal], ['VAT (5%)', job.vat_amount]].map(([l, v]) => (
-              <div key={l as string} className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-white/50">{l as string}</span>
-                <span className="text-gray-600 dark:text-white/70">{formatAED(v as number)}</span>
+          {/* Promotion badge */}
+          {job.promotion_code && (
+            <div className="flex items-start gap-2.5 rounded-xl border border-[#C9A227]/30 bg-[#C9A227]/[0.06] px-3.5 py-3">
+              <Sparkles className="h-4 w-4 text-[#C9A227] shrink-0 mt-0.5" />
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-[#C9A227]">First Visit Welcome Offer · {job.promotion_code}</p>
+                <p className="text-[11px] text-gray-500 dark:text-white/40 mt-0.5">
+                  {job.promotion_discount_pct}% labour discount + Complimentary Headlight Lens Restoration
+                  {promoDiscountAED !== null && job.subtotal > 0
+                    ? ` · Discount value: ${formatAED(promoDiscountAED)}`
+                    : ' · Add services to calculate discount'}
+                </p>
               </div>
-            ))}
-            {job.discount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500 dark:text-white/50">Discount</span>
-                <span className="text-emerald-500 dark:text-emerald-400">−{formatAED(job.discount)}</span>
+            </div>
+          )}
+
+          {/* Invoice summary — industry-standard layout */}
+          <div className="rounded-xl border border-gray-100 bg-gray-50 dark:border-white/[0.07] dark:bg-surface-900 overflow-hidden">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b border-gray-100 dark:border-white/[0.05]">
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-white/50">Subtotal (excl. VAT)</td>
+                  <td className="px-4 py-2.5 text-right text-gray-700 dark:text-white/70 tabular-nums">{formatAED(job.subtotal)}</td>
+                </tr>
+                <tr className="border-b border-gray-100 dark:border-white/[0.05]">
+                  <td className="px-4 py-2.5 text-gray-500 dark:text-white/50">
+                    VAT 5%
+                    <span className="ml-1.5 text-[10px] text-gray-400 dark:text-white/30">TRN required on invoice</span>
+                  </td>
+                  <td className="px-4 py-2.5 text-right text-gray-700 dark:text-white/70 tabular-nums">{formatAED(job.vat_amount)}</td>
+                </tr>
+                {job.discount > 0 && (
+                  <tr className="border-b border-gray-100 dark:border-white/[0.05]">
+                    <td className="px-4 py-2.5 text-gray-500 dark:text-white/50 flex items-center gap-1.5">
+                      {job.promotion_code
+                        ? <><Tag className="h-3 w-3 text-[#C9A227]" /><span>Discount <span className="text-[10px] font-mono text-[#C9A227]">({job.promotion_code})</span></span></>
+                        : 'Discount'}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-emerald-500 dark:text-emerald-400 tabular-nums">−{formatAED(job.discount)}</td>
+                  </tr>
+                )}
+                <tr className="bg-gray-100/60 dark:bg-white/[0.03]">
+                  <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">Total Due (AED)</td>
+                  <td className="px-4 py-3 text-right font-bold text-lg text-brand tabular-nums">{formatAED(job.total)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Discount — with promo auto-apply */}
+          <div className="space-y-2">
+            <div className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="label">Discount (AED)</label>
+                <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
               </div>
+              <button onClick={applyDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
+            </div>
+            {promoDiscountAED !== null && job.discount !== promoDiscountAED && (
+              <button
+                onClick={() => { setDiscount(promoDiscountAED.toString()); startTransition(async () => { await updateDiscount(job.id, promoDiscountAED); onUpdate(); toast.success(`Welcome Offer discount of ${formatAED(promoDiscountAED)} applied`) }) }}
+                disabled={isPending}
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#C9A227]/40 bg-[#C9A227]/[0.06] py-2 text-xs font-semibold text-[#C9A227] hover:bg-[#C9A227]/10 transition-colors disabled:opacity-50"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                Apply Welcome Offer — {formatAED(promoDiscountAED)} ({job.promotion_discount_pct}% of subtotal)
+              </button>
             )}
-            <div className="border-t border-gray-200 pt-2 flex justify-between dark:border-white/[0.08]">
-              <span className="font-bold text-gray-900 dark:text-white">Total</span>
-              <span className="font-bold text-lg text-brand">{formatAED(job.total)}</span>
-            </div>
           </div>
 
-          {/* Discount */}
-          <div className="flex items-end gap-2">
-            <div className="flex-1">
-              <label className="label">Discount (AED)</label>
-              <input type="number" min={0} value={discount} onChange={e => setDiscount(e.target.value)} className="input-base" />
-            </div>
-            <button onClick={applyDiscount} disabled={isPending} className="btn-ghost h-[42px]">Apply</button>
-          </div>
-
-          {/* Payment */}
+          {/* Payment details */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="label">Payment Status</label>
@@ -204,7 +249,9 @@ export default function LineItems({ job, onUpdate }: LineItemsProps) {
               <div className="relative">
                 <select value={payMethod} onChange={e => setPayMethod(e.target.value)} className="input-base appearance-none pr-8">
                   <option value="" className="dark:bg-zinc-900">— Select —</option>
-                  {['Cash','Card','Bank Transfer','Credit'].map(m => <option key={m} value={m.toLowerCase().replace(' ','_')} className="dark:bg-zinc-900">{m}</option>)}
+                  {['Cash','Card','Bank Transfer','Credit'].map(m => (
+                    <option key={m} value={m.toLowerCase().replace(/ /g,'_')} className="dark:bg-zinc-900">{m}</option>
+                  ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-white/30" />
               </div>

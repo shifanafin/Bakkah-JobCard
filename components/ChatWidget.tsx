@@ -34,6 +34,14 @@ type Message = {
   text: string;
 };
 
+type Promotion = {
+  code: string;
+  title: string;
+  discount_pct: number;
+  free_service: string;
+  message: string;
+};
+
 // ── Service options ──────────────────────────────────────────────
 
 const SERVICES = [
@@ -150,6 +158,7 @@ export default function ChatWidget() {
   });
   const [jobNumber, setJobNumber] = useState("");
   const [error, setError] = useState("");
+  const [promotion, setPromotion] = useState<Promotion | null>(null);
   const msgIdRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -267,6 +276,7 @@ export default function ChatWidget() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Request failed");
       setJobNumber(data.job_number ?? "");
+      if (data.promotion) setPromotion(data.promotion);
       setStep("done");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -277,7 +287,7 @@ export default function ChatWidget() {
   function reset() {
     setStep("idle"); setMessages([]); setInput(""); setInput2("");
     setForm({ name: "", phone: "", plate: "", make: "", model: "", service_type: "", remarks: "" });
-    setError(""); setJobNumber("");
+    setError(""); setJobNumber(""); setPromotion(null);
     startChat();
   }
 
@@ -430,29 +440,60 @@ export default function ChatWidget() {
 
               {/* Done */}
               {step === "done" && (
-                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-2xl border border-emerald-400/30 bg-emerald-50 dark:bg-emerald-500/10 p-5 text-center space-y-3">
-                  <div className="flex justify-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15">
-                      <CheckCircle className="h-8 w-8 text-emerald-500" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-white text-base">Request Submitted!</p>
-                    {jobNumber && (
-                      <p className="mt-1 text-sm text-gray-500 dark:text-white/50">
-                        Reference: <span className="font-mono font-bold text-[#C9A227]">{jobNumber}</span>
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-3">
+                  {/* Welcome promotion banner for new customers */}
+                  {promotion && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="rounded-2xl border border-[#C9A227]/40 bg-gradient-to-br from-[#C9A227]/10 to-[#d4b22e]/5 p-4 space-y-2.5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🎉</span>
+                        <p className="font-bold text-[#C9A227] text-sm leading-tight">{promotion.title}</p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-white/75">
+                          <span className="text-emerald-500 shrink-0 mt-0.5">✓</span>
+                          <span><span className="font-semibold">{promotion.discount_pct}% off</span> all labour charges on your first visit</span>
+                        </div>
+                        <div className="flex items-start gap-2 text-xs text-gray-700 dark:text-white/75">
+                          <span className="text-emerald-500 shrink-0 mt-0.5">✓</span>
+                          <span><span className="font-semibold">{promotion.free_service}</span> — on us</span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-gray-400 dark:text-white/35 leading-relaxed border-t border-[#C9A227]/20 pt-2">
+                        Code <span className="font-mono font-bold text-[#C9A227]">{promotion.code}</span> · Your advisor applies this at checkout. No action needed.
                       </p>
-                    )}
+                    </motion.div>
+                  )}
+
+                  {/* Success card */}
+                  <div className="rounded-2xl border border-emerald-400/30 bg-emerald-50 dark:bg-emerald-500/10 p-5 text-center space-y-3">
+                    <div className="flex justify-center">
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/15">
+                        <CheckCircle className="h-8 w-8 text-emerald-500" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white text-base">Request Submitted!</p>
+                      {jobNumber && (
+                        <p className="mt-1 text-sm text-gray-500 dark:text-white/50">
+                          Reference: <span className="font-mono font-bold text-[#C9A227]">{jobNumber}</span>
+                        </p>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-white/40 leading-relaxed">
+                      Our team will contact you on WhatsApp shortly. 🚗
+                    </p>
+                    <button
+                      onClick={reset}
+                      className="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-white/30 hover:text-[#C9A227] transition-colors"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" /> New Request
+                    </button>
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-white/40 leading-relaxed">
-                    Our team will contact you on WhatsApp shortly. 🚗
-                  </p>
-                  <button
-                    onClick={reset}
-                    className="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-white/30 hover:text-[#C9A227] transition-colors"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" /> New Request
-                  </button>
                 </motion.div>
               )}
 
