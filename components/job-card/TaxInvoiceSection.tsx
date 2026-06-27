@@ -56,6 +56,7 @@ export default function TaxInvoiceSection({
   jobId,
   jobNumber,
   customerPhone,
+  customerName,
   vehiclePlate,
   canCreate,
   onJobUpdate,
@@ -64,6 +65,7 @@ export default function TaxInvoiceSection({
   jobId: string
   jobNumber: string
   customerPhone?: string
+  customerName?: string
   vehiclePlate?: string
   canCreate?: boolean
   onJobUpdate?: () => void
@@ -277,17 +279,22 @@ export default function TaxInvoiceSection({
     const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
     const plate = vehiclePlate ?? ''
     const trackUrl = `${base}/track${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`
+    const firstName = customerName?.split(' ')[0] ?? 'there'
+    const phone = customerPhone.replace(/(\+?\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 $3 $4')
     const msg = [
-      `Hi! 👋`,
+      `Hi ${firstName}! 👋`,
       ``,
-      `Your invoice is ready at Bakkah Premium Auto Care.`,
+      `📱 Mobile: ${phone}`,
+      ...(plate ? [`🚗 Vehicle: ${plate}`] : []),
       ``,
-      `*Amount Due: AED ${invoice?.total?.toFixed(2)}*`,
+      `Your tax invoice is ready at *Bakkah Premium Auto Care*.`,
       ``,
-      `Track your vehicle here:`,
+      `*Amount Due: AED ${invoice?.total?.toFixed(2)}* (incl. 5% VAT)`,
+      ``,
+      `Track your vehicle status here:`,
       trackUrl,
       ``,
-      `Questions? Call us: 📞 +971 54 588 6999`,
+      `Questions? 📞 +971 54 588 6999`,
     ].join('\n')
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
   }
