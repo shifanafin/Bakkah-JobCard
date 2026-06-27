@@ -31,140 +31,59 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name, phone and service type are required' }, { status: 400 })
     }
 
+    // Prevent absurdly long inputs
+    if (
+      name.trim().length > 100 ||
+      phone.trim().length > 25 ||
+      service_type.trim().length > 200 ||
+      (remarks && remarks.trim().length > 1000)
+    ) {
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+    }
+
     const sb = createServiceClient()
     const normalizedPhone = normalizePhone(phone.trim())
-    const today = new Date().toISOString().split('T')[0]
 
-    // Fetch active promotion from DB (admin-managed, no hardcoding)
-    const { data: activePromo } = await sb
-      .from('promotions')
-      .select('code, name, discount_pct, free_service, description')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-
-    // Upsert customer — track whether this is their first visit
-    let customerId: string
-    let isNewCustomer = false
-
-    const { data: ec, error: ecErr } = await sb
-      .from('customers')
-      .select('id')
+    // Rate limit: max 3 enquiries per phone per 24 h
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count: recentCount } = await sb
+      .from('chat_notifications')
+      .select('*', { count: 'exact', head: true })
       .eq('phone', normalizedPhone)
-      .maybeSingle()
-    if (ecErr) throw new Error(`Customer lookup failed: ${ecErr.message}`)
+      .gte('created_at', since)
 
-    if (ec) {
-      customerId = ec.id
-      await sb.from('customers').update({ name: name.trim() }).eq('id', customerId)
-    } else {
-      isNewCustomer = true
-      const { data: nc, error } = await sb.from('customers').insert({
-        name: name.trim(),
-        phone: normalizedPhone,
-        is_fleet: false,
-      }).select('id').single()
-      if (error) throw new Error(`Customer save failed: ${error.message}`)
-      customerId = nc.id
+    if ((recentCount ?? 0) >= 3) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please contact us directly.' },
+        { status: 429 },
+      )
     }
 
-    // Upsert vehicle (only if plate provided)
-    let vehicleId: string | null = null
-    if (plate?.trim()) {
-      const plateUpper = plate.trim().toUpperCase()
-      const { data: ev } = await sb.from('vehicles').select('id').eq('plate_number', plateUpper).maybeSingle()
-      if (ev) {
-        vehicleId = ev.id
-        if (make?.trim() || model?.trim()) {
-          await sb.from('vehicles').update({
-            ...(make?.trim() ? { make: make.trim() } : {}),
-            ...(model?.trim() ? { model: model.trim() } : {}),
-          }).eq('id', vehicleId)
-        }
-      } else {
-        const { data: nv, error } = await sb.from('vehicles').insert({
-          customer_id: customerId,
-          plate_number: plateUpper,
-          make: make?.trim() || 'Unknown',
-          model: model?.trim() || 'Unknown',
-        }).select('id').single()
-        if (!error && nv) vehicleId = nv.id
-      }
-    }
-
-    // Stamp job card with promotion if new customer + active promo exists
-    const appliedPromo = isNewCustomer && activePromo ? activePromo : null
-    const promoFields = appliedPromo
-      ? {
-          promotion_code: appliedPromo.code,
-          promotion_discount_pct: appliedPromo.discount_pct,
-          internal_notes: `🎉 PROMOTION (${appliedPromo.code}): ${appliedPromo.discount_pct}% off${appliedPromo.free_service ? ` + ${appliedPromo.free_service}` : ''}. Apply percentage discount on confirmed subtotal before issuing invoice.`,
-        }
-      : {}
-
-    const { data: jc, error: jcErr } = await sb.from('job_cards').insert({
-      customer_id: customerId,
-      vehicle_id: vehicleId,
-      job_type: service_type,
-      date_in: today,
-      status: 'inspection',
-      customer_complaint: remarks?.trim() || service_type,
-      source: 'website_chat',
-      ...promoFields,
-    }).select('id, job_number').single()
-
-    if (jcErr) throw new Error(`Job card creation failed: ${jcErr.message}`)
-
-    // Pre-add complimentary free service if promo has one
-    if (appliedPromo?.free_service) {
-      await sb.from('job_card_services').insert({
-        job_card_id: jc.id,
-        description: `🎁 ${appliedPromo.free_service} (${appliedPromo.name} — Complimentary)`,
-        quantity: 1,
-        unit_price: 0,
-        completed: false,
-      }).then(() => {})
-    }
-
-    // Log history
-    await sb.from('job_card_history').insert({
-      job_card_id: jc.id,
-      new_status: 'inspection',
-      notes: appliedPromo
-        ? `Created via website chat — Promotion (${appliedPromo.code}) applied`
-        : 'Created via website chat request',
-    })
-
-    // Store in-app notification
-    await sb.from('chat_notifications').insert({
+    // Save enquiry — no job card created here; staff reviews and converts manually
+    const { error: insertErr } = await sb.from('chat_notifications').insert({
       name: name.trim(),
       phone: normalizedPhone,
       vehicle_plate: plate?.trim().toUpperCase() || null,
       vehicle_make: make?.trim() || null,
       vehicle_model: model?.trim() || null,
-      service_type,
+      service_type: service_type.trim(),
       remarks: remarks?.trim() || null,
-      job_number: jc.job_number,
-      job_card_id: jc.id,
     })
 
-    // Telegram notification
+    if (insertErr) throw new Error(`Enquiry save failed: ${insertErr.message}`)
+
+    // Notify workshop via Telegram
     const vehicleInfo = plate?.trim()
       ? `${plate.trim().toUpperCase()}${make?.trim() ? ` (${make.trim()} ${model?.trim() || ''})` : ''}`
       : 'Not provided'
-    const promoLine = appliedPromo
-      ? `\n🎉 *NEW CUSTOMER — ${appliedPromo.name} Applied*\n   ${appliedPromo.discount_pct}% discount${appliedPromo.free_service ? ` + ${appliedPromo.free_service}` : ''}`
-      : ''
     const msg =
-      `🚗 *New Website Request!*\n` +
-      `Job: *${jc.job_number}*\n` +
+      `📩 *New Website Enquiry!*\n` +
       `Name: ${name.trim()}\n` +
       `Phone: ${normalizedPhone}\n` +
       `Vehicle: ${vehicleInfo}\n` +
-      `Service: ${service_type}\n` +
-      `Remarks: ${remarks?.trim() || '—'}` +
-      promoLine
+      `Service: ${service_type.trim()}\n` +
+      `Remarks: ${remarks?.trim() || '—'}\n\n` +
+      `_Review at: /workshop/enquiries_`
     await sendTelegramNotification(msg)
 
     sendChatRequestNotificationEmail({
@@ -173,21 +92,16 @@ export async function POST(req: NextRequest) {
       plate: plate?.trim().toUpperCase() || null,
       make: make?.trim() || null,
       model: model?.trim() || null,
-      service_type,
+      service_type: service_type.trim(),
       remarks: remarks?.trim() || null,
-      job_number: jc.job_number,
-      job_card_id: jc.id,
     }).catch(() => {})
 
-    return NextResponse.json({
-      success: true,
-      job_number: jc.job_number,
-      is_new_customer: isNewCustomer,
-      promotion: appliedPromo ?? null,
-    }, { status: 201 })
-
+    return NextResponse.json({ success: true }, { status: 201 })
   } catch (err) {
     console.error('[chat-request]', err)
-    return NextResponse.json({ error: err instanceof Error ? err.message : 'Request failed' }, { status: 500 })
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Request failed' },
+      { status: 500 },
+    )
   }
 }

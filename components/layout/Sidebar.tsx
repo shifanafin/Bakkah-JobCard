@@ -291,12 +291,12 @@ function SidebarContent({
       <div className="p-3 space-y-0.5">
         {/* Website chat requests notification */}
         <Link
-          href="/workshop/job-cards"
+          href="/workshop/enquiries"
           onClick={onClose}
           className="relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-gray-500 hover:bg-amber-50 hover:text-amber-600 transition-all dark:text-white/40 dark:hover:bg-amber-500/10 dark:hover:text-amber-400"
         >
           <Bell className="h-4 w-4" />
-          <span className="flex-1">Website Requests</span>
+          <span className="flex-1">Website Enquiries</span>
           {chatCount > 0 && (
             <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#C9A227] px-1.5 text-[10px] font-bold text-black animate-pulse">
               {chatCount > 9 ? "9+" : chatCount}

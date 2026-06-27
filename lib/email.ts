@@ -214,19 +214,17 @@ interface ChatRequestNotificationParams {
   model: string | null;
   service_type: string;
   remarks: string | null;
-  job_number: string;
-  job_card_id: string;
 }
 
 export async function sendChatRequestNotificationEmail(params: ChatRequestNotificationParams) {
   const ownerEmail = process.env.OWNER_NOTIFICATION_EMAIL;
   if (!ownerEmail) return; // skip silently if not configured
 
-  const { name, phone, plate, make, model, service_type, remarks, job_number } = params;
+  const { name, phone, plate, make, model, service_type, remarks } = params;
   const vehicleInfo = plate
     ? `${plate}${make ? ` — ${make} ${model || ""}`.trim() : ""}`
     : "Not provided";
-  const jobUrl = `${BASE_URL}/workshop/job-cards`;
+  const jobUrl = `${BASE_URL}/workshop/enquiries`;
 
   const html = `
 <!DOCTYPE html>
@@ -263,7 +261,6 @@ export async function sendChatRequestNotificationEmail(params: ChatRequestNotifi
           <td style="padding:28px 36px 8px;">
             <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #f0f0f0;border-radius:10px;overflow:hidden;">
               ${[
-                ["Job Number", `<span style="font-family:monospace;font-weight:700;color:#566020;font-size:15px;">${job_number}</span>`],
                 ["Customer Name", name],
                 ["Phone", `<a href="tel:${phone}" style="color:#566020;font-weight:600;">${phone}</a>`],
                 ["Vehicle", vehicleInfo],
@@ -307,7 +304,7 @@ export async function sendChatRequestNotificationEmail(params: ChatRequestNotifi
   const { error } = await resend.emails.send({
     from: FROM,
     to: ownerEmail,
-    subject: `🚗 New Website Request — ${job_number} (${name})`,
+    subject: `🚗 New Website Enquiry — ${name} (${service_type})`,
     html,
   });
   if (error) throw new Error(`Owner notification email failed: ${error.message}`);
