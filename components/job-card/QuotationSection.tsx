@@ -370,20 +370,24 @@ export default function QuotationSection({
     const plate = vehiclePlate ?? ''
     const trackUrl = `${base}/track${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`
     const firstName = customerName?.split(' ')[0] ?? 'there'
+    const phone = customerPhone.replace(/(\+?\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 $3 $4')
 
     const lines = [
       `Hi ${firstName}! 👋`,
       ``,
-      `Your vehicle${plate ? ` (${plate})` : ''} has been inspected at Bakkah Premium Auto Care.`,
+      `📱 Mobile: ${phone}`,
+      ...(plate ? [`🚗 Vehicle: ${plate}`] : []),
       ``,
-      `We've prepared an estimate for the work needed. Please review and approve or decline:`,
+      `Your vehicle has been inspected at *Bakkah Premium Auto Care*.`,
+      `We've prepared an estimate — please review and approve or decline:`,
+      ``,
       trackUrl,
       ``,
       `*Estimated Total: AED ${quotation.total.toFixed(2)}* (incl. 5% VAT)`,
       ``,
-      `Tap the link, enter your mobile number to verify, then approve or decline.`,
+      `Tap the link above, verify with your mobile number, then approve or decline.`,
       ``,
-      `Questions? Call us: 📞 +971 54 588 6999`,
+      `Questions? 📞 +971 54 588 6999`,
     ]
 
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(lines.join('\n'))}`

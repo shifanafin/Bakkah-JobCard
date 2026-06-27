@@ -25,17 +25,22 @@ function buildWhatsAppHref(job: JobCard): string {
   const trackUrl = `${base}/track${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`
   const name = job.customer?.name?.split(' ')[0] ?? 'there'
   const vehicle = [job.vehicle?.make, job.vehicle?.model].filter(Boolean).join(' ')
+  const rawPhone = job.customer?.phone ?? ''
+  const phone = rawPhone.replace(/(\+?\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 $3 $4')
   const msg = [
     `Hi ${name}! 👋`,
     ``,
-    `Your ${vehicle || 'vehicle'}${plate ? ` (${plate})` : ''} is with us at Bakkah Premium Auto Care.`,
+    `📱 Mobile: ${phone}`,
+    ...(plate ? [`🚗 Vehicle: ${vehicle ? `${vehicle} (${plate})` : plate}`] : []),
+    ``,
+    `Your vehicle is with us at *Bakkah Premium Auto Care*.`,
     ``,
     `Track your vehicle status here:`,
     trackUrl,
     ``,
-    `Questions? Call us: +971 54 588 6999`,
+    `Questions? 📞 +971 54 588 6999`,
   ].join('\n')
-  return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
+  return `https://wa.me/${rawPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
 }
 
 export default function JobCardDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -435,6 +440,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobId={job.id}
           jobNumber={job.job_number}
           customerPhone={job.customer?.phone}
+          customerName={job.customer?.name}
           vehiclePlate={job.vehicle?.plate_number}
           readOnly={isDelivered}
         />
@@ -444,6 +450,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobId={job.id}
           jobNumber={job.job_number}
           customerPhone={job.customer?.phone}
+          customerName={job.customer?.name}
           vehiclePlate={job.vehicle?.plate_number}
           canCreate={canAssign}
           onJobUpdate={load}
