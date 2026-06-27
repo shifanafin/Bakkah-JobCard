@@ -20,9 +20,22 @@ import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
 function buildWhatsAppHref(job: JobCard): string {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  const trackUrl = `${origin}/track?q=${encodeURIComponent(job.job_number)}`
-  return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(trackUrl)}`
+  const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+  const plate = job.vehicle?.plate_number ?? ''
+  const trackUrl = `${base}/track${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`
+  const name = job.customer?.name?.split(' ')[0] ?? 'there'
+  const vehicle = [job.vehicle?.make, job.vehicle?.model].filter(Boolean).join(' ')
+  const msg = [
+    `Hi ${name}! 👋`,
+    ``,
+    `Your ${vehicle || 'vehicle'}${plate ? ` (${plate})` : ''} is with us at Bakkah Premium Auto Care.`,
+    ``,
+    `Track your vehicle status here:`,
+    trackUrl,
+    ``,
+    `Questions? Call us: +971 54 588 6999`,
+  ].join('\n')
+  return `https://wa.me/${(job.customer?.phone ?? '').replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
 }
 
 export default function JobCardDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -410,6 +423,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           customerPhone={job.customer?.phone}
           customerName={job.customer?.name}
           customerEmail={job.customer?.email}
+          vehiclePlate={job.vehicle?.plate_number}
           canApprove={canAssign}
           onEmailNotify={handleNotifyEmail}
           onJobUpdate={load}
@@ -421,6 +435,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobId={job.id}
           jobNumber={job.job_number}
           customerPhone={job.customer?.phone}
+          vehiclePlate={job.vehicle?.plate_number}
           readOnly={isDelivered}
         />
 
@@ -429,6 +444,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           jobId={job.id}
           jobNumber={job.job_number}
           customerPhone={job.customer?.phone}
+          vehiclePlate={job.vehicle?.plate_number}
           canCreate={canAssign}
           onJobUpdate={load}
           readOnly={isDelivered}

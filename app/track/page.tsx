@@ -815,10 +815,10 @@ function JobCardDetail({
 
       {/* Actions */}
       <div>
-        <a href={`https://wa.me/971545886999?text=Hi+Bakkah%2C+I+want+to+follow+up+on+job+${encodeURIComponent(job.job_number)}`}
+        <a href={`https://wa.me/971545886999?text=${encodeURIComponent(`Hi Bakkah! I'd like to follow up on my ${job.vehicle?.plate_number ? `vehicle (${job.vehicle.plate_number})` : 'vehicle'}.`)}`}
           target="_blank" rel="noopener noreferrer"
           className="flex w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-500 px-4 py-3.5 text-sm font-bold text-white hover:bg-emerald-600 transition-all duration-200 shadow-[0_2px_12px_rgba(16,185,129,0.25)]">
-          <MessageCircle className="h-4 w-4" /> Contact Us
+          <MessageCircle className="h-4 w-4" /> Contact Us on WhatsApp
         </a>
       </div>
     </div>
@@ -968,10 +968,17 @@ export default function TrackPage() {
     if (autoSearched.current) return;
     const params = new URLSearchParams(window.location.search);
     const jobParam = params.get("q") ?? params.get("job");
+    const plateParam = params.get("plate");
     if (jobParam) {
       autoSearched.current = true;
       setIsDirect(true);
       runJobSearch(jobParam);
+    } else if (plateParam) {
+      // Plate shared via WhatsApp link — auto-fill and auto-search
+      autoSearched.current = true;
+      const plate = plateParam.trim().toUpperCase();
+      setPlateQuery(plate);
+      runVehicleSearch("", plate);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

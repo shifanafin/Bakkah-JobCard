@@ -101,11 +101,11 @@ export const metadata: Metadata = {
     "business:contact_data:region": "Dubai",
     "business:contact_data:country_name": "UAE",
     "business:contact_data:phone_number": "+971545886999",
-    "business:contact_data:website": process.env.NEXT_PUBLIC_BASE_URL || "",
+    "business:contact_data:website": process.env.NEXT_PUBLIC_APP_URL || "",
   },
 };
 
-const BASE = process.env.NEXT_PUBLIC_BASE_URL || ''
+const BASE = process.env.NEXT_PUBLIC_APP_URL || ''
 
 const jsonLd = {
   "@context": "https://schema.org",

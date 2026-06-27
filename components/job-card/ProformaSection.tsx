@@ -44,11 +44,13 @@ export default function ProformaSection({
   jobId,
   jobNumber,
   customerPhone,
+  vehiclePlate,
   readOnly,
 }: {
   jobId: string
   jobNumber: string
   customerPhone?: string
+  vehiclePlate?: string
   readOnly?: boolean
 }) {
   const [proforma, setProforma] = useState<Proforma | null | undefined>(undefined)
@@ -254,17 +256,20 @@ export default function ProformaSection({
 
   function buildShareHref() {
     if (!customerPhone) return '#'
-    const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const trackUrl = `${origin}/track?q=${encodeURIComponent(jobNumber)}`
+    const base = process.env.NEXT_PUBLIC_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+    const plate = vehiclePlate ?? ''
+    const trackUrl = `${base}/track${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`
     const msg = [
-      `Dear Customer,`,
-      `Your Proforma Invoice ${proforma?.proforma_number} for Job ${jobNumber} is ready.`,
+      `Hi! 👋`,
       ``,
-      `Track your vehicle and view the proforma: ${trackUrl}`,
+      `Your proforma invoice is ready at Bakkah Premium Auto Care.`,
       ``,
-      `Total: AED ${proforma?.total?.toFixed(2)}`,
+      `*Estimated Total: AED ${proforma?.total?.toFixed(2)}*`,
       ``,
-      `Bakkah Premium Auto Care | +971 54 588 6999`,
+      `Track your vehicle here:`,
+      trackUrl,
+      ``,
+      `Questions? Call us: 📞 +971 54 588 6999`,
     ].join('\n')
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
   }

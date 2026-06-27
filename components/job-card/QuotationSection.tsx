@@ -51,6 +51,7 @@ export default function QuotationSection({
   customerPhone,
   customerName,
   customerEmail,
+  vehiclePlate,
   canApprove,
   onStatusChange,
   onEmailNotify,
@@ -62,6 +63,7 @@ export default function QuotationSection({
   customerPhone?: string
   customerName?: string
   customerEmail?: string
+  vehiclePlate?: string
   canApprove?: boolean
   onStatusChange?: (status: string | null) => void
   onEmailNotify?: () => void
@@ -364,36 +366,24 @@ export default function QuotationSection({
 
   function buildWhatsAppHref(): string {
     if (!customerPhone || !quotation) return '#'
-    const origin = typeof window !== 'undefined' ? window.location.origin : ''
-    const trackUrl = `${origin}/track?q=${encodeURIComponent(jobNumber ?? '')}`
-
-    const itemLines = quotation.items.map(i => {
-      const qty = i.quantity !== 1 ? ` ×${i.quantity}` : ''
-      return `  • ${i.description}${qty} — AED ${i.total_price.toFixed(2)}`
-    }).join('\n')
+    const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
+    const plate = vehiclePlate ?? ''
+    const trackUrl = `${base}/track${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`
+    const firstName = customerName?.split(' ')[0] ?? 'there'
 
     const lines = [
-      `Dear ${customerName ?? 'Valued Customer'},`,
+      `Hi ${firstName}! 👋`,
       ``,
-      `Your vehicle has been assessed at Bakkah Premium Auto Care.`,
-      `Here is your Quotation *${quotation.quotation_number}*${jobNumber ? ` for Job *${jobNumber}*` : ''}:`,
+      `Your vehicle${plate ? ` (${plate})` : ''} has been inspected at Bakkah Premium Auto Care.`,
       ``,
-      `━━━━━━━━━━━━━━━━━━`,
-      itemLines,
-      `━━━━━━━━━━━━━━━━━━`,
-      `Subtotal: AED ${quotation.subtotal.toFixed(2)}`,
-      ...(quotation.discount > 0 ? [`Discount: −AED ${quotation.discount.toFixed(2)}`] : []),
-      `VAT (5%): AED ${quotation.vat_amount.toFixed(2)}`,
-      `*Total: AED ${quotation.total.toFixed(2)}*`,
-      ``,
-      `✅ To *APPROVE* or ❌ *DECLINE* this quotation, tap the link below and enter your mobile number:`,
+      `We've prepared an estimate for the work needed. Please review and approve or decline:`,
       trackUrl,
       ``,
-      `Questions? Call or WhatsApp us:`,
-      `📞 +971 54 588 6999`,
+      `*Estimated Total: AED ${quotation.total.toFixed(2)}* (incl. 5% VAT)`,
       ``,
-      `Bakkah Premium Auto Care`,
-      `Al Qusais Industrial Area 5, Dubai`,
+      `Tap the link, enter your mobile number to verify, then approve or decline.`,
+      ``,
+      `Questions? Call us: 📞 +971 54 588 6999`,
     ]
 
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(lines.join('\n'))}`
