@@ -4,12 +4,15 @@ import { createServiceClient } from '@/lib/supabase/service'
 
 type Params = { params: Promise<{ id: string }> }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 // PATCH /api/enquiries/[id]   body: { action: 'read' | 'dismiss' }
 export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await getServerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
+  if (!UUID_RE.test(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
   const body = await req.json()
   const { action } = body
 
@@ -33,6 +36,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
+  if (!UUID_RE.test(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
   const sb = createServiceClient()
 
   // Fetch the enquiry
@@ -54,8 +58,9 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
   const today = new Date().toISOString().split('T')[0]
 
-  // Upsert customer
+  // Upsert customer — track whether they're new to apply promotions
   let customerId: string
+  let isNewCustomer = false
   const { data: ec } = await sb
     .from('customers')
     .select('id')
@@ -66,6 +71,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
     customerId = ec.id
     await sb.from('customers').update({ name: enquiry.name }).eq('id', customerId)
   } else {
+    isNewCustomer = true
     const { data: nc, error: ncErr } = await sb
       .from('customers')
       .insert({ name: enquiry.name, phone: enquiry.phone, is_fleet: false })
@@ -75,6 +81,21 @@ export async function POST(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: `Customer save failed: ${ncErr?.message}` }, { status: 500 })
     }
     customerId = nc.id
+  }
+
+  // Fetch active promotion if this is a new customer
+  let appliedPromo: {
+    code: string; name: string; discount_pct: number; free_service: string | null
+  } | null = null
+  if (isNewCustomer) {
+    const { data: promo } = await sb
+      .from('promotions')
+      .select('code, name, discount_pct, free_service')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (promo) appliedPromo = promo
   }
 
   // Upsert vehicle (only if plate was provided)
@@ -103,7 +124,15 @@ export async function POST(_req: NextRequest, { params }: Params) {
     }
   }
 
-  // Create job card — requires source column migration to have been run:
+  const promoFields = appliedPromo
+    ? {
+        promotion_code: appliedPromo.code,
+        promotion_discount_pct: appliedPromo.discount_pct,
+        internal_notes: `🎉 PROMOTION (${appliedPromo.code}): ${appliedPromo.discount_pct}% off${appliedPromo.free_service ? ` + ${appliedPromo.free_service}` : ''}. Apply percentage discount on confirmed subtotal before issuing invoice.`,
+      }
+    : {}
+
+  // Create job card — requires source column migration:
   // ALTER TABLE job_cards ADD COLUMN IF NOT EXISTS source text DEFAULT 'application';
   const { data: jc, error: jcErr } = await sb
     .from('job_cards')
@@ -115,6 +144,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       status: 'inspection',
       customer_complaint: enquiry.remarks || enquiry.service_type,
       source: 'website_chat',
+      ...promoFields,
     })
     .select('id, job_number')
     .single()
@@ -123,11 +153,24 @@ export async function POST(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: `Job card creation failed: ${jcErr.message}` }, { status: 500 })
   }
 
+  // Add complimentary free service if promo has one
+  if (appliedPromo?.free_service) {
+    await sb.from('job_card_services').insert({
+      job_card_id: jc.id,
+      description: `🎁 ${appliedPromo.free_service} (${appliedPromo.name} — Complimentary)`,
+      quantity: 1,
+      unit_price: 0,
+      completed: false,
+    })
+  }
+
   // Add audit trail
   await sb.from('job_card_history').insert({
     job_card_id: jc.id,
     new_status: 'inspection',
-    notes: `Created from website enquiry by ${session.user.name}`,
+    notes: appliedPromo
+      ? `Created from website enquiry by ${session.user.name} — Promotion (${appliedPromo.code}) applied`
+      : `Created from website enquiry by ${session.user.name}`,
   })
 
   // Link the enquiry to the new job card and mark it read
