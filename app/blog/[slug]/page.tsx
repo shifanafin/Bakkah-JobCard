@@ -16,7 +16,7 @@ export async function generateMetadata({
   const { slug } = await params
   const post = getPostBySlug(slug)
   if (!post) return {}
-  const base = process.env.NEXT_PUBLIC_BASE_URL || ''
+  const base = process.env.NEXT_PUBLIC_APP_URL || ''
   return {
     title: post.title,
     description: post.excerpt,
@@ -161,7 +161,7 @@ export default async function BlogPostPage({
   const post = getPostBySlug(slug)
   if (!post) notFound()
 
-  const base = process.env.NEXT_PUBLIC_BASE_URL || ''
+  const base = process.env.NEXT_PUBLIC_APP_URL || ''
   const related = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2)
 
   const jsonLd = {

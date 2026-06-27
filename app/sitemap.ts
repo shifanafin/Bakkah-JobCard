@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/lib/blog-posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_BASE_URL || '';
+  const base = process.env.NEXT_PUBLIC_APP_URL || '';
   const now = new Date();
 
   const blogPosts: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
