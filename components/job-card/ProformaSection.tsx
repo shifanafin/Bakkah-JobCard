@@ -271,12 +271,14 @@ export default function ProformaSection({
       ``,
       `Your proforma invoice is ready at *Bakkah Premium Auto Care*.`,
       ``,
-      `*Estimated Total: AED ${proforma?.total?.toFixed(2)}* (incl. 5% VAT)`,
+      `💰 *Estimated Total: AED ${proforma?.total?.toFixed(2)}* (incl. 5% VAT)`,
       ``,
-      `Track your vehicle status here:`,
+      `👇 *Tap the link below to view your proforma invoice:*`,
       trackUrl,
       ``,
-      `Questions? 📞 +971 54 588 6999`,
+      `_(Just enter your mobile number to verify — no password needed)_`,
+      ``,
+      `Questions? Call or WhatsApp: 📞 +971 54 588 6999`,
     ].join('\n')
     return `https://wa.me/${customerPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
   }

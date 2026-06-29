@@ -115,6 +115,17 @@ export default function JobCardsPage() {
     else toast.error(`${failed} deletion${failed > 1 ? 's' : ''} failed`)
   }
 
+  async function handleDeleteSingle(jobId: string) {
+    const confirmed = window.confirm('Delete this job card?\n\nThis cannot be undone.')
+    if (!confirmed) return
+    setDeleting(true)
+    const res = await fetch(`/api/job-cards/${jobId}`, { method: 'DELETE' })
+    setDeleting(false)
+    await load()
+    if (res.ok) toast.success('Job card deleted')
+    else toast.error('Delete failed')
+  }
+
   function exportExcel() {
     const rows = filtered.map(j => ({
       'Job #': j.job_number, 'Date In': j.date_in, 'Status': JOB_STATUS_LABEL[j.status],
@@ -499,8 +510,8 @@ export default function JobCardsPage() {
                                   </Link>
                                 )}
                                 {canDelete && !isDelivered && (
-                                  <button onClick={() => { setSelectedIds(new Set([job.id])); handleBulkDelete() }}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50 px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-100 hover:text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20">
+                                  <button onClick={() => handleDeleteSingle(job.id)} disabled={deleting}
+                                    className="inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50 px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-100 hover:text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 disabled:opacity-50">
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </button>
                                 )}

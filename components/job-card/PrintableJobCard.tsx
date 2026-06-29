@@ -119,7 +119,7 @@ export default function PrintableJobCard({ job }: { job: JobCard }) {
       {job.customer_complaint && (
         <div style={{ border: '1px solid #e0e0e0', borderRadius: '6px', padding: '8px 12px', marginBottom: '12px' }}>
           <div style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#555', marginBottom: '4px' }}>Customer Complaint / Request</div>
-          <div style={{ fontSize: '11px', color: '#333', lineHeight: '1.6' }}>{job.customer_complaint}</div>
+          <div style={{ fontSize: '11px', color: '#333', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{job.customer_complaint}</div>
         </div>
       )}
 
@@ -127,7 +127,7 @@ export default function PrintableJobCard({ job }: { job: JobCard }) {
       {job.work_instructions && (
         <div style={{ border: '1px solid #e0e0e0', borderRadius: '6px', padding: '8px 12px', marginBottom: '12px' }}>
           <div style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#555', marginBottom: '4px' }}>Work Instructions</div>
-          <div style={{ fontSize: '11px', color: '#333', lineHeight: '1.6' }}>{job.work_instructions}</div>
+          <div style={{ fontSize: '11px', color: '#333', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{job.work_instructions}</div>
         </div>
       )}
 
@@ -228,7 +228,7 @@ export default function PrintableJobCard({ job }: { job: JobCard }) {
       {job.internal_notes && (
         <div style={{ border: '1px solid #e8e8e8', borderRadius: '6px', padding: '8px 12px', marginBottom: '14px', background: '#fafafa' }}>
           <div style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#555', marginBottom: '4px' }}>Internal Notes</div>
-          <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.6' }}>{job.internal_notes}</div>
+          <div style={{ fontSize: '10px', color: '#666', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{job.internal_notes}</div>
         </div>
       )}
 
