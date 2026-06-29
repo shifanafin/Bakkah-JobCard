@@ -33,12 +33,16 @@ function buildWhatsAppHref(job: JobCard): string {
     `📱 Mobile: ${phone}`,
     ...(plate ? [`🚗 Vehicle: ${vehicle ? `${vehicle} (${plate})` : plate}`] : []),
     ``,
-    `Your vehicle is with us at *Bakkah Premium Auto Care*.`,
+    `Your vehicle is currently in our care at *Bakkah Premium Auto Care*.`,
     ``,
-    `Track your vehicle status here:`,
+    `👇 *Tap the link below to see your vehicle status:*`,
     trackUrl,
     ``,
-    `Questions? 📞 +971 54 588 6999`,
+    `_(Enter your mobile number to verify — no password needed)_`,
+    ``,
+    `If you have a quotation waiting, you can also approve or decline it from the same link.`,
+    ``,
+    `Questions? Call or WhatsApp: 📞 +971 54 588 6999`,
   ].join('\n')
   return `https://wa.me/${rawPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
 }
@@ -409,13 +413,13 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
             {job.customer_complaint && (
               <div>
                 <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold dark:text-white/30">Customer Complaint</p>
-                <p className="text-sm text-gray-600 leading-relaxed dark:text-white/70">{job.customer_complaint}</p>
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap dark:text-white/70">{job.customer_complaint}</p>
               </div>
             )}
             {job.work_instructions && (
               <div className={job.customer_complaint ? 'border-t border-gray-100 pt-3 dark:border-white/[0.06]' : ''}>
                 <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider font-bold dark:text-white/30">Work Instructions</p>
-                <p className="text-sm text-gray-600 leading-relaxed dark:text-white/70">{job.work_instructions}</p>
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap dark:text-white/70">{job.work_instructions}</p>
               </div>
             )}
           </div>
