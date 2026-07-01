@@ -25,7 +25,7 @@ type MyJob = {
 const STATUS_ORDER: JobStatus[] = ['assigned', 'in_progress', 'qc_check', 'ready', 'delivered']
 
 function nextStatus(current: JobStatus): JobStatus | null {
-  // received is a legacy status â€” treat same as assigned
+  // received is a legacy status â€" treat same as assigned
   const normalized = current === 'received' ? 'assigned' : current
   const idx = STATUS_ORDER.indexOf(normalized)
   if (idx < 0 || idx >= STATUS_ORDER.length - 1) return null
