@@ -302,12 +302,9 @@ export default async function DashboardPage() {
   ]
 
   const workshopWidgets = [
-    { href: '/workshop/job-cards', icon: ClipboardList, label: 'Job Cards', color: 'text-blue-500', bg: 'bg-blue-500/10 dark:bg-blue-500/15' },
-    { href: '/workshop/job-cards/new', icon: Plus, label: 'New Job', color: 'text-black dark:text-black', bg: 'bg-brand', highlight: true },
-    { href: '/workshop/customers', icon: Users, label: 'Customers', color: 'text-purple-500', bg: 'bg-purple-500/10 dark:bg-purple-500/15' },
-    { href: '/workshop/services', icon: Wrench, label: 'Services', color: 'text-emerald-500', bg: 'bg-emerald-500/10 dark:bg-emerald-500/15' },
-    { href: '/workshop/admin/technicians', icon: UserCheck, label: 'Technicians', color: 'text-brand', bg: 'bg-brand/10 dark:bg-brand/15', show: role !== 'receptionist' },
     { href: '/workshop/transactions', icon: Receipt, label: 'Transactions', color: 'text-amber-500', bg: 'bg-amber-500/10 dark:bg-amber-500/15' },
+    { href: '/workshop/admin/technicians', icon: UserCheck, label: 'Technicians', color: 'text-brand', bg: 'bg-brand/10 dark:bg-brand/15', show: role !== 'receptionist' },
+    { href: '/workshop/services', icon: Wrench, label: 'Services', color: 'text-emerald-500', bg: 'bg-emerald-500/10 dark:bg-emerald-500/15' },
     { href: '/workshop/enquiries', icon: Bell, label: 'Enquiries', color: 'text-orange-500', bg: 'bg-orange-500/10 dark:bg-orange-500/15' },
     { href: '/workshop/admin/attendance', icon: Clock, label: 'Attendance', color: 'text-indigo-500', bg: 'bg-indigo-500/10 dark:bg-indigo-500/15', show: role === 'admin' },
     { href: '/workshop/admin/employees', icon: Briefcase, label: 'Employees', color: 'text-teal-500', bg: 'bg-teal-500/10 dark:bg-teal-500/15', show: role === 'admin' },
@@ -315,7 +312,6 @@ export default async function DashboardPage() {
     { href: '/workshop/admin/announcements', icon: Megaphone, label: 'Notices', color: 'text-cyan-500', bg: 'bg-cyan-500/10 dark:bg-cyan-500/15', show: role === 'admin' },
     { href: '/workshop/admin/website', icon: Globe, label: 'Website', color: 'text-violet-500', bg: 'bg-violet-500/10 dark:bg-violet-500/15', show: role === 'admin' },
     { href: '/workshop/admin/promotions', icon: Tag, label: 'Promotions', color: 'text-rose-500', bg: 'bg-rose-500/10 dark:bg-rose-500/15', show: role === 'admin' },
-    { href: '/workshop/settings', icon: Settings, label: 'Settings', color: 'text-gray-500', bg: 'bg-gray-500/10 dark:bg-white/[0.06]' },
   ].filter(w => w.show !== false)
 
   return (
@@ -349,7 +345,7 @@ export default async function DashboardPage() {
         <div>
           <p className="text-xs text-gray-400 dark:text-white/30 font-bold uppercase tracking-widest mb-3">Quick Access</p>
           <div className="grid grid-cols-4 gap-3">
-            {workshopWidgets.map(({ href, icon: Icon, label, color, bg, highlight }) => (
+            {workshopWidgets?.map(({ href, icon: Icon, label, color, bg, highlight }) => (
               <Link
                 key={href}
                 href={href}
