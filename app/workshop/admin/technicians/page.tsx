@@ -475,9 +475,18 @@ export default function TechniciansPage() {
 
       {/* â”€â”€ Create Technician Modal â”€â”€ */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-surface-800">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-white/[0.06]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div
+            className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col"
+            style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top, 44px))' }}
+          >
+            {/* iOS drag handle */}
+            <div className="flex justify-center pt-3 pb-2 shrink-0 sm:hidden">
+              <div className="h-1 w-10 rounded-full bg-gray-200 dark:bg-white/[0.15]" />
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/[0.06] px-6 py-4 shrink-0">
               <div>
                 <h2 className="text-base font-bold text-gray-900 dark:text-white">New Technician</h2>
                 <p className="text-xs text-gray-400 dark:text-white/30 mt-0.5">Creates a login account and technician profile</p>
@@ -489,7 +498,9 @@ export default function TechniciansPage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <form onSubmit={handleCreate} className="p-6 space-y-4">
+
+            {/* Scrollable body */}
+            <form id="create-tech-form" onSubmit={handleCreate} className="overflow-y-auto flex-1 p-6 space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label className="label mb-1">Full Name <span className="text-brand">*</span></label>
@@ -563,23 +574,36 @@ export default function TechniciansPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowCreate(false)} className="btn-ghost flex-1">Cancel</button>
-                <button type="submit" disabled={creating} className="btn-primary flex-1">
-                  {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
-                  Create
-                </button>
-              </div>
             </form>
+
+            {/* Fixed footer — always above the home indicator */}
+            <div
+              className="shrink-0 flex gap-3 px-6 py-4 border-t border-gray-100 dark:border-white/[0.06]"
+              style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}
+            >
+              <button type="button" onClick={() => setShowCreate(false)} className="btn-ghost flex-1">Cancel</button>
+              <button type="submit" form="create-tech-form" disabled={creating} className="btn-primary flex-1">
+                {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
+                Create
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* â”€â”€ Edit Modal â”€â”€ */}
       {editTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl dark:bg-surface-800">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-white/[0.06]">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div
+            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col"
+            style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top, 44px))' }}
+          >
+            {/* iOS drag handle */}
+            <div className="flex justify-center pt-3 pb-2 shrink-0 sm:hidden">
+              <div className="h-1 w-10 rounded-full bg-gray-200 dark:bg-white/[0.15]" />
+            </div>
+
+            <div className="flex items-center justify-between border-b border-gray-100 dark:border-white/[0.06] px-6 py-4 shrink-0">
               <div>
                 <h2 className="text-base font-bold text-gray-900 dark:text-white">Edit Technician</h2>
                 <p className="text-xs text-gray-400 dark:text-white/30 mt-0.5">{editTarget.name}</p>
@@ -591,7 +615,8 @@ export default function TechniciansPage() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <form onSubmit={handleSave} className="p-6 space-y-4">
+
+            <form id="edit-tech-form" onSubmit={handleSave} className="overflow-y-auto flex-1 p-6 space-y-4">
               <div>
                 <label className="label mb-1">Specialty</label>
                 <select value={editSpecialty} onChange={e => setEditSpecialty(e.target.value)} className={inputCls}>
@@ -611,14 +636,18 @@ export default function TechniciansPage() {
                   />
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setEditTarget(null)} className="btn-ghost flex-1">Cancel</button>
-                <button type="submit" disabled={saving} className="btn-primary flex-1">
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  Save
-                </button>
-              </div>
             </form>
+
+            <div
+              className="shrink-0 flex gap-3 px-6 py-4 border-t border-gray-100 dark:border-white/[0.06]"
+              style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }}
+            >
+              <button type="button" onClick={() => setEditTarget(null)} className="btn-ghost flex-1">Cancel</button>
+              <button type="submit" form="edit-tech-form" disabled={saving} className="btn-primary flex-1">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                Save
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -3,27 +3,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSession } from '@/lib/auth-client'
 import Link from 'next/link'
-import { Bell, Sun, Moon, Menu, X, Check } from 'lucide-react'
+import { Bell, Sun, Moon, Menu, X } from 'lucide-react'
 import { useTheme } from '@/components/ThemeProvider'
 import { useShell } from '@/components/layout/WorkshopShell'
-import { cn } from '@/lib/utils/cn'
 interface HeaderProps { title: string; subtitle?: string }
-
-const MOCK_NOTIFICATIONS = [
-  { id: '1', message: 'Job JC-2026-0001 status updated to Ready', time: '2m ago', read: false },
-  { id: '2', message: 'New job card created: JC-2026-0002', time: '15m ago', read: false },
-  { id: '3', message: 'Payment received for JC-2026-0001', time: '1h ago', read: true },
-]
 
 export default function Header({ title, subtitle }: HeaderProps) {
   const { data: session } = useSession()
   const { theme, toggle } = useTheme()
   const { setSidebarOpen } = useShell()
   const [notifOpen, setNotifOpen] = useState(false)
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS)
   const notifRef = useRef<HTMLDivElement>(null)
-
-  const unreadCount = notifications.filter(n => !n.read).length
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -34,10 +24,6 @@ export default function Header({ title, subtitle }: HeaderProps) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  function markAllRead() {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-  }
 
   return (
     <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-4 backdrop-blur-sm dark:border-white/[0.06] dark:bg-surface-900/80 lg:px-6">
@@ -75,47 +61,21 @@ export default function Header({ title, subtitle }: HeaderProps) {
             aria-label="Notifications"
           >
             <Bell className="h-4 w-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 ltr:-right-1 rtl:-left-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-black">
-                {unreadCount}
-              </span>
-            )}
           </button>
 
           {/* Notifications dropdown */}
           {notifOpen && (
-            <div className="absolute ltr:right-0 rtl:left-0 top-full mt-2 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-surface-800">
+            <div className="absolute ltr:right-0 rtl:left-0 top-full mt-2 w-72 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg dark:border-white/[0.08] dark:bg-surface-800">
               <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-white/[0.06]">
                 <h3 className="text-sm font-bold text-gray-900 dark:text-white">Notifications</h3>
-                <div className="flex items-center gap-2">
-                  {unreadCount > 0 && (
-                    <button onClick={markAllRead} className="text-xs text-brand hover:text-brand/80 transition-colors">
-                      Mark all read
-                    </button>
-                  )}
-                  <button onClick={() => setNotifOpen(false)} className="text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60">
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                <button onClick={() => setNotifOpen(false)} className="text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60">
+                  <X className="h-3.5 w-3.5" />
+                </button>
               </div>
-              <div className="max-h-72 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <div className="py-8 text-center text-sm text-gray-400 dark:text-white/30">No notifications</div>
-                ) : (
-                  notifications.map(n => (
-                    <div key={n.id} className={cn(
-                      'flex items-start gap-3 border-b border-gray-50 px-4 py-3 last:border-0 transition-colors dark:border-white/[0.03]',
-                      n.read ? 'opacity-60' : 'bg-brand/5'
-                    )}>
-                      <div className={cn('mt-1 h-2 w-2 shrink-0 rounded-full', n.read ? 'bg-gray-300 dark:bg-white/20' : 'bg-brand')} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-700 leading-relaxed dark:text-white/70">{n.message}</p>
-                        <p className="mt-0.5 text-[10px] text-gray-400 dark:text-white/30">{n.time}</p>
-                      </div>
-                      {n.read && <Check className="h-3 w-3 shrink-0 text-gray-300 dark:text-white/20" />}
-                    </div>
-                  ))
-                )}
+              <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+                <Bell className="h-8 w-8 text-gray-200 dark:text-white/10 mb-3" />
+                <p className="text-sm text-gray-400 dark:text-white/30">No notifications</p>
+                <p className="text-xs text-gray-300 dark:text-white/20 mt-0.5">Job updates will appear here</p>
               </div>
             </div>
           )}
