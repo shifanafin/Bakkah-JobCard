@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -66,6 +67,10 @@ export default function TechniciansPage() {
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState<TechRow | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  // Portal mount guard (avoid SSR mismatch)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
 
   // Attendance action loading state (keyed by userId)
   const [attLoading, setAttLoading] = useState<string | null>(null)
@@ -477,11 +482,9 @@ export default function TechniciansPage() {
       </div>
 
       {/* â"€â"€ Create Technician Modal â"€â"€ */}
-      {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div
-            className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col max-h-[88vh] sm:max-h-[90vh]"
-          >
+      {mounted && showCreate && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col max-h-[88vh] sm:max-h-[90vh]">
             {/* iOS drag handle */}
             <div className="flex justify-center pt-3 pb-2 shrink-0 sm:hidden">
               <div className="h-1 w-10 rounded-full bg-gray-200 dark:bg-white/[0.15]" />
@@ -591,14 +594,12 @@ export default function TechniciansPage() {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
-      {/* â"€â"€ Edit Modal â"€â"€ */}
-      {editTarget && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div
-            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col max-h-[88vh] sm:max-h-[90vh]"
-          >
+      {/* ── Edit Modal ── */}
+      {mounted && editTarget && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col max-h-[88vh] sm:max-h-[90vh]">
             {/* iOS drag handle */}
             <div className="flex justify-center pt-3 pb-2 shrink-0 sm:hidden">
               <div className="h-1 w-10 rounded-full bg-gray-200 dark:bg-white/[0.15]" />
@@ -651,11 +652,11 @@ export default function TechniciansPage() {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
-      {/* â"€â"€ Delete Confirm Modal â"€â"€ */}
-      {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      {/* ── Delete Confirm Modal ── */}
+      {mounted && deleteTarget && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl dark:bg-surface-800">
             <div className="p-6 space-y-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-500/10 mx-auto">
@@ -687,7 +688,7 @@ export default function TechniciansPage() {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   )
 }
