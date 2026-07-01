@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/lib/auth-client'
@@ -164,7 +164,7 @@ export default function EmployeesPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Employees" subtitle="Manage workshop staff" />
 
-      <div className="p-4 space-y-5 min-w-full lg:p-6">
+      <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-white/40">{employees.length} employees</p>
@@ -485,3 +485,4 @@ export default function EmployeesPage() {
     </div>
   )
 }
+

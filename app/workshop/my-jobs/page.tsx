@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
@@ -25,7 +25,7 @@ type MyJob = {
 const STATUS_ORDER: JobStatus[] = ['assigned', 'in_progress', 'qc_check', 'ready', 'delivered']
 
 function nextStatus(current: JobStatus): JobStatus | null {
-  // received is a legacy status — treat same as assigned
+  // received is a legacy status â€” treat same as assigned
   const normalized = current === 'received' ? 'assigned' : current
   const idx = STATUS_ORDER.indexOf(normalized)
   if (idx < 0 || idx >= STATUS_ORDER.length - 1) return null
@@ -35,7 +35,7 @@ function nextStatus(current: JobStatus): JobStatus | null {
 function actionLabel(current: JobStatus): string {
   if (current === 'assigned' || current === 'received') return 'Start Job'
   const next = nextStatus(current)
-  return next ? `→ ${JOB_STATUS_LABEL[next]}` : ''
+  return next ? `â†’ ${JOB_STATUS_LABEL[next]}` : ''
 }
 
 export default function MyJobsPage() {
@@ -97,7 +97,7 @@ export default function MyJobsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="My Jobs" subtitle="Jobs assigned to you" />
 
-      <div className="p-4 space-y-4 min-w-full lg:p-6">
+      <div className="p-4 space-y-4 w-full max-w-full lg:p-6">
 
         {jobs.length === 0 ? (
           <div className="card flex flex-col items-center justify-center py-20 text-center">
@@ -129,11 +129,11 @@ export default function MyJobsPage() {
                         </span>
                       </div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {job.vehicle?.plate_number} · {job.vehicle?.make} {job.vehicle?.model}
+                        {job.vehicle?.plate_number} Â· {job.vehicle?.make} {job.vehicle?.model}
                       </p>
                       <p className="text-xs text-gray-400 dark:text-white/40 mt-0.5">
-                        {job.customer?.name} · In: {formatDate(job.date_in)}
-                        {job.date_out && ` · Due: ${formatDate(job.date_out)}`}
+                        {job.customer?.name} Â· In: {formatDate(job.date_in)}
+                        {job.date_out && ` Â· Due: ${formatDate(job.date_out)}`}
                       </p>
                     </div>
 
@@ -168,3 +168,4 @@ export default function MyJobsPage() {
     </div>
   )
 }
+

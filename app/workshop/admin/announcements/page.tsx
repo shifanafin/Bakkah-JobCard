@@ -172,7 +172,7 @@ export default function AnnouncementsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Announcements" subtitle="Customer-facing messages" />
 
-      <div className="p-4 space-y-5 min-w-full lg:p-6">
+      <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-white/40">{announcements.length} announcements</p>
@@ -351,3 +351,4 @@ export default function AnnouncementsPage() {
     </div>
   )
 }
+
