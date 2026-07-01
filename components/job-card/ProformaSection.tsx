@@ -291,20 +291,22 @@ export default function ProformaSection({
   return (
     <div className="card space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/15">
-          <FileText className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+      <div className="border-b border-gray-100 pb-3 dark:border-white/[0.06] space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/15 shrink-0">
+            <FileText className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h3 className="section-title">Proforma Invoice</h3>
+          <span className="font-mono text-xs text-gray-400 dark:text-white/40 ml-auto sm:ml-0">{proforma.proforma_number}</span>
         </div>
-        <h3 className="section-title">Proforma Invoice</h3>
-        <span className="font-mono text-xs text-gray-400 dark:text-white/40">{proforma.proforma_number}</span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {!readOnly && (
             <>
               <button
                 onClick={() => importRef.current?.click()}
                 disabled={importing}
-                className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
-                {importing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-500 hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-colors disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/40 dark:hover:text-brand">
+                {importing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                 Import
               </button>
               <input ref={importRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleImportFile} className="hidden" />
@@ -313,31 +315,102 @@ export default function ProformaSection({
           <button
             onClick={exportExcel}
             disabled={!proforma.items.length}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60 disabled:opacity-50">
-            <Download className="h-3.5 w-3.5" /> Export
+            className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-500 hover:border-brand/40 hover:text-brand hover:bg-brand/5 transition-colors disabled:opacity-40 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-white/40 dark:hover:text-brand">
+            <Download className="h-3 w-3" /> Export
           </button>
           {!readOnly && proforma.quotation_id && (
             <button
               onClick={handleSyncFromQuotation}
               disabled={isPending}
-              title="Sync items and totals from the linked quotation"
-              className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100 transition-colors dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 disabled:opacity-50">
-              {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+              className="flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700 hover:bg-amber-100 transition-colors dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300 disabled:opacity-40">
+              {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
               Sync from Quotation
             </button>
           )}
           {customerPhone && (
             <a href={buildShareHref()} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <MessageCircle className="h-3.5 w-3.5" /> Share
+              className="flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700 hover:bg-emerald-100 transition-colors dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <MessageCircle className="h-3 w-3" /> Share
             </a>
           )}
         </div>
       </div>
 
-      {/* Items table — always editable */}
+      {/* Items — mobile cards */}
       {proforma.items.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
+        <div className="md:hidden divide-y divide-gray-100 dark:divide-white/[0.06] rounded-xl border border-gray-100 dark:border-white/[0.06] overflow-hidden">
+          {proforma.items.map(item => {
+            const isEditing = editingItem?.id === item.id
+            const liveTotal = isEditing
+              ? (parseFloat(editingItem!.quantity) || 0) * (parseFloat(editingItem!.unit_price) || 0)
+              : item.total_price
+            return (
+              <div key={item.id} className="bg-white dark:bg-white/[0.02] p-3">
+                {!readOnly && isEditing ? (
+                  <div className="space-y-3">
+                    <input
+                      value={editingItem!.description}
+                      onChange={e => setEditingItem(prev => prev && { ...prev, description: e.target.value })}
+                      className="input-base w-full" placeholder="Description" />
+                    <div className="flex gap-2">
+                      <div className="w-24">
+                        <label className="label text-[10px] mb-1">Qty</label>
+                        <input type="number" min={0.5} step={0.5} value={editingItem!.quantity}
+                          onChange={e => setEditingItem(prev => prev && { ...prev, quantity: e.target.value })}
+                          className="input-base w-full" />
+                      </div>
+                      <div className="flex-1">
+                        <label className="label text-[10px] mb-1">Price (AED)</label>
+                        <input type="number" min={0} value={editingItem!.unit_price}
+                          onChange={e => setEditingItem(prev => prev && { ...prev, unit_price: e.target.value })}
+                          className="input-base w-full" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500 dark:text-white/40">
+                        Total: <strong className="text-gray-900 dark:text-white">{formatAED(liveTotal)}</strong>
+                      </span>
+                      <div className="flex gap-2">
+                        <button onClick={handleSaveEditItem} disabled={isPending} className="btn-primary text-xs px-3 py-1.5 h-auto">Save</button>
+                        <button onClick={() => setEditingItem(null)} className="btn-ghost text-xs px-3 py-1.5 h-auto">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-start gap-2 mb-2">
+                      <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase shrink-0 mt-0.5', ITEM_TYPE_CLS[item.item_type])}>
+                        {item.item_type}
+                      </span>
+                      <span className="text-sm text-gray-800 dark:text-white/80 flex-1 min-w-0 leading-snug">{item.description}</span>
+                      {!readOnly && (
+                        <div className="flex shrink-0 -mr-1">
+                          <button onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
+                            disabled={isPending} className="p-2 text-gray-400 active:text-brand transition-colors rounded-lg">
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
+                            className="p-2 text-gray-400 active:text-red-400 transition-colors rounded-lg">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-400 dark:text-white/30">{item.quantity} × {formatAED(item.unit_price)}</span>
+                      <span className="text-sm font-bold text-gray-900 dark:text-white tabular-nums">{formatAED(item.total_price)}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Items table — desktop only */}
+      {proforma.items.length > 0 && (
+        <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
           <table className="min-w-[480px] w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">

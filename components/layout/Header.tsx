@@ -26,7 +26,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
   }, [])
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-4 backdrop-blur-sm dark:border-white/[0.06] dark:bg-surface-900/80 lg:px-6">
+    <header className="sticky top-0 z-10 hidden sm:flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-4 backdrop-blur-sm dark:border-white/[0.06] dark:bg-surface-900/80 lg:px-6">
       {/* Left: hamburger + title */}
       <div className="flex items-center gap-3">
         <button

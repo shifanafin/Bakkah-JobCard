@@ -1,6 +1,6 @@
 import { getServerSession } from '@/lib/server-session'
 import Header from '@/components/layout/Header'
-import { Car, ClipboardList, DollarSign, TrendingUp, Plus, ArrowRight, Clock, UserCheck, Wrench, ShieldCheck, CheckCircle } from 'lucide-react'
+import { Car, ClipboardList, DollarSign, TrendingUp, Plus, ArrowRight, Clock, UserCheck, Wrench, ShieldCheck, CheckCircle, Users, Receipt, Bell, Globe, Tag, Megaphone, MessageSquare, Settings, Briefcase } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
@@ -81,10 +81,94 @@ export default async function DashboardPage() {
   if (role === 'technician') {
     const { myActive, myCompletedToday, myJobs } = await getTechnicianStats(userId)
 
+    const techWidgets = [
+      { href: '/workshop/my-jobs', icon: ClipboardList, label: 'My Jobs', color: 'text-brand', bg: 'bg-brand/10' },
+      { href: '/workshop/job-cards', icon: Car, label: 'All Jobs', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+      { href: '/workshop/settings', icon: Settings, label: 'Settings', color: 'text-gray-500', bg: 'bg-gray-500/10 dark:bg-white/[0.06]' },
+    ]
+
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
         <Header title="Dashboard" subtitle={`${greeting}, ${firstName}`} />
-        <div className="p-6 space-y-6">
+
+        {/* ── Mobile home screen ── */}
+        <div className="sm:hidden px-4 pt-5 pb-28 space-y-5">
+          {/* Greeting */}
+          <div>
+            <p className="text-xs text-gray-400 dark:text-white/30 font-medium uppercase tracking-wider">Bakkah Workshop</p>
+            <h1 className="font-display text-2xl text-gray-900 dark:text-white tracking-wide mt-0.5">{greeting}, {firstName} 👋</h1>
+            <p className="text-sm text-gray-500 dark:text-white/40 mt-1">
+              {myActive > 0 ? `${myActive} active job${myActive !== 1 ? 's' : ''} assigned to you` : 'No active jobs — all clear!'}
+            </p>
+          </div>
+
+          {/* Quick stats */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] p-4 shadow-sm">
+              <p className="text-3xl font-bold text-brand tracking-tight">{myActive}</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-white/40 mt-0.5">Active Jobs</p>
+            </div>
+            <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] p-4 shadow-sm">
+              <p className="text-3xl font-bold text-emerald-500 tracking-tight">{myCompletedToday}</p>
+              <p className="text-xs font-semibold text-gray-500 dark:text-white/40 mt-0.5">Done Today</p>
+            </div>
+          </div>
+
+          {/* Widget grid */}
+          <div>
+            <p className="text-xs text-gray-400 dark:text-white/30 font-bold uppercase tracking-widest mb-3">Quick Access</p>
+            <div className="grid grid-cols-4 gap-3">
+              {techWidgets.map(({ href, icon: Icon, label, color, bg }) => (
+                <Link key={href} href={href} className="flex flex-col items-center gap-2 active:scale-95 transition-transform">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${bg}`}>
+                    <Icon className={`h-6 w-6 ${color}`} strokeWidth={1.8} />
+                  </div>
+                  <span className="text-[10px] font-semibold text-gray-600 dark:text-white/60 text-center leading-tight">{label}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* My recent jobs */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-gray-400 dark:text-white/30 font-bold uppercase tracking-widest">My Jobs</p>
+              <Link href="/workshop/my-jobs" className="text-xs text-brand font-semibold">View all →</Link>
+            </div>
+            {myJobs.length === 0 ? (
+              <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] p-6 text-center">
+                <p className="text-sm text-gray-400 dark:text-white/30">No active jobs</p>
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] shadow-sm overflow-hidden divide-y divide-gray-100 dark:divide-white/[0.06]">
+                {myJobs.map((job: Record<string, unknown>) => (
+                  <Link key={job.id as string} href={`/workshop/job-cards/${job.id}`}
+                    className="flex items-center gap-3 p-3 active:bg-gray-50 dark:active:bg-white/[0.03] transition-colors">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
+                      <Car className="h-4.5 w-4.5 text-brand" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs font-bold text-brand">{job.job_number as string}</span>
+                        <span className={`badge border-transparent text-[9px] ${STATUS_COLOR[job.status as string] ?? ''}`}>
+                          {STATUS_LABEL[job.status as string] ?? job.status as string}
+                        </span>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                        {(job.vehicle as { plate_number?: string })?.plate_number}
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-white/40 truncate">{(job.customer as { name?: string })?.name}</p>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-gray-300 dark:text-white/20 shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Desktop / tablet view ── */}
+        <div className="hidden sm:block p-6 space-y-6">
           <div className="relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-6">
             <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-brand/5 blur-3xl" />
             <div className="relative">
@@ -189,11 +273,109 @@ export default async function DashboardPage() {
     { label: 'Ready', value: statusCounts.ready, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10', href: '/workshop/job-cards?status=ready' },
   ]
 
+  const workshopWidgets = [
+    { href: '/workshop/job-cards', icon: ClipboardList, label: 'Job Cards', color: 'text-blue-500', bg: 'bg-blue-500/10 dark:bg-blue-500/15' },
+    { href: '/workshop/job-cards/new', icon: Plus, label: 'New Job', color: 'text-black dark:text-black', bg: 'bg-brand', highlight: true },
+    { href: '/workshop/customers', icon: Users, label: 'Customers', color: 'text-purple-500', bg: 'bg-purple-500/10 dark:bg-purple-500/15' },
+    { href: '/workshop/services', icon: Wrench, label: 'Services', color: 'text-emerald-500', bg: 'bg-emerald-500/10 dark:bg-emerald-500/15' },
+    { href: '/workshop/admin/technicians', icon: UserCheck, label: 'Technicians', color: 'text-brand', bg: 'bg-brand/10 dark:bg-brand/15', show: role !== 'receptionist' },
+    { href: '/workshop/transactions', icon: Receipt, label: 'Transactions', color: 'text-amber-500', bg: 'bg-amber-500/10 dark:bg-amber-500/15' },
+    { href: '/workshop/enquiries', icon: Bell, label: 'Enquiries', color: 'text-orange-500', bg: 'bg-orange-500/10 dark:bg-orange-500/15' },
+    { href: '/workshop/admin/attendance', icon: Clock, label: 'Attendance', color: 'text-indigo-500', bg: 'bg-indigo-500/10 dark:bg-indigo-500/15', show: role === 'admin' },
+    { href: '/workshop/admin/employees', icon: Briefcase, label: 'Employees', color: 'text-teal-500', bg: 'bg-teal-500/10 dark:bg-teal-500/15', show: role === 'admin' },
+    { href: '/workshop/admin/feedback', icon: MessageSquare, label: 'Feedback', color: 'text-pink-500', bg: 'bg-pink-500/10 dark:bg-pink-500/15', show: role === 'admin' },
+    { href: '/workshop/admin/announcements', icon: Megaphone, label: 'Notices', color: 'text-cyan-500', bg: 'bg-cyan-500/10 dark:bg-cyan-500/15', show: role === 'admin' },
+    { href: '/workshop/admin/website', icon: Globe, label: 'Website', color: 'text-violet-500', bg: 'bg-violet-500/10 dark:bg-violet-500/15', show: role === 'admin' },
+    { href: '/workshop/admin/promotions', icon: Tag, label: 'Promotions', color: 'text-rose-500', bg: 'bg-rose-500/10 dark:bg-rose-500/15', show: role === 'admin' },
+    { href: '/workshop/settings', icon: Settings, label: 'Settings', color: 'text-gray-500', bg: 'bg-gray-500/10 dark:bg-white/[0.06]' },
+  ].filter(w => w.show !== false)
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Dashboard" subtitle={`${greeting}, ${firstName}`} />
 
-      <div className="p-6 space-y-6">
+      {/* ── Mobile home screen (hidden on sm+) ── */}
+      <div className="sm:hidden px-4 pt-5 pb-28 space-y-5">
+        {/* Greeting */}
+        <div>
+          <p className="text-xs text-gray-400 dark:text-white/30 font-medium uppercase tracking-wider">Bakkah Workshop</p>
+          <h1 className="font-display text-2xl text-gray-900 dark:text-white tracking-wide mt-0.5">{greeting}, {firstName} 👋</h1>
+          <p className="text-sm text-gray-500 dark:text-white/40 mt-1">
+            {active > 0 ? `${active} active job${active !== 1 ? 's' : ''} in workshop` : 'All clear — ready for new vehicles'}
+          </p>
+        </div>
+
+        {/* Quick stats strip */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] p-4 shadow-sm">
+            <p className="text-3xl font-bold text-brand tracking-tight">{active}</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-white/40 mt-0.5">Active Jobs</p>
+          </div>
+          <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] p-4 shadow-sm">
+            <p className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">{total}</p>
+            <p className="text-xs font-semibold text-gray-500 dark:text-white/40 mt-0.5">Total Jobs</p>
+          </div>
+        </div>
+
+        {/* Navigation widget grid */}
+        <div>
+          <p className="text-xs text-gray-400 dark:text-white/30 font-bold uppercase tracking-widest mb-3">Quick Access</p>
+          <div className="grid grid-cols-4 gap-3">
+            {workshopWidgets.map(({ href, icon: Icon, label, color, bg, highlight }) => (
+              <Link
+                key={href}
+                href={href}
+                className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
+              >
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${bg} ${highlight ? 'shadow-brand/30 shadow-md' : ''}`}>
+                  <Icon className={`h-6 w-6 ${color}`} strokeWidth={highlight ? 2.5 : 1.8} />
+                </div>
+                <span className="text-[10px] font-semibold text-gray-600 dark:text-white/60 text-center leading-tight">{label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent jobs */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-gray-400 dark:text-white/30 font-bold uppercase tracking-widest">Recent Jobs</p>
+            <Link href="/workshop/job-cards" className="text-xs text-brand font-semibold">View all →</Link>
+          </div>
+          {recent.length === 0 ? (
+            <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] p-6 text-center">
+              <p className="text-sm text-gray-400 dark:text-white/30">No recent jobs</p>
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-white dark:bg-surface-800 border border-gray-100 dark:border-white/[0.06] shadow-sm overflow-hidden divide-y divide-gray-100 dark:divide-white/[0.06]">
+              {recent.map((job: Record<string, unknown>) => (
+                <Link key={job.id as string} href={`/workshop/job-cards/${job.id}`}
+                  className="flex items-center gap-3 p-3 active:bg-gray-50 dark:active:bg-white/[0.03] transition-colors">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10">
+                    <Car className="h-4.5 w-4.5 text-brand" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-brand">{job.job_number as string}</span>
+                      <span className={`badge border-transparent text-[9px] ${STATUS_COLOR[job.status as string] ?? ''}`}>
+                        {STATUS_LABEL[job.status as string] ?? job.status as string}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {(job.vehicle as { plate_number?: string })?.plate_number}
+                    </p>
+                    <p className="text-xs text-gray-400 dark:text-white/40 truncate">{(job.customer as { name?: string })?.name}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-300 dark:text-white/20 shrink-0" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Desktop / tablet view (hidden on mobile) ── */}
+      <div className="hidden sm:block p-6 space-y-6">
         {/* Hero greeting */}
         <div className="relative overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/10 via-brand/5 to-transparent p-6">
           <div className="absolute right-0 top-0 h-48 w-48 rounded-full bg-brand/5 blur-3xl" />
