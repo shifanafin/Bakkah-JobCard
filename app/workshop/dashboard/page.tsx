@@ -302,7 +302,7 @@ export default async function DashboardPage() {
   ]
 
   const workshopWidgets = [
-    { href: '/workshop/transactions', icon: Receipt, label: 'Transactions', color: 'text-amber-500', bg: 'bg-amber-500/10 dark:bg-amber-500/15' },
+    { href: '/workshop/transactions', icon: Receipt, label: 'Transactions', color: 'text-amber-500', bg: 'bg-amber-500/10 dark:bg-amber-500/15', highlight: true },
     { href: '/workshop/admin/technicians', icon: UserCheck, label: 'Technicians', color: 'text-brand', bg: 'bg-brand/10 dark:bg-brand/15', show: role !== 'receptionist' },
     { href: '/workshop/services', icon: Wrench, label: 'Services', color: 'text-emerald-500', bg: 'bg-emerald-500/10 dark:bg-emerald-500/15' },
     { href: '/workshop/enquiries', icon: Bell, label: 'Enquiries', color: 'text-orange-500', bg: 'bg-orange-500/10 dark:bg-orange-500/15' },
