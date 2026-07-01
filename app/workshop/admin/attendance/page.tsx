@@ -74,7 +74,7 @@ export default function AttendancePage() {
     if (role === 'admin') load()
   }, [role, load])
 
-  // â”€â”€ Attendance overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â"€â"€ Attendance overrides â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   const isToday = date === new Date().toISOString().split('T')[0]
 
   async function handleCheckIn(record: AttendanceRecord) {
@@ -221,10 +221,10 @@ export default function AttendancePage() {
                           ) : isIn ? (
                             <span className="text-xs text-emerald-400 font-medium">Still in</span>
                           ) : (
-                            <span className="text-xs text-gray-400 dark:text-white/25">â€”</span>
+                            <span className="text-xs text-gray-400 dark:text-white/25">â€"</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-600 dark:text-white/60 font-mono text-xs">{att ? hoursWorked(att.checkin_at, att.checkout_at) : 'â€”'}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-white/60 font-mono text-xs">{att ? hoursWorked(att.checkin_at, att.checkout_at) : 'â€"'}</td>
                         <td className="px-4 py-3"><span className={cn('font-bold text-sm', r.jobs_closed_today > 0 ? 'text-emerald-500' : 'text-gray-400 dark:text-white/25')}>{r.jobs_closed_today}</span></td>
                         <td className="px-4 py-3"><span className={cn('font-bold text-sm', r.active_jobs > 0 ? 'text-brand' : 'text-gray-400 dark:text-white/25')}>{r.active_jobs}</span></td>
                         <td className="px-4 py-3">
