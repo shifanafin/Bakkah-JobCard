@@ -1,6 +1,6 @@
 import { getServerSession } from '@/lib/server-session'
 import Header from '@/components/layout/Header'
-import { Car, ClipboardList, DollarSign, TrendingUp, Plus, ArrowRight, Clock, UserCheck, Wrench, ShieldCheck, CheckCircle, Users, Receipt, Bell, Globe, Tag, Megaphone, MessageSquare, Settings, Briefcase } from 'lucide-react'
+import { Car, ClipboardList, DollarSign, TrendingUp, Plus, ArrowRight, Clock, UserCheck, Wrench, ShieldCheck, CheckCircle, Users, Receipt, Bell, Globe, Tag, Megaphone, MessageSquare, Settings, Briefcase, CalendarClock } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
@@ -82,8 +82,12 @@ export default async function DashboardPage() {
     const { myActive, myCompletedToday, myJobs } = await getTechnicianStats(userId)
 
     const techWidgets = [
-      { href: '/workshop/my-jobs', icon: ClipboardList, label: 'My Jobs', color: 'text-brand', bg: 'bg-brand/10' },
+      { href: '/workshop/my-jobs', icon: ClipboardList, label: 'My Jobs', color: 'text-brand', bg: 'bg-brand/10', highlight: true },
+      { href: '/workshop/attendance', icon: CalendarClock, label: 'Attendance', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
       { href: '/workshop/job-cards', icon: Car, label: 'All Jobs', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+      { href: '/workshop/my/leave', icon: Tag, label: 'Leave', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+      { href: '/workshop/my/suggestions', icon: MessageSquare, label: 'Suggest', color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+      { href: '/workshop/my/complaints', icon: Megaphone, label: 'Complaint', color: 'text-orange-500', bg: 'bg-orange-500/10' },
       { href: '/workshop/settings', icon: Settings, label: 'Settings', color: 'text-gray-500', bg: 'bg-gray-500/10 dark:bg-white/[0.06]' },
     ]
 
@@ -118,10 +122,10 @@ export default async function DashboardPage() {
           <div>
             <p className="text-xs text-gray-400 dark:text-white/30 font-bold uppercase tracking-widest mb-3">Quick Access</p>
             <div className="grid grid-cols-4 gap-3">
-              {techWidgets.map(({ href, icon: Icon, label, color, bg }) => (
+              {techWidgets.map(({ href, icon: Icon, label, color, bg, highlight }) => (
                 <Link key={href} href={href} className="flex flex-col items-center gap-2 active:scale-95 transition-transform">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${bg}`}>
-                    <Icon className={`h-6 w-6 ${color}`} strokeWidth={1.8} />
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${bg} ${highlight ? 'shadow-brand/25 shadow-md' : ''}`}>
+                    <Icon className={`h-6 w-6 ${color}`} strokeWidth={highlight ? 2.5 : 1.8} />
                   </div>
                   <span className="text-[10px] font-semibold text-gray-600 dark:text-white/60 text-center leading-tight">{label}</span>
                 </Link>
@@ -247,6 +251,30 @@ export default async function DashboardPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Employee Services — desktop */}
+          <div className="card">
+            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4">Employee Services</h3>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { href: '/workshop/attendance', icon: CalendarClock, label: 'Attendance', desc: 'Check in / out', color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+                { href: '/workshop/my/leave', icon: Tag, label: 'Leave Requests', desc: 'Apply for leave', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                { href: '/workshop/my/suggestions', icon: MessageSquare, label: 'Suggestions', desc: 'Share an idea', color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+                { href: '/workshop/my/complaints', icon: Megaphone, label: 'Complaints', desc: 'Report an issue', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+              ].map(item => (
+                <Link key={item.href} href={item.href}
+                  className="flex items-center gap-3 rounded-xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] p-4 transition-all hover:border-gray-200 dark:hover:border-white/[0.1] hover:bg-gray-100 dark:hover:bg-white/[0.04]">
+                  <div className={`h-10 w-10 shrink-0 rounded-xl flex items-center justify-center ${item.bg}`}>
+                    <item.icon className={`h-5 w-5 ${item.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">{item.label}</p>
+                    <p className="text-xs text-gray-400 dark:text-white/30">{item.desc}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>

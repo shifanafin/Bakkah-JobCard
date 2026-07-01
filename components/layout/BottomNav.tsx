@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
-import { LayoutDashboard, ClipboardList, Plus, Briefcase, Users, MoreHorizontal } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Plus, Users, MoreHorizontal, CalendarClock, Briefcase } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 type Item = { href: string; icon: React.ElementType; label: string; exact?: boolean; fab?: boolean; matchPrefix?: string }
@@ -15,8 +15,9 @@ export default function BottomNav() {
 
   const techItems: Item[] = [
     { href: '/workshop/dashboard', icon: LayoutDashboard, label: 'Home', exact: true },
+    { href: '/workshop/attendance', icon: CalendarClock, label: 'Attendance', matchPrefix: '/workshop/attendance' },
     { href: '/workshop/my-jobs', icon: Briefcase, label: 'My Jobs', matchPrefix: '/workshop/my-jobs' },
-    { href: '/workshop/settings', icon: MoreHorizontal, label: 'More', exact: true },
+    { href: '/workshop/settings', icon: MoreHorizontal, label: 'Settings', exact: true },
   ]
 
   const staffItems: Item[] = [
@@ -32,7 +33,6 @@ export default function BottomNav() {
   function isActive(item: Item) {
     if (item.exact) return path === item.href
     if (item.matchPrefix) {
-      // Job cards: active for /workshop/job-cards/* EXCEPT /new (which has its own tab)
       if (item.matchPrefix === '/workshop/job-cards') {
         return path.startsWith('/workshop/job-cards') && path !== '/workshop/job-cards/new'
       }

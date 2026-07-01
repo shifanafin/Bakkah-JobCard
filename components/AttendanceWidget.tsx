@@ -91,8 +91,8 @@ export default function AttendanceWidget() {
 
   // All hooks must be called before any early return
   useEffect(() => {
-    // Only run for technicians and supervisors
-    if (!userId || !role || !['technician', 'supervisor'].includes(role)) return
+    // Only run for non-admin roles
+    if (!userId || !role || !['technician', 'supervisor', 'receptionist'].includes(role)) return
     const today = new Date().toISOString().split('T')[0]
     storageKey.current = `att_widget_${userId}_${today}`
 
@@ -114,8 +114,8 @@ export default function AttendanceWidget() {
       .catch(() => {})
   }, [userId, role])
 
-  // Only render for technicians and supervisors — AFTER all hooks
-  if (!role || !['technician', 'supervisor'].includes(role)) return null
+  // Only render for non-admin roles — AFTER all hooks
+  if (!role || !['technician', 'supervisor', 'receptionist'].includes(role)) return null
 
   const isCheckedIn  = !!record && !record.checkout_at
   const isCheckedOut = !!record && !!record.checkout_at

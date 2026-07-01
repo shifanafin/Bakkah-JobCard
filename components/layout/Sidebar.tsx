@@ -119,12 +119,12 @@ function SidebarContent({
 
   if (role === "technician") {
     workshopNav.push(
-      {
-        href: "/workshop/dashboard",
-        icon: LayoutDashboard,
-        label: nav.dashboard,
-      },
+      { href: "/workshop/dashboard", icon: LayoutDashboard, label: nav.dashboard },
       { href: "/workshop/my-jobs", icon: Briefcase, label: nav.myJobs },
+      { href: "/workshop/attendance", icon: Clock, label: "Attendance" },
+      { href: "/workshop/my/leave", icon: Tag, label: "Leave Requests" },
+      { href: "/workshop/my/suggestions", icon: MessageSquare, label: "Suggestions" },
+      { href: "/workshop/my/complaints", icon: Megaphone, label: "Complaints" },
     );
   } else if (role === "receptionist") {
     workshopNav.push(

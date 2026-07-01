@@ -273,6 +273,7 @@ export default function NewJobCardPage() {
   // Photos
   const [photos, setPhotos] = useState<PendingPhoto[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
   // Signatures
@@ -766,7 +767,7 @@ export default function NewJobCardPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="New Job Card" subtitle="Vehicle check-in wizard" />
 
-      <div className="mx-w-full p-4 lg:p-6">
+      <div className="mx-w-full p-4 pb-28 lg:p-6 lg:pb-6">
         {/* Back */}
         <div className="mb-5">
           <Link
@@ -1408,17 +1409,36 @@ export default function NewJobCardPage() {
               </span>
             </div>
 
-            {/* Drop zone */}
+            {/* Mobile: Camera + Gallery buttons */}
+            <div className="sm:hidden grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                className="flex flex-col items-center gap-2 rounded-xl border-2 border-brand/30 bg-brand/5 p-5 active:bg-brand/10 transition-colors"
+              >
+                <Camera className="h-7 w-7 text-brand" />
+                <span className="text-sm font-semibold text-brand">Take Photo</span>
+                <span className="text-xs text-gray-400 dark:text-white/30">Use camera</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex flex-col items-center gap-2 rounded-xl border-2 border-gray-200 dark:border-white/10 p-5 active:bg-gray-50 dark:active:bg-white/[0.03] transition-colors"
+              >
+                <Upload className="h-7 w-7 text-gray-400 dark:text-white/30" />
+                <span className="text-sm font-semibold text-gray-600 dark:text-white/60">Gallery</span>
+                <span className="text-xs text-gray-400 dark:text-white/30">From library</span>
+              </button>
+            </div>
+
+            {/* Desktop: Drop zone */}
             <div
               onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={onDrop}
               className={cn(
-                "flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 cursor-pointer transition-colors",
+                "hidden sm:flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 cursor-pointer transition-colors",
                 dragging
                   ? "border-brand bg-brand/5"
                   : "border-gray-200 dark:border-white/10 hover:border-brand/40 hover:bg-brand/5",
@@ -1434,6 +1454,17 @@ export default function NewJobCardPage() {
                 </p>
               </div>
             </div>
+
+            {/* Camera input (mobile, direct capture) */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => addFiles(e.target.files)}
+            />
+            {/* Gallery / file input */}
             <input
               ref={fileInputRef}
               type="file"
