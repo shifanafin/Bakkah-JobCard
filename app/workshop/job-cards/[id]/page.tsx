@@ -6,9 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import Header from '@/components/layout/Header'
 import StatusStepper from '@/components/job-card/StatusStepper'
-import QuotationSection from '@/components/job-card/QuotationSection'
-import ProformaSection from '@/components/job-card/ProformaSection'
-import TaxInvoiceSection from '@/components/job-card/TaxInvoiceSection'
+import DocumentsSummaryCard from '@/components/job-card/DocumentsSummaryCard'
 import PrintableJobCard from '@/components/job-card/PrintableJobCard'
 import PhotoUpload from '@/components/job-card/PhotoUpload'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
@@ -64,7 +62,6 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   type HistoryEntry = { id: string; old_status: string | null; new_status: string; changed_by: string | null; notes: string | null; created_at: string }
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [notifying, setNotifying] = useState(false)
   const isDelivered = job?.status === 'delivered'
 
   function handlePrint() {
@@ -128,21 +125,6 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
       XLSX.utils.book_append_sheet(wb, ws3, 'Parts')
     }
     XLSX.writeFile(wb, `JobCard_${job.job_number}.xlsx`)
-  }
-
-  async function handleNotifyEmail() {
-    if (!job) return
-    setNotifying(true)
-    try {
-      const res = await fetch(`/api/job-cards/${id}/notify`, { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed to send email')
-      toast.success('Email sent to customer')
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to send email')
-    } finally {
-      setNotifying(false)
-    }
   }
 
   async function handleDelete() {
@@ -425,39 +407,11 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
           </div>
         )}
 
-        {/* Quotation */}
-        <QuotationSection
+        {/* Documents — Quotation / Proforma / Tax Invoice now live on their own pages */}
+        <DocumentsSummaryCard
           jobId={job.id}
-          jobNumber={job.job_number}
-          customerPhone={job.customer?.phone}
-          customerName={job.customer?.name}
-          customerEmail={job.customer?.email}
-          vehiclePlate={job.vehicle?.plate_number}
-          canApprove={canAssign}
-          onEmailNotify={handleNotifyEmail}
-          onJobUpdate={load}
-          readOnly={isDelivered}
-        />
-
-        {/* Proforma Invoice — always rendered; section hides itself when no proforma exists */}
-        <ProformaSection
-          jobId={job.id}
-          jobNumber={job.job_number}
-          customerPhone={job.customer?.phone}
-          customerName={job.customer?.name}
-          vehiclePlate={job.vehicle?.plate_number}
-          readOnly={isDelivered}
-        />
-
-        {/* Tax Invoice — always rendered; canCreate allows admin/supervisor to create manually */}
-        <TaxInvoiceSection
-          jobId={job.id}
-          jobNumber={job.job_number}
-          customerPhone={job.customer?.phone}
-          customerName={job.customer?.name}
-          vehiclePlate={job.vehicle?.plate_number}
-          canCreate={canAssign}
-          onJobUpdate={load}
+          canCreateProforma={canAssign}
+          canCreateTax={canAssign}
           readOnly={isDelivered}
         />
 

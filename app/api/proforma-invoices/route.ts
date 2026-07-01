@@ -41,6 +41,11 @@ export async function POST(req: NextRequest) {
 // Shared helper — also used by job-cards approve route
 export async function createProformaForJob(jobCardId: string, quotationId: string | null) {
   const sb = createServiceClient()
+
+  // Don't create a duplicate — return the existing proforma for this job if one exists
+  const { data: existing } = await sb.from('proforma_invoices').select('*').eq('job_card_id', jobCardId).order('created_at', { ascending: false }).limit(1).maybeSingle()
+  if (existing) return { proforma: existing }
+
   let items: Array<{ id: string; item_type: string; description: string; quantity: number; unit_price: number; total_price: number; sort_order: number }> = []
   let subtotal = 0, discount = 0, vat_amount = 0, total = 0
   let fromQuotationId: string | null = quotationId

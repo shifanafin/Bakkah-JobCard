@@ -26,9 +26,15 @@ export async function GET() {
       .limit(200),
   ])
 
+  const proformaJobIds = new Set((pfRes.data ?? []).map(p => p.job_card_id))
+  const taxInvoiceJobIds = new Set((tiRes.data ?? []).map(t => t.job_card_id))
+
+  const quotations = (qtRes.data ?? []).map(q => ({ ...q, has_proforma: proformaJobIds.has(q.job_card_id) }))
+  const proformas = (pfRes.data ?? []).map(p => ({ ...p, has_tax_invoice: taxInvoiceJobIds.has(p.job_card_id) }))
+
   return NextResponse.json({
-    quotations: qtRes.data ?? [],
-    proformas: pfRes.data ?? [],
+    quotations,
+    proformas,
     taxInvoices: tiRes.data ?? [],
   })
 }
