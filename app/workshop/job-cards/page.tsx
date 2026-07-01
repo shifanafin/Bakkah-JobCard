@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
 import { useSession } from '@/lib/auth-client'
@@ -29,6 +29,120 @@ function SourceBadge({ source }: { source?: JobSource | null }) {
     <span className={cn('inline-block rounded border px-1.5 py-px text-[9px] font-bold uppercase tracking-wider', s.className)}>
       {s.label}
     </span>
+  )
+}
+
+const STATUS_ACCENT: Record<string, string> = {
+  waiting_for_approval: 'border-l-amber-400',
+  received: 'border-l-blue-400',
+  in_progress: 'border-l-brand',
+  qc_check: 'border-l-purple-400',
+  ready: 'border-l-emerald-400',
+  delivered: 'border-l-gray-300 dark:border-l-white/[0.15]',
+  cancelled: 'border-l-red-400',
+  pending: 'border-l-orange-400',
+  inspection: 'border-l-yellow-400',
+}
+
+function SwipeToDelete({
+  children,
+  onDelete,
+  disabled,
+}: {
+  children: React.ReactNode
+  onDelete: () => void
+  disabled?: boolean
+}) {
+  const [tx, setTx] = useState(0)
+  const [animating, setAnimating] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const startX = useRef(0)
+  const startY = useRef(0)
+  const startTx = useRef(0)
+  const isHoriz = useRef<boolean | null>(null)
+  const txRef = useRef(0)
+  const REVEAL = 80
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el || disabled) return
+
+    const onTouchStart = (e: TouchEvent) => {
+      startX.current = e.touches[0].clientX
+      startY.current = e.touches[0].clientY
+      startTx.current = txRef.current
+      isHoriz.current = null
+      setAnimating(false)
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+      const dx = e.touches[0].clientX - startX.current
+      const dy = Math.abs(e.touches[0].clientY - startY.current)
+      if (isHoriz.current === null) {
+        isHoriz.current = Math.abs(dx) > dy
+      }
+      if (!isHoriz.current) return
+      e.preventDefault()
+      const next = Math.max(Math.min(startTx.current + dx, 0), -REVEAL)
+      txRef.current = next
+      setTx(next)
+    }
+
+    const onTouchEnd = () => {
+      if (!isHoriz.current) return
+      setAnimating(true)
+      const next = txRef.current < -REVEAL / 2 ? -REVEAL : 0
+      txRef.current = next
+      setTx(next)
+    }
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true })
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    el.addEventListener('touchend', onTouchEnd, { passive: true })
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart)
+      el.removeEventListener('touchmove', onTouchMove)
+      el.removeEventListener('touchend', onTouchEnd)
+    }
+  }, [disabled])
+
+  function close() {
+    setAnimating(true)
+    txRef.current = 0
+    setTx(0)
+  }
+
+  const isOpen = tx < -REVEAL / 2
+
+  return (
+    <div ref={ref} className="relative overflow-hidden rounded-2xl">
+      {/* Red delete zone revealed on left-swipe */}
+      <div
+        className="absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-1 bg-red-500"
+        style={{ width: REVEAL }}
+      >
+        <button
+          onClick={() => { close(); onDelete() }}
+          className="flex h-full w-full flex-col items-center justify-center gap-1"
+          aria-label="Delete"
+        >
+          <Trash2 className="h-5 w-5 text-white" />
+          <span className="text-[9px] font-bold uppercase tracking-wide text-white/90">Delete</span>
+        </button>
+      </div>
+
+      {/* Sliding card content */}
+      <div
+        style={{
+          transform: `translateX(${tx}px)`,
+          transition: animating ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none',
+          willChange: 'transform',
+        }}
+        onClick={isOpen ? (e) => { e.preventDefault(); e.stopPropagation(); close() } : undefined}
+      >
+        {children}
+      </div>
+    </div>
   )
 }
 
@@ -253,10 +367,10 @@ export default function JobCardsPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Bulk delete — visible when items are selected */}
+            {/* Bulk delete — desktop only (mobile uses swipe-to-delete) */}
             {canDelete && someSelected && (
               <button onClick={handleBulkDelete} disabled={deleting}
-                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
+                className="hidden md:flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete ({selectedIds.size})
               </button>
@@ -524,91 +638,74 @@ export default function JobCardsPage() {
                   </table>
                 </div>
 
-                {/* Mobile card list — native iOS style */}
+                {/* Mobile card list — swipe-to-delete, tap to open */}
                 <div className="md:hidden space-y-2">
                   {paginated.map(job => {
                     const isSelected = selectedIds.has(job.id)
                     const isDelivered = job.status === 'delivered'
-                    const STATUS_ACCENT: Record<string, string> = {
-                      waiting_for_approval: 'border-l-amber-400',
-                      received: 'border-l-blue-400',
-                      in_progress: 'border-l-brand',
-                      qc_check: 'border-l-purple-400',
-                      ready: 'border-l-emerald-400',
-                      delivered: 'border-l-gray-300 dark:border-l-white/[0.15]',
-                      cancelled: 'border-l-red-400',
-                      pending: 'border-l-orange-400',
-                      inspection: 'border-l-yellow-400',
-                    }
+                    const canSwipeDelete = canDelete && !isDelivered
+
                     return (
-                      <div key={job.id} className={cn(
-                        'bg-white dark:bg-surface-800 rounded-2xl border border-l-4 border-gray-100 dark:border-white/[0.06] shadow-sm overflow-hidden',
-                        STATUS_ACCENT[job.status] ?? 'border-l-gray-200',
-                        isSelected && 'ring-2 ring-brand ring-inset'
-                      )}>
-                        <div className="flex items-start gap-3 px-4 py-3.5">
-                          {/* Selection */}
-                          {canDelete && !isDelivered && (
-                            <button
-                              onClick={(e) => { e.preventDefault(); toggleSelect(job.id) }}
-                              className="mt-1 shrink-0 text-gray-300 dark:text-white/20 active:scale-90 transition-transform">
-                              {isSelected ? <CheckSquare className="h-5 w-5 text-brand" /> : <Square className="h-5 w-5" />}
-                            </button>
-                          )}
+                      <SwipeToDelete
+                        key={job.id}
+                        onDelete={() => handleDeleteSingle(job.id)}
+                        disabled={!canSwipeDelete}
+                      >
+                        <div className={cn(
+                          'bg-white dark:bg-surface-800 border border-l-4 border-gray-100 dark:border-white/[0.06] shadow-sm',
+                          STATUS_ACCENT[job.status] ?? 'border-l-gray-200',
+                          isSelected && 'ring-2 ring-brand ring-inset'
+                        )}>
+                          <div className="flex items-start gap-3 px-4 py-3.5">
+                            {/* Bulk-select — desktop only; mobile uses swipe-to-delete */}
 
-                          <Link href={`/workshop/job-cards/${job.id}`} className="flex-1 min-w-0">
-                            {/* Job # + status */}
-                            <div className="flex items-center justify-between gap-2 mb-1.5">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="font-mono text-[11px] font-bold text-brand shrink-0">{job.job_number}</span>
-                                <SourceBadge source={job.source} />
+                            {/* Tap → detail page */}
+                            <Link href={`/workshop/job-cards/${job.id}`} className="flex-1 min-w-0">
+                              {/* Job # + status */}
+                              <div className="flex items-center justify-between gap-2 mb-1.5">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="font-mono text-[11px] font-bold text-brand shrink-0">{job.job_number}</span>
+                                  <SourceBadge source={job.source} />
+                                </div>
+                                <span className={cn('badge text-[10px] leading-none shrink-0', JOB_STATUS_COLOR[job.status])}>
+                                  {JOB_STATUS_LABEL[job.status]}
+                                </span>
                               </div>
-                              <span className={cn('badge text-[10px] leading-none shrink-0', JOB_STATUS_COLOR[job.status])}>
-                                {JOB_STATUS_LABEL[job.status]}
-                              </span>
-                            </div>
 
-                            {/* Plate — hero */}
-                            <p className="text-xl font-black tracking-widest text-gray-900 dark:text-white leading-tight">
-                              {job.vehicle?.plate_number}
-                            </p>
+                              {/* Plate — hero */}
+                              <p className="text-xl font-black tracking-widest text-gray-900 dark:text-white leading-tight">
+                                {job.vehicle?.plate_number}
+                              </p>
 
-                            {/* Vehicle */}
-                            <p className="text-[13px] text-gray-400 dark:text-white/40 mt-0.5">
-                              {[job.vehicle?.make, job.vehicle?.model, job.vehicle?.year].filter(Boolean).join(' ')}
-                            </p>
+                              {/* Vehicle */}
+                              <p className="text-[13px] text-gray-400 dark:text-white/40 mt-0.5">
+                                {[job.vehicle?.make, job.vehicle?.model, job.vehicle?.year].filter(Boolean).join(' ')}
+                              </p>
 
-                            {/* Customer */}
-                            <p className="text-[13px] font-medium text-gray-700 dark:text-white/60 mt-0.5">
-                              {job.customer?.name}
-                              {job.customer?.phone && (
-                                <span className="font-normal text-gray-400 dark:text-white/30"> · {job.customer.phone}</span>
-                              )}
-                            </p>
+                              {/* Customer */}
+                              <p className="text-[13px] font-medium text-gray-700 dark:text-white/60 mt-0.5">
+                                {job.customer?.name}
+                                {job.customer?.phone && (
+                                  <span className="font-normal text-gray-400 dark:text-white/30"> · {job.customer.phone}</span>
+                                )}
+                              </p>
 
-                            {/* Date + amount */}
-                            <div className="flex items-end justify-between mt-2.5">
-                              <p className="text-[11px] text-gray-400 dark:text-white/30">{formatDate(job.date_in)}</p>
-                              <div className="text-right">
-                                <p className="text-base font-bold text-gray-900 dark:text-white leading-tight">
-                                  {formatAED(job.total)}
-                                </p>
-                                <p className={cn('text-[10px] capitalize font-semibold', PAYMENT_STATUS_COLOR[job.payment_status])}>
-                                  {job.payment_status}
-                                </p>
+                              {/* Date + amount */}
+                              <div className="flex items-end justify-between mt-2.5">
+                                <p className="text-[11px] text-gray-400 dark:text-white/30">{formatDate(job.date_in)}</p>
+                                <div className="text-right">
+                                  <p className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+                                    {formatAED(job.total)}
+                                  </p>
+                                  <p className={cn('text-[10px] capitalize font-semibold', PAYMENT_STATUS_COLOR[job.payment_status])}>
+                                    {job.payment_status}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                          </Link>
-
-                          {/* Quick edit */}
-                          {!isDelivered && (
-                            <Link href={`/workshop/job-cards/${job.id}/edit`}
-                              className="mt-1 shrink-0 flex h-8 w-8 items-center justify-center rounded-xl border border-gray-100 dark:border-white/[0.06] text-gray-400 dark:text-white/30 active:bg-gray-100 dark:active:bg-white/[0.06] transition-colors">
-                              <Pencil className="h-3.5 w-3.5" />
                             </Link>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      </SwipeToDelete>
                     )
                   })}
                 </div>
