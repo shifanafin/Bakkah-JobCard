@@ -40,17 +40,18 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/icons/icon.svg", type: "image/svg+xml" },
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/icon-192.png",
-    apple: "/apple-touch-icon.png",
+    shortcut: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Bakkah Auto Care",
+    title: "Bakkah",
+    startupImage: "/icons/apple-touch-icon.png",
   },
   verification: {
     google: "5W4RoeWT2P55uMsWOXMSx1l-HXvpYt67B_4O7sBUki0",
@@ -75,6 +76,9 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

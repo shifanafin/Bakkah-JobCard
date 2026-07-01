@@ -17,41 +17,14 @@ import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
-function buildWhatsAppHref(job: JobCard): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')
-  const plate = job.vehicle?.plate_number ?? ''
-  const trackUrl = `${base}/track${plate ? `?plate=${encodeURIComponent(plate)}` : ''}`
-  const name = job.customer?.name?.split(' ')[0] ?? 'there'
-  const vehicle = [job.vehicle?.make, job.vehicle?.model].filter(Boolean).join(' ')
-  const rawPhone = job.customer?.phone ?? ''
-  const phone = rawPhone.replace(/(\+?\d{3})(\d{2})(\d{3})(\d{4})/, '$1 $2 $3 $4')
-  const msg = [
-    `Hi ${name}! 👋`,
-    ``,
-    `📱 Mobile: ${phone}`,
-    ...(plate ? [`🚗 Vehicle: ${vehicle ? `${vehicle} (${plate})` : plate}`] : []),
-    ``,
-    `Your vehicle is currently in our care at *Bakkah Premium Auto Care*.`,
-    ``,
-    `👇 *Tap the link below to see your vehicle status:*`,
-    trackUrl,
-    ``,
-    `_(Enter your mobile number to verify — no password needed)_`,
-    ``,
-    `If you have a quotation waiting, you can also approve or decline it from the same link.`,
-    ``,
-    `Questions? Call or WhatsApp: 📞 +971 54 588 6999`,
-  ].join('\n')
-  return `https://wa.me/${rawPhone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`
-}
 
 export default function JobCardDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
   const { data: session } = useSession()
   const role = (session?.user as { role?: string })?.role ?? ''
-  const userName = (session?.user as { name?: string })?.name ?? ''
   const canAssign = role === 'admin' || role === 'supervisor'
+  const canDelete = role === 'admin' || role === 'supervisor'
 
   const [job, setJob] = useState<JobCard | null>(null)
   const [loading, setLoading] = useState(true)
@@ -196,7 +169,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title={job.job_number} subtitle={`${job.vehicle?.plate_number} · ${job.vehicle?.make} ${job.vehicle?.model}`} />
 
-      <div className="p-4 space-y-5 min-w-full lg:p-6">
+      <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
         {/* Breadcrumb + actions */}
         <div className="flex items-center justify-between">
           <Link href="/workshop/job-cards" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70">
@@ -219,7 +192,7 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
               </Link>
             )}
             {/* Delete — admin only, only for inspection/cancelled jobs */}
-            {(role === 'admin') && job && ['inspection', 'cancelled'].includes(job.status) && (
+            {canDelete && job && ['inspection', 'cancelled', 'pending', 'waiting_for_approval'].includes(job.status) && (
               <button onClick={handleDelete}
                 className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
                 <Trash2 className="h-3.5 w-3.5" /> Delete

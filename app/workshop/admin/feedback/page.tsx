@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/lib/auth-client'
@@ -73,7 +73,7 @@ export default function FeedbackPage() {
         body: JSON.stringify({ id, approved }),
       })
       if (!res.ok) throw new Error()
-      toast.success(approved ? 'Feedback approved — now visible on website' : 'Feedback rejected')
+      toast.success(approved ? 'Feedback approved â€” now visible on website' : 'Feedback rejected')
       setFeedback(prev => prev.map(f => f.id === id ? { ...f, approved } : f))
     } catch {
       toast.error('Failed to update feedback')
@@ -115,13 +115,13 @@ export default function FeedbackPage() {
   const approvedCount = feedback.filter(f => f.approved).length
   const avgRating     = feedback.length > 0
     ? (feedback.reduce((s, f) => s + f.rating, 0) / feedback.length).toFixed(1)
-    : '—'
+    : 'â€”'
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Customer Feedback" subtitle="Review and publish customer feedback" />
 
-      <div className="p-4 space-y-5 min-w-full lg:p-6">
+      <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
 
         {/* Summary */}
         <div className="grid grid-cols-3 gap-4">
@@ -242,3 +242,4 @@ export default function FeedbackPage() {
     </div>
   )
 }
+

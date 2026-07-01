@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/lib/auth-client'
@@ -93,7 +93,7 @@ export default function TechniciansPage() {
     if (role === 'admin' || role === 'supervisor') load()
   }, [role, load])
 
-  // ── Edit ────────────────────────────────────────────────────────────────────
+  // â”€â”€ Edit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function openEdit(tech: TechRow) {
     setEditTarget(tech)
     setEditPhone(tech.phone ?? '')
@@ -122,7 +122,7 @@ export default function TechniciansPage() {
     }
   }
 
-  // ── Create ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Create â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     setCreating(true)
@@ -145,7 +145,7 @@ export default function TechniciansPage() {
     }
   }
 
-  // ── Delete ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function handleDelete() {
     if (!deleteTarget) return
     setDeleting(true)
@@ -167,7 +167,7 @@ export default function TechniciansPage() {
     }
   }
 
-  // ── Attendance overrides ─────────────────────────────────────────────────────
+  // â”€â”€ Attendance overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   async function handleCheckIn(tech: TechRow) {
     setAttLoading(tech.id)
     try {
@@ -222,7 +222,7 @@ export default function TechniciansPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Technicians" subtitle="Workshop technician roster" />
 
-      <div className="p-4 space-y-5 min-w-full lg:p-6">
+      <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
 
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500 dark:text-white/40">
@@ -250,7 +250,7 @@ export default function TechniciansPage() {
             </div>
             <p className="text-sm font-medium text-gray-500 dark:text-white/40">No technicians yet</p>
             <button onClick={() => setShowCreate(true)} className="mt-3 text-xs text-brand hover:underline">
-              Add First Technician →
+              Add First Technician â†’
             </button>
           </div>
         ) : (
@@ -326,7 +326,7 @@ export default function TechniciansPage() {
                           <div className="flex items-center gap-2">
                             {checkedOut ? (
                               <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-gray-500 dark:text-white/40">{fmtTime(att!.checkin_at)} — {fmtTime(att!.checkout_at!)}</span>
+                                <span className="text-xs text-gray-500 dark:text-white/40">{fmtTime(att!.checkin_at)} â€” {fmtTime(att!.checkout_at!)}</span>
                                 <span className="text-[10px] rounded-full px-1.5 py-0.5 bg-gray-100 dark:bg-white/[0.06] text-gray-400 dark:text-white/30 font-medium">Done</span>
                               </div>
                             ) : checkedIn ? (
@@ -420,7 +420,7 @@ export default function TechniciansPage() {
                     <div className="flex items-center justify-between gap-2">
                       <div className="text-xs">
                         {checkedOut ? (
-                          <span className="text-gray-500 dark:text-white/40">{fmtTime(att!.checkin_at)} — {fmtTime(att!.checkout_at!)}</span>
+                          <span className="text-gray-500 dark:text-white/40">{fmtTime(att!.checkin_at)} â€” {fmtTime(att!.checkout_at!)}</span>
                         ) : checkedIn ? (
                           <span className="flex items-center gap-1 text-emerald-500 font-medium">
                             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -473,7 +473,7 @@ export default function TechniciansPage() {
         </div>
       </div>
 
-      {/* ── Create Technician Modal ── */}
+      {/* â”€â”€ Create Technician Modal â”€â”€ */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-surface-800">
@@ -575,7 +575,7 @@ export default function TechniciansPage() {
         </div>
       )}
 
-      {/* ── Edit Modal ── */}
+      {/* â”€â”€ Edit Modal â”€â”€ */}
       {editTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl dark:bg-surface-800">
@@ -623,7 +623,7 @@ export default function TechniciansPage() {
         </div>
       )}
 
-      {/* ── Delete Confirm Modal ── */}
+      {/* â”€â”€ Delete Confirm Modal â”€â”€ */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl dark:bg-surface-800">
@@ -661,3 +661,4 @@ export default function TechniciansPage() {
     </div>
   )
 }
+

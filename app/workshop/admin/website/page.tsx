@@ -442,7 +442,7 @@ export default function WebsiteCMSPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Website CMS" subtitle="Manage homepage images & content" />
 
-      <div className="p-4 space-y-4 lg:p-6 min-w-full">
+      <div className="p-4 space-y-4 lg:p-6 w-full max-w-full">
         {/* Info banner */}
         <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 dark:border-blue-500/20 dark:bg-blue-500/10">
           <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
@@ -677,3 +677,4 @@ export default function WebsiteCMSPage() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/lib/auth-client'
@@ -74,7 +74,7 @@ export default function AttendancePage() {
     if (role === 'admin') load()
   }, [role, load])
 
-  // ── Attendance overrides ────────────────────────────────────────────────────
+  // â”€â”€ Attendance overrides â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const isToday = date === new Date().toISOString().split('T')[0]
 
   async function handleCheckIn(record: AttendanceRecord) {
@@ -128,7 +128,7 @@ export default function AttendancePage() {
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Attendance" subtitle="Check-in / check-out tracking" />
 
-      <div className="p-4 space-y-5 min-w-full lg:p-6">
+      <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
 
         {/* Controls */}
         <div className="flex flex-wrap items-center gap-3 justify-between">
@@ -221,10 +221,10 @@ export default function AttendancePage() {
                           ) : isIn ? (
                             <span className="text-xs text-emerald-400 font-medium">Still in</span>
                           ) : (
-                            <span className="text-xs text-gray-400 dark:text-white/25">—</span>
+                            <span className="text-xs text-gray-400 dark:text-white/25">â€”</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-600 dark:text-white/60 font-mono text-xs">{att ? hoursWorked(att.checkin_at, att.checkout_at) : '—'}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-white/60 font-mono text-xs">{att ? hoursWorked(att.checkin_at, att.checkout_at) : 'â€”'}</td>
                         <td className="px-4 py-3"><span className={cn('font-bold text-sm', r.jobs_closed_today > 0 ? 'text-emerald-500' : 'text-gray-400 dark:text-white/25')}>{r.jobs_closed_today}</span></td>
                         <td className="px-4 py-3"><span className={cn('font-bold text-sm', r.active_jobs > 0 ? 'text-brand' : 'text-gray-400 dark:text-white/25')}>{r.active_jobs}</span></td>
                         <td className="px-4 py-3">
@@ -344,3 +344,4 @@ export default function AttendancePage() {
     </div>
   )
 }
+
