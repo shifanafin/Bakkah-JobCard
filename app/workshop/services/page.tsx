@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import { Wrench, Plus, Edit2, Trash2, Check, X, Loader2, Search } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -29,6 +30,7 @@ export default function ServicesPage() {
   const [editForm, setEditForm] = useState(BLANK)
   const [savingEdit, setSavingEdit] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -218,7 +220,7 @@ export default function ServicesPage() {
                         title={s.active ? 'Disable' : 'Enable'}>
                         <Check className="h-3.5 w-3.5" />
                       </button>
-                      <button onClick={() => handleDelete(s.id)} disabled={deletingId === s.id}
+                      <button onClick={() => setConfirmDeleteId(s.id)} disabled={deletingId === s.id}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition dark:text-white/20 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                         title="Delete">
                         {deletingId === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
@@ -231,6 +233,18 @@ export default function ServicesPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete Service?"
+        message="Delete this service?"
+        detail="It will be removed from the catalogue. Existing job cards that reference it will not be affected."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deletingId !== null}
+        onConfirm={() => { if (confirmDeleteId) { handleDelete(confirmDeleteId); setConfirmDeleteId(null) } }}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }

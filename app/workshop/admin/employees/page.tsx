@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
-import { Users, Plus, Loader2, X, Check, RefreshCw, Key, ToggleLeft, ToggleRight, Copy } from 'lucide-react'
+import { Users, Plus, Loader2, X, Check, RefreshCw, Key, ToggleLeft, ToggleRight, Copy, Trash2 } from 'lucide-react'
 import Pagination from '@/components/ui/Pagination'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 const PAGE_SIZE = 15
 import { cn } from '@/lib/utils/cn'
@@ -59,6 +60,8 @@ export default function EmployeesPage() {
   const [saving, setSaving] = useState(false)
   const [successInfo, setSuccessInfo] = useState<{ username: string; password: string } | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [resetTarget, setResetTarget] = useState<Employee | null>(null)
   const [resetPwd, setResetPwd] = useState('')
   const [resetting, setResetting] = useState(false)
@@ -127,6 +130,26 @@ export default function EmployeesPage() {
       toast.error('Failed to update status')
     } finally {
       setTogglingId(null)
+    }
+  }
+
+  async function handleDelete(emp: Employee) {
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/admin/employees', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: emp.id }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      setEmployees(prev => prev.filter(e => e.id !== emp.id))
+      setDeleteTarget(null)
+      toast.success(`${emp.name} deleted`)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -258,6 +281,13 @@ export default function EmployeesPage() {
                           >
                             <Key className="h-3.5 w-3.5" />
                           </button>
+                          <button
+                            onClick={() => setDeleteTarget(emp)}
+                            title="Delete Employee"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors dark:border-white/[0.08] dark:text-white/30"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -302,6 +332,10 @@ export default function EmployeesPage() {
                       <button onClick={() => { setResetTarget(emp); setResetPwd(generatePassword()) }} title="Reset Password"
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
                         <Key className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => setDeleteTarget(emp)} title="Delete Employee"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
@@ -438,6 +472,18 @@ export default function EmployeesPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Employee?"
+        message={`Delete "${deleteTarget?.name}"?`}
+        detail="This will permanently remove the account and all associated data. This cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        onCancel={() => setDeleteTarget(null)}
+      />
 
       {/* Reset Password Modal */}
       {resetTarget && (

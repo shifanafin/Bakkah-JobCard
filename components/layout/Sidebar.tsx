@@ -164,17 +164,7 @@ function SidebarContent({
 
   if (role === "admin") {
     adminNav.push(
-      { href: "/workshop/admin/employees", icon: Users, label: nav.employees },
-      {
-        href: "/workshop/admin/attendance",
-        icon: Clock,
-        label: nav.attendance,
-      },
-      {
-        href: "/workshop/admin/feedback",
-        icon: MessageSquare,
-        label: nav.feedback,
-      },
+      { href: "/workshop/admin/hr", icon: Users, label: "People & HR" },
       {
         href: "/workshop/admin/announcements",
         icon: Megaphone,

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import { Tag, Plus, Edit2, Trash2, Check, X, Loader2, Search } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -25,6 +26,7 @@ export default function JobTypesPage() {
   const [editName, setEditName] = useState('')
   const [savingEdit, setSavingEdit] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -98,9 +100,9 @@ export default function JobTypesPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this job type?')) return
+  async function executeDelete(id: string) {
     setDeletingId(id)
+    setConfirmDeleteId(null)
     try {
       const res = await fetch(`/api/job-types/${id}`, { method: 'DELETE' })
       if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
@@ -233,7 +235,7 @@ export default function JobTypesPage() {
                         <Check className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDelete(t.id)}
+                        onClick={() => setConfirmDeleteId(t.id)}
                         disabled={deletingId === t.id}
                         className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition dark:text-white/20 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                         title="Delete">
@@ -249,6 +251,17 @@ export default function JobTypesPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete Job Type?"
+        message="This job type will be permanently removed."
+        detail="Job cards using this type will not be affected."
+        confirmLabel="Delete"
+        loading={deletingId === confirmDeleteId}
+        onConfirm={() => confirmDeleteId && executeDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }

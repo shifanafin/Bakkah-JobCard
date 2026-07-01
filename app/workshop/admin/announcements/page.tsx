@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { createClient } from '@/lib/supabase/client'
 import { Megaphone, Plus, Edit2, Trash2, Loader2, X, Check, ToggleLeft, ToggleRight } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -53,6 +54,7 @@ export default function AnnouncementsPage() {
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isPending && session && role !== 'admin') {
@@ -129,14 +131,14 @@ export default function AnnouncementsPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this announcement?')) return
+  async function executeDelete(id: string) {
     setDeletingId(id)
+    setConfirmDeleteId(null)
     try {
       const sb = createClient()
       const { error } = await sb.from('announcements').delete().eq('id', id)
       if (error) throw error
-      toast.success('Deleted')
+      toast.success('Announcement deleted')
       setAnnouncements(prev => prev.filter(a => a.id !== id))
     } catch {
       toast.error('Failed to delete')
@@ -253,7 +255,7 @@ export default function AnnouncementsPage() {
                       <Edit2 className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      onClick={() => setConfirmDeleteId(item.id)}
                       disabled={deletingId === item.id}
                       className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors disabled:opacity-50 dark:border-white/[0.08] dark:text-white/30"
                     >
@@ -266,6 +268,16 @@ export default function AnnouncementsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete Announcement?"
+        message="This announcement will be permanently removed."
+        confirmLabel="Delete"
+        loading={deletingId === confirmDeleteId}
+        onConfirm={() => confirmDeleteId && executeDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
 
       {/* Add/Edit Modal */}
       {showModal && (

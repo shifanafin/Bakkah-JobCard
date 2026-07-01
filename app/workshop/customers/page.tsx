@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
-import { Search, Plus, User, Phone, Building2, Car, ClipboardList, ChevronRight, Loader2, Star } from 'lucide-react'
+import { Search, Plus, User, Phone, Building2, ChevronRight, Loader2, Star, Trash2, Edit2 } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
@@ -26,6 +27,8 @@ export default function CustomersPage() {
   const [showNew, setShowNew] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ name: '', phone: '', email: '', company_name: '', is_fleet: false, notes: '' })
+  const [deleteTarget, setDeleteTarget] = useState<Customer | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -64,6 +67,20 @@ export default function CustomersPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to create customer')
     } finally { setSaving(false) }
+  }
+
+  async function handleDelete(customer: Customer) {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/customers/${customer.id}`, { method: 'DELETE' })
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error) }
+      toast.success(`${customer.name} deleted`)
+      setCustomers(cs => cs.filter(c => c.id !== customer.id))
+      setDeleteTarget(null)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+    } finally {
+      setDeleting(false) }
   }
 
   const inputCls = 'input-base w-full'
@@ -151,8 +168,7 @@ export default function CustomersPage() {
         ) : (
           <div className="space-y-2">
             {filtered.map(c => (
-              <Link key={c.id} href={`/workshop/customers/${c.id}`}
-                className="card card-hover flex items-center gap-4 !p-4 group">
+              <div key={c.id} className="card flex items-center gap-4 !p-4 group">
                 {/* Avatar */}
                 <div className={cn(
                   'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold',
@@ -163,8 +179,8 @@ export default function CustomersPage() {
                   {c.is_fleet ? <Star className="h-5 w-5" /> : c.name.charAt(0).toUpperCase()}
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
+                {/* Info — tappable area navigates to detail */}
+                <Link href={`/workshop/customers/${c.id}`} className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{c.name}</span>
                     {c.is_fleet && (
@@ -184,14 +200,45 @@ export default function CustomersPage() {
                       Since {formatDate(c.created_at)}
                     </span>
                   </div>
-                </div>
+                </Link>
 
-                <ChevronRight className="h-4 w-4 text-gray-300 dark:text-white/20 group-hover:text-gray-500 dark:group-hover:text-white/50 transition-colors shrink-0" />
-              </Link>
+                {/* Actions */}
+                <div className="flex items-center gap-1 shrink-0">
+                  <Link
+                    href={`/workshop/customers/${c.id}`}
+                    className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
+                    title="View / Edit"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Link>
+                  <button
+                    onClick={() => setDeleteTarget(c)}
+                    className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  <Link href={`/workshop/customers/${c.id}`} className="hidden sm:block">
+                    <ChevronRight className="h-4 w-4 text-gray-300 dark:text-white/20 group-hover:text-gray-500 dark:group-hover:text-white/50 transition-colors" />
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Customer?"
+        message={`Delete "${deleteTarget?.name}"?`}
+        detail="This will permanently remove the customer and cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={() => deleteTarget && handleDelete(deleteTarget)}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }
