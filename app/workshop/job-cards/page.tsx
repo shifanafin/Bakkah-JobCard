@@ -391,16 +391,16 @@ export default function JobCardsPage() {
         )}
 
         {/* Stats row */}
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4">
           {[
             { label: 'Total Jobs', value: jobs.length, color: 'text-gray-900 dark:text-white' },
             { label: 'In Progress', value: counts['in_progress'] || 0, color: 'text-brand' },
             { label: 'Ready', value: counts['ready'] || 0, color: 'text-emerald-500 dark:text-emerald-400' },
             { label: 'Paid Revenue', value: formatAED(revenue), color: 'text-brand' },
           ].map(s => (
-            <div key={s.label} className="card text-center py-3">
-              <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-gray-400 mt-0.5 dark:text-white/40">{s.label}</p>
+            <div key={s.label} className="card py-4 text-center">
+              <p className={cn('text-2xl font-bold tracking-tight', s.color)}>{s.value}</p>
+              <p className="mt-1 text-[11px] font-medium text-gray-400 dark:text-white/40">{s.label}</p>
             </div>
           ))}
         </div>
@@ -524,43 +524,90 @@ export default function JobCardsPage() {
                   </table>
                 </div>
 
-                {/* Mobile card list */}
-                <div className="md:hidden divide-y divide-gray-100 dark:divide-white/[0.04]">
+                {/* Mobile card list — native iOS style */}
+                <div className="md:hidden space-y-2">
                   {paginated.map(job => {
                     const isSelected = selectedIds.has(job.id)
                     const isDelivered = job.status === 'delivered'
+                    const STATUS_ACCENT: Record<string, string> = {
+                      waiting_for_approval: 'border-l-amber-400',
+                      received: 'border-l-blue-400',
+                      in_progress: 'border-l-brand',
+                      qc_check: 'border-l-purple-400',
+                      ready: 'border-l-emerald-400',
+                      delivered: 'border-l-gray-300 dark:border-l-white/[0.15]',
+                      cancelled: 'border-l-red-400',
+                      pending: 'border-l-orange-400',
+                      inspection: 'border-l-yellow-400',
+                    }
                     return (
-                      <div key={job.id}
-                        className={cn('flex items-start gap-3 p-4 transition-colors', isSelected && 'bg-brand/5 dark:bg-brand/10')}>
-                        {canDelete && !isDelivered && (
-                          <button onClick={() => toggleSelect(job.id)}
-                            className="mt-0.5 shrink-0 text-gray-300 hover:text-brand dark:text-white/20 dark:hover:text-brand transition-colors">
-                            {isSelected ? <CheckSquare className="h-4.5 w-4.5 text-brand" /> : <Square className="h-4.5 w-4.5" />}
-                          </button>
-                        )}
-                        <Link href={`/workshop/job-cards/${job.id}`} className="flex flex-1 items-start gap-3 min-w-0">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 dark:border-white/[0.08] dark:bg-white/[0.04]">
-                            <Car className="h-5 w-5 text-gray-400 dark:text-white/40" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-mono text-xs font-semibold text-brand">{job.job_number}</span>
+                      <div key={job.id} className={cn(
+                        'bg-white dark:bg-surface-800 rounded-2xl border border-l-4 border-gray-100 dark:border-white/[0.06] shadow-sm overflow-hidden',
+                        STATUS_ACCENT[job.status] ?? 'border-l-gray-200',
+                        isSelected && 'ring-2 ring-brand ring-inset'
+                      )}>
+                        <div className="flex items-start gap-3 px-4 py-3.5">
+                          {/* Selection */}
+                          {canDelete && !isDelivered && (
+                            <button
+                              onClick={(e) => { e.preventDefault(); toggleSelect(job.id) }}
+                              className="mt-1 shrink-0 text-gray-300 dark:text-white/20 active:scale-90 transition-transform">
+                              {isSelected ? <CheckSquare className="h-5 w-5 text-brand" /> : <Square className="h-5 w-5" />}
+                            </button>
+                          )}
+
+                          <Link href={`/workshop/job-cards/${job.id}`} className="flex-1 min-w-0">
+                            {/* Job # + status */}
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="font-mono text-[11px] font-bold text-brand shrink-0">{job.job_number}</span>
                                 <SourceBadge source={job.source} />
                               </div>
-                              <span className={cn('badge text-[10px]', JOB_STATUS_COLOR[job.status])}>{JOB_STATUS_LABEL[job.status]}</span>
+                              <span className={cn('badge text-[10px] leading-none shrink-0', JOB_STATUS_COLOR[job.status])}>
+                                {JOB_STATUS_LABEL[job.status]}
+                              </span>
                             </div>
-                            <p className="text-sm font-bold text-gray-900 tracking-wider dark:text-white">{job.vehicle?.plate_number}</p>
-                            <p className="text-xs text-gray-500 dark:text-white/50">{job.vehicle?.make} {job.vehicle?.model} · {job.customer?.name}</p>
-                            <div className="mt-1.5 flex items-center justify-between">
-                              <p className="text-xs text-gray-400 dark:text-white/40">{formatDate(job.date_in)}</p>
-                              <div className="flex items-center gap-1.5">
-                                <span className={cn('text-[10px] font-semibold capitalize', PAYMENT_STATUS_COLOR[job.payment_status])}>{job.payment_status}</span>
-                                <p className="text-sm font-bold text-gray-900 dark:text-white">{formatAED(job.total)}</p>
+
+                            {/* Plate — hero */}
+                            <p className="text-xl font-black tracking-widest text-gray-900 dark:text-white leading-tight">
+                              {job.vehicle?.plate_number}
+                            </p>
+
+                            {/* Vehicle */}
+                            <p className="text-[13px] text-gray-400 dark:text-white/40 mt-0.5">
+                              {[job.vehicle?.make, job.vehicle?.model, job.vehicle?.year].filter(Boolean).join(' ')}
+                            </p>
+
+                            {/* Customer */}
+                            <p className="text-[13px] font-medium text-gray-700 dark:text-white/60 mt-0.5">
+                              {job.customer?.name}
+                              {job.customer?.phone && (
+                                <span className="font-normal text-gray-400 dark:text-white/30"> · {job.customer.phone}</span>
+                              )}
+                            </p>
+
+                            {/* Date + amount */}
+                            <div className="flex items-end justify-between mt-2.5">
+                              <p className="text-[11px] text-gray-400 dark:text-white/30">{formatDate(job.date_in)}</p>
+                              <div className="text-right">
+                                <p className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+                                  {formatAED(job.total)}
+                                </p>
+                                <p className={cn('text-[10px] capitalize font-semibold', PAYMENT_STATUS_COLOR[job.payment_status])}>
+                                  {job.payment_status}
+                                </p>
                               </div>
                             </div>
-                          </div>
-                        </Link>
+                          </Link>
+
+                          {/* Quick edit */}
+                          {!isDelivered && (
+                            <Link href={`/workshop/job-cards/${job.id}/edit`}
+                              className="mt-1 shrink-0 flex h-8 w-8 items-center justify-center rounded-xl border border-gray-100 dark:border-white/[0.06] text-gray-400 dark:text-white/30 active:bg-gray-100 dark:active:bg-white/[0.06] transition-colors">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Link>
+                          )}
+                        </div>
                       </div>
                     )
                   })}

@@ -35,7 +35,7 @@ function LoginForm() {
   const params = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [showPw, setShowPw] = useState(false);
-  const [form, setForm] = useState({ login: "", password: "" });
+  const [form, setForm] = useState({ login: "", password: "", rememberMe: true });
   const a = AUTH;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -50,12 +50,14 @@ function LoginForm() {
         const res = await signIn.email({
           email: login,
           password: form.password,
+          rememberMe: form.rememberMe,
         });
         error = res.error?.message ?? null;
       } else {
         const res = await authClient.signIn.username({
           username: login,
           password: form.password,
+          rememberMe: form.rememberMe,
         });
         error = res.error?.message ?? null;
       }
@@ -125,6 +127,16 @@ function LoginForm() {
             </button>
           </div>
         </div>
+
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={form.rememberMe}
+            onChange={(e) => setForm((f) => ({ ...f, rememberMe: e.target.checked }))}
+            className="h-4 w-4 rounded border-gray-300 text-brand accent-brand cursor-pointer"
+          />
+          <span className="text-sm text-gray-600 dark:text-white/50">Remember me</span>
+        </label>
 
         <button
           type="submit"

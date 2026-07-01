@@ -13,13 +13,11 @@ import {
   ChevronRight,
   X,
   Briefcase,
-  Package,
   Users,
   Megaphone,
   Wrench,
   Clock,
   MessageSquare,
-  BarChart2,
   Globe,
   UserRound,
   Receipt,
@@ -34,7 +32,7 @@ import { createClient } from "@/lib/supabase/client";
 const NAV = {
   workshop: 'Workshop', admin: 'Admin',
   dashboard: 'Dashboard', myJobs: 'My Jobs', jobCards: 'Job Cards',
-  newJobCard: 'New Job Card', inventory: 'Inventory', customers: 'Customers',
+  newJobCard: 'New Job Card', customers: 'Customers',
   settings: 'Settings', signOut: 'Sign Out', employees: 'Employees',
   technicians: 'Technicians', attendance: 'Attendance', feedback: 'Feedback',
   announcements: 'Announcements', analytics: 'Analytics', website: 'Website CMS',
@@ -160,7 +158,6 @@ function SidebarContent({
       { href: "/workshop/customers", icon: UserRound, label: nav.customers },
       { href: "/workshop/services", icon: Wrench, label: 'Services' },
       { href: "/workshop/admin/technicians", icon: Users, label: nav.technicians },
-      { href: "/workshop/inventory", icon: Package, label: nav.inventory },
       { href: "/workshop/transactions", icon: Receipt, label: 'Transactions' },
     );
   }
