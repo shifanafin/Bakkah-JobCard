@@ -5,6 +5,7 @@ import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Tag, Plus, Edit2, Trash2, Check, X, Loader2, ToggleLeft, ToggleRight, Sparkles } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -45,6 +46,7 @@ export default function PromotionsPage() {
   const [savingEdit, setSavingEdit] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isPending && role !== 'admin') router.replace('/workshop/dashboard')
@@ -118,9 +120,9 @@ export default function PromotionsPage() {
     finally { setTogglingId(null) }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this promotion? This cannot be undone.')) return
+  async function executeDelete(id: string) {
     setDeletingId(id)
+    setConfirmDeleteId(null)
     try {
       const res = await fetch(`/api/promotions/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
@@ -270,7 +272,7 @@ export default function PromotionsPage() {
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(p.id)}
+                          onClick={() => setConfirmDeleteId(p.id)}
                           disabled={deletingId === p.id}
                           className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
                         >
@@ -285,6 +287,17 @@ export default function PromotionsPage() {
           </div>
         )}
       </main>
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete Promotion?"
+        message="This promotion code will be permanently removed."
+        detail="This cannot be undone."
+        confirmLabel="Delete"
+        loading={deletingId === confirmDeleteId}
+        onConfirm={() => confirmDeleteId && executeDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }

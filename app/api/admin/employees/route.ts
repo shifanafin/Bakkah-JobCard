@@ -90,6 +90,23 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// DELETE — permanently remove employee
+export async function DELETE(req: NextRequest) {
+  try {
+    const { id } = await req.json()
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const sb = getServiceClient()
+    // Remove from technicians table first if applicable
+    await sb.from('technicians').delete().eq('id', id)
+    await sb.from('ba_account').delete().eq('user_id', id)
+    const { error } = await sb.from('users').delete().eq('id', id)
+    if (error) throw error
+    return NextResponse.json({ success: true })
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed to delete' }, { status: 500 })
+  }
+}
+
 // PATCH — toggle active or reset password
 export async function PATCH(req: NextRequest) {
   try {

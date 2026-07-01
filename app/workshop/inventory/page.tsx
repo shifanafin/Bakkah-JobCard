@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import { createClient } from '@/lib/supabase/client'
 import { Package, Plus, Search, Edit2, Trash2, AlertTriangle, Loader2, X, Check, Minus } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import Pagination from '@/components/ui/Pagination'
 
 const PAGE_SIZE = 20
@@ -63,6 +64,7 @@ export default function InventoryPage() {
   const [form, setForm] = useState<ItemForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [adjustingId, setAdjustingId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
 
@@ -162,8 +164,8 @@ export default function InventoryPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this item?')) return
+  async function executeDelete(id: string) {
+    setConfirmDeleteId(null)
     setDeletingId(id)
     try {
       const sb = createClient()
@@ -354,7 +356,7 @@ export default function InventoryPage() {
                             <Edit2 className="h-3.5 w-3.5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(item.id)}
+                            onClick={() => setConfirmDeleteId(item.id)}
                             disabled={deletingId === item.id}
                             className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors disabled:opacity-50 dark:border-white/[0.08] dark:text-white/30"
                           >
@@ -522,6 +524,16 @@ export default function InventoryPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Remove Inventory Item?"
+        message="This item will be marked as inactive and removed from listings."
+        confirmLabel="Remove"
+        loading={deletingId === confirmDeleteId}
+        onConfirm={() => confirmDeleteId && executeDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }

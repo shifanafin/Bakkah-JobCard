@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useTransition, useRef } from 'react'
 import { Receipt, Loader2, Check, MessageCircle, AlertTriangle, BadgeCheck, Plus, Trash2, Edit2, X, ChevronDown, RefreshCw, Download, Upload } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { formatAED } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -74,6 +75,7 @@ export default function TaxInvoiceSection({
   const [invoice, setInvoice] = useState<TaxInvoice | null | undefined>(undefined)
   const [isPending, startTransition] = useTransition()
   const [creating, setCreating] = useState(false)
+  const [confirmMarkPaid, setConfirmMarkPaid] = useState(false)
   const [discount, setDiscount] = useState('0')
   const [notes, setNotes] = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
@@ -182,7 +184,12 @@ export default function TaxInvoiceSection({
 
   function handleMarkPaid() {
     if (!invoice || !isIssued) return
-    if (!confirm('Mark this tax invoice as Paid? This cannot be undone.')) return
+    setConfirmMarkPaid(true)
+  }
+
+  function doMarkPaid() {
+    if (!invoice) return
+    setConfirmMarkPaid(false)
     startTransition(async () => {
       try {
         const res = await fetch(`/api/tax-invoices/${invoice.id}`, {
@@ -774,6 +781,17 @@ export default function TaxInvoiceSection({
           )}
         </>
       )}
+
+      <ConfirmDialog
+        open={confirmMarkPaid}
+        title="Mark Invoice as Paid?"
+        message="This will record the payment as received. This action cannot be undone."
+        confirmLabel="Mark as Paid"
+        variant="warning"
+        loading={isPending}
+        onConfirm={doMarkPaid}
+        onCancel={() => setConfirmMarkPaid(false)}
+      />
     </div>
   )
 }

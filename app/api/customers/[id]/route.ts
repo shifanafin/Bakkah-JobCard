@@ -27,6 +27,18 @@ export async function GET(_req: NextRequest, { params }: Params) {
   })
 }
 
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  try {
+    const { id } = await params
+    const sb = createServiceClient()
+    const { error } = await sb.from('customers').delete().eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
+  }
+}
+
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params

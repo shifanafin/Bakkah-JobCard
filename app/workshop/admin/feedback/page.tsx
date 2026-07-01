@@ -5,6 +5,7 @@ import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Loader2, RefreshCw, Check, X, Star, Trash2, MessageSquare } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils/format'
@@ -43,6 +44,7 @@ export default function FeedbackPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isPending && session && role !== 'admin') router.replace('/workshop/dashboard')
@@ -82,8 +84,8 @@ export default function FeedbackPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this feedback permanently?')) return
+  async function executeDelete(id: string) {
+    setConfirmDeleteId(null)
     setProcessingId(id)
     try {
       const res = await fetch('/api/feedback', {
@@ -224,7 +226,7 @@ export default function FeedbackPage() {
                           </button>
                         )}
                         <button
-                          onClick={() => handleDelete(f.id)}
+                          onClick={() => setConfirmDeleteId(f.id)}
                           title="Delete"
                           className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors dark:border-white/[0.08] dark:text-white/30"
                         >
@@ -239,6 +241,16 @@ export default function FeedbackPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete Feedback?"
+        message="This customer review will be permanently removed."
+        confirmLabel="Delete"
+        loading={processingId === confirmDeleteId}
+        onConfirm={() => confirmDeleteId && executeDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }

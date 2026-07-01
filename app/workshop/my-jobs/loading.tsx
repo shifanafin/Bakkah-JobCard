@@ -5,7 +5,7 @@ export default function MyJobsLoading() {
         <div className="h-5 w-20 rounded-md bg-gray-200 dark:bg-white/[0.08]" />
         <div className="h-3 w-36 rounded-md bg-gray-100 dark:bg-white/[0.05] mt-2" />
       </div>
-      <div className="p-4 space-y-3 max-w-4xl lg:p-6">
+      <div className="p-4 space-y-3 max-w-4xl md:max-w-full lg:p-6">
         {[...Array(5)].map((_, i) => (
           <div key={i} className="rounded-xl border border-gray-200 dark:border-white/[0.07] bg-white dark:bg-surface-800 p-5">
             <div className="flex items-start gap-4">

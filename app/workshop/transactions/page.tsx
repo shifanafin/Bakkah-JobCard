@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Link from 'next/link'
 import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2, Plus, ArrowRightCircle } from 'lucide-react'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import * as XLSX from 'xlsx'
@@ -97,6 +98,8 @@ export default function TransactionsPage() {
   // ── Create new document / convert existing ──────────────────────
   const [showPicker, setShowPicker] = useState<Tab | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [confirmProforma, setConfirmProforma] = useState<Quotation | null>(null)
+  const [confirmTaxConvert, setConfirmTaxConvert] = useState<Proforma | null>(null)
 
   const TAB_META: Record<Tab, { pickerTitle: string; newLabel: string; endpoint: string; path: string }> = {
     quotations: { pickerTitle: 'Select a job card for the new quotation', newLabel: 'New Quotation', endpoint: '/api/quotations', path: 'quotation' },
@@ -124,7 +127,11 @@ export default function TransactionsPage() {
   }
 
   async function handleCreateProforma(row: Quotation) {
-    if (!confirm(`Create a proforma invoice from quotation ${row.quotation_number}?`)) return
+    setConfirmProforma(row)
+  }
+
+  async function doCreateProforma(row: Quotation) {
+    setConfirmProforma(null)
     setBusyId(row.id)
     try {
       const res = await fetch('/api/proforma-invoices', {
@@ -142,7 +149,11 @@ export default function TransactionsPage() {
   }
 
   async function handleConvertToTax(row: Proforma) {
-    if (!confirm(`Convert proforma ${row.proforma_number} to a tax invoice?`)) return
+    setConfirmTaxConvert(row)
+  }
+
+  async function doConvertToTax(row: Proforma) {
+    setConfirmTaxConvert(null)
     setBusyId(row.id)
     try {
       const res = await fetch('/api/tax-invoices', {
@@ -516,6 +527,28 @@ export default function TransactionsPage() {
           onClose={() => setShowPicker(null)}
         />
       )}
+
+      <ConfirmDialog
+        open={!!confirmProforma}
+        title="Create Proforma Invoice?"
+        message={confirmProforma ? `Create a proforma from quotation ${confirmProforma.quotation_number}?` : ''}
+        confirmLabel="Create Proforma"
+        variant="warning"
+        loading={busyId === confirmProforma?.id}
+        onConfirm={() => confirmProforma && doCreateProforma(confirmProforma)}
+        onCancel={() => setConfirmProforma(null)}
+      />
+
+      <ConfirmDialog
+        open={!!confirmTaxConvert}
+        title="Convert to Tax Invoice?"
+        message={confirmTaxConvert ? `Convert proforma ${confirmTaxConvert.proforma_number} to a tax invoice? This finalises the document.` : ''}
+        confirmLabel="Convert"
+        variant="warning"
+        loading={busyId === confirmTaxConvert?.id}
+        onConfirm={() => confirmTaxConvert && doConvertToTax(confirmTaxConvert)}
+        onCancel={() => setConfirmTaxConvert(null)}
+      />
     </div>
   )
 }

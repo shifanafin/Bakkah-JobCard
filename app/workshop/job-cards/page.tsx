@@ -12,6 +12,7 @@ import { formatAED, formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 import Pagination from '@/components/ui/Pagination'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 const PAGE_SIZE = 20
 
@@ -170,6 +171,7 @@ export default function JobCardsPage() {
   const [page, setPage] = useState(1)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleting, setDeleting] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState<{ ids: string[]; label: string } | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -209,14 +211,18 @@ export default function JobCardsPage() {
     }
   }
 
-  async function handleBulkDelete() {
+  function handleBulkDelete() {
     if (!someSelected) return
     const count = selectedIds.size
-    const confirmed = window.confirm(`Delete ${count} job card${count > 1 ? 's' : ''}?\n\nThis cannot be undone.`)
-    if (!confirmed) return
+    setConfirmDelete({ ids: [...selectedIds], label: `${count} job card${count > 1 ? 's' : ''}` })
+  }
 
+  function handleDeleteSingle(jobId: string) {
+    setConfirmDelete({ ids: [jobId], label: 'this job card' })
+  }
+
+  async function executeDelete(ids: string[]) {
     setDeleting(true)
-    const ids = [...selectedIds]
     let failed = 0
     for (const id of ids) {
       const res = await fetch(`/api/job-cards/${id}`, { method: 'DELETE' })
@@ -224,20 +230,10 @@ export default function JobCardsPage() {
     }
     setDeleting(false)
     setSelectedIds(new Set())
+    setConfirmDelete(null)
     await load()
-    if (failed === 0) toast.success(`${count} job card${count > 1 ? 's' : ''} deleted`)
+    if (failed === 0) toast.success(`${ids.length} job card${ids.length > 1 ? 's' : ''} deleted`)
     else toast.error(`${failed} deletion${failed > 1 ? 's' : ''} failed`)
-  }
-
-  async function handleDeleteSingle(jobId: string) {
-    const confirmed = window.confirm('Delete this job card?\n\nThis cannot be undone.')
-    if (!confirmed) return
-    setDeleting(true)
-    const res = await fetch(`/api/job-cards/${jobId}`, { method: 'DELETE' })
-    setDeleting(false)
-    await load()
-    if (res.ok) toast.success('Job card deleted')
-    else toast.error('Delete failed')
   }
 
   function exportExcel() {
@@ -715,6 +711,17 @@ export default function JobCardsPage() {
           <Pagination page={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Delete Job Card?"
+        message={confirmDelete ? `You are about to delete ${confirmDelete.label}.` : ''}
+        detail="All records including documents, history, and financial data will be permanently removed."
+        confirmLabel="Delete Permanently"
+        loading={deleting}
+        onConfirm={() => confirmDelete && executeDelete(confirmDelete.ids)}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   )
 }
