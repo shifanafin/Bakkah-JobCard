@@ -12,7 +12,7 @@ import PhotoUpload from '@/components/job-card/PhotoUpload'
 import { getJobCard, getTechnicians, assignTechnician } from '@/lib/queries'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, JOB_TYPE_LABEL, PAYMENT_STATUS_COLOR, type JobCard, type JobStatus } from '@/types'
 import { formatAED, formatDate } from '@/lib/utils/format'
-import { ArrowLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2, Printer, Download, Pencil } from 'lucide-react'
+import { ChevronLeft, Car, User, Wrench, Calendar, Loader2, RefreshCw, UserCheck, ChevronDown, History, Check, X, Clock, ChevronUp, AlertTriangle, Trash2, Printer, Download, Pencil } from 'lucide-react'
 import { formatDateTime } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
@@ -170,32 +170,42 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
       <Header title={job.job_number} subtitle={`${job.vehicle?.plate_number} · ${job.vehicle?.make} ${job.vehicle?.model}`} />
 
       <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
-        {/* Breadcrumb + actions */}
-        <div className="flex items-center justify-between">
-          <Link href="/workshop/job-cards" className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70">
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> Job Cards
+        {/* iOS-style nav bar */}
+        <div className="flex items-center justify-between gap-2">
+          {/* iOS back button */}
+          <Link
+            href="/workshop/job-cards"
+            className="flex items-center gap-0.5 text-brand font-medium active:opacity-50 transition-opacity -ml-1 py-1 pr-2 min-w-0"
+          >
+            <ChevronLeft className="h-5 w-5 shrink-0" />
+            <span className="text-[15px] truncate">Jobs</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <button onClick={load} className="btn-ghost text-xs px-3 py-2 h-auto">
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button onClick={load} className="btn-ghost px-2.5 py-2 h-auto text-xs">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <button onClick={handlePrint} className="btn-ghost text-xs px-3 py-2 h-auto flex items-center gap-1.5">
+            <button onClick={handlePrint} className="hidden sm:flex btn-ghost px-3 py-2 h-auto text-xs items-center gap-1.5">
               <Printer className="h-3.5 w-3.5" /> Print
             </button>
-            <button onClick={handleExportExcel} className="btn-ghost text-xs px-3 py-2 h-auto flex items-center gap-1.5">
+            <button onClick={handleExportExcel} className="hidden sm:flex btn-ghost px-3 py-2 h-auto text-xs items-center gap-1.5">
               <Download className="h-3.5 w-3.5" /> Excel
             </button>
             {!isDelivered && (
-              <Link href={`/workshop/job-cards/${id}/edit`}
-                className="btn-ghost text-xs px-3 py-2 h-auto flex items-center gap-1.5">
-                <Pencil className="h-3.5 w-3.5" /> Edit
+              <Link
+                href={`/workshop/job-cards/${id}/edit`}
+                className="btn-primary px-3 py-2 h-auto text-xs flex items-center gap-1.5"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Edit</span>
               </Link>
             )}
-            {/* Delete — admin only, only for inspection/cancelled jobs */}
             {canDelete && job && ['inspection', 'cancelled', 'pending', 'waiting_for_approval'].includes(job.status) && (
               <button onClick={handleDelete}
-                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
-                <Trash2 className="h-3.5 w-3.5" /> Delete
+                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
+                <Trash2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Delete</span>
               </button>
             )}
           </div>

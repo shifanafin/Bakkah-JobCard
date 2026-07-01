@@ -377,19 +377,24 @@ export default function TechniciansPage() {
                 const checkedOut = att && att.checkout_at
                 const isActioning = attLoading === tech.id
                 return (
-                  <div key={tech.id} className="p-4 space-y-3">
+                  {/* Tap anywhere to edit */}
+                  <div
+                    key={tech.id}
+                    className=”p-4 space-y-3 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors”
+                    onClick={() => openEdit(tech)}
+                  >
                     {/* Row 1: avatar + name + specialty */}
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="relative shrink-0">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">
+                    <div className=”flex items-center justify-between gap-3”>
+                      <div className=”flex items-center gap-3 min-w-0”>
+                        <div className=”relative shrink-0”>
+                          <div className=”flex h-9 w-9 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm”>
                             {tech.name[0]?.toUpperCase()}
                           </div>
-                          {checkedIn && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />}
+                          {checkedIn && <span className=”absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800” />}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-semibold text-gray-900 dark:text-white truncate">{tech.name}</p>
-                          {tech.username && <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{tech.username}</p>}
+                        <div className=”min-w-0”>
+                          <p className=”font-semibold text-gray-900 dark:text-white truncate”>{tech.name}</p>
+                          {tech.username && <p className=”text-xs font-mono text-gray-400 dark:text-white/30”>@{tech.username}</p>}
                         </div>
                       </div>
                       <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold', SPECIALTY_COLORS[tech.role] ?? 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/50')}>
@@ -398,57 +403,56 @@ export default function TechniciansPage() {
                     </div>
 
                     {/* Row 2: phone + status + active jobs */}
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <div className=”flex flex-wrap items-center gap-2 text-sm”>
                       {tech.phone ? (
-                        <span className="flex items-center gap-1 text-gray-600 dark:text-white/60 text-xs">
-                          <Phone className="h-3 w-3 text-gray-400" />{tech.phone}
+                        <span className=”flex items-center gap-1 text-gray-600 dark:text-white/60 text-xs”>
+                          <Phone className=”h-3 w-3 text-gray-400” />{tech.phone}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-400 dark:text-white/25 italic">No phone</span>
+                        <span className=”text-xs text-gray-400 dark:text-white/25 italic”>No phone</span>
                       )}
                       <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', tech.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
                         {tech.active ? 'Active' : 'Inactive'}
                       </span>
                       {tech.active_jobs > 0 && (
-                        <Link href={`/workshop/job-cards?technician=${tech.id}`} className="flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold text-brand">
-                          <Briefcase className="h-3 w-3" />{tech.active_jobs} job{tech.active_jobs !== 1 ? 's' : ''}
-                        </Link>
+                        <span onClick={e => e.stopPropagation()}>
+                          <Link href={`/workshop/job-cards?technician=${tech.id}`} className=”flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold text-brand”>
+                            <Briefcase className=”h-3 w-3” />{tech.active_jobs} job{tech.active_jobs !== 1 ? 's' : ''}
+                          </Link>
+                        </span>
                       )}
                     </div>
 
-                    {/* Row 3: attendance + actions */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-xs">
+                    {/* Row 3: attendance + delete */}
+                    <div className=”flex items-center justify-between gap-2”>
+                      <div className=”text-xs”>
                         {checkedOut ? (
-                          <span className="text-gray-500 dark:text-white/40">{fmtTime(att!.checkin_at)} â€” {fmtTime(att!.checkout_at!)}</span>
+                          <span className=”text-gray-500 dark:text-white/40”>{fmtTime(att!.checkin_at)} – {fmtTime(att!.checkout_at!)}</span>
                         ) : checkedIn ? (
-                          <span className="flex items-center gap-1 text-emerald-500 font-medium">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className=”flex items-center gap-1 text-emerald-500 font-medium”>
+                            <span className=”h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse” />
                             In since {fmtTime(att!.checkin_at)}
                           </span>
                         ) : (
-                          <span className="text-gray-400 dark:text-white/25 italic">Not checked in</span>
+                          <span className=”text-gray-400 dark:text-white/25 italic”>Not checked in</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <div className=”flex items-center gap-1.5” onClick={e => e.stopPropagation()}>
                         {!checkedOut && (
                           checkedIn ? (
-                            <button onClick={() => handleCheckOut(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50">
-                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
+                            <button onClick={() => handleCheckOut(tech)} disabled={isActioning} className=”flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50”>
+                              {isActioning ? <Loader2 className=”h-3 w-3 animate-spin” /> : <LogOut className=”h-3 w-3” />}
                               Out
                             </button>
                           ) : (
-                            <button onClick={() => handleCheckIn(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
-                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
+                            <button onClick={() => handleCheckIn(tech)} disabled={isActioning} className=”flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50”>
+                              {isActioning ? <Loader2 className=”h-3 w-3 animate-spin” /> : <LogIn className=”h-3 w-3” />}
                               In
                             </button>
                           )
                         )}
-                        <button onClick={() => openEdit(tech)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/40 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30">
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button onClick={() => setDeleteTarget(tech)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-400/40 hover:text-red-400 transition-colors dark:border-white/[0.08] dark:text-white/30">
-                          <Trash2 className="h-3.5 w-3.5" />
+                        <button onClick={() => setDeleteTarget(tech)} className=”flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-400/40 hover:text-red-400 transition-colors dark:border-white/[0.08] dark:text-white/30”>
+                          <Trash2 className=”h-3.5 w-3.5” />
                         </button>
                       </div>
                     </div>
@@ -500,7 +504,7 @@ export default function TechniciansPage() {
             </div>
 
             {/* Scrollable body */}
-            <form id="create-tech-form" onSubmit={handleCreate} className="overflow-y-auto flex-1 p-6 space-y-4">
+            <form id="create-tech-form" onSubmit={handleCreate} className="overflow-y-auto flex-1 min-h-0 p-6 space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
                   <label className="label mb-1">Full Name <span className="text-brand">*</span></label>
@@ -616,7 +620,7 @@ export default function TechniciansPage() {
               </button>
             </div>
 
-            <form id="edit-tech-form" onSubmit={handleSave} className="overflow-y-auto flex-1 p-6 space-y-4">
+            <form id="edit-tech-form" onSubmit={handleSave} className="overflow-y-auto flex-1 min-h-0 p-6 space-y-4">
               <div>
                 <label className="label mb-1">Specialty</label>
                 <select value={editSpecialty} onChange={e => setEditSpecialty(e.target.value)} className={inputCls}>
