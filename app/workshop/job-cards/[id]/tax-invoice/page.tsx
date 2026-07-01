@@ -7,7 +7,7 @@ import Header from '@/components/layout/Header'
 import TaxInvoiceSection from '@/components/job-card/TaxInvoiceSection'
 import { getJobCard } from '@/lib/queries'
 import type { JobCard } from '@/types'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ChevronLeft, Loader2 } from 'lucide-react'
 
 export default function JobCardTaxInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -48,12 +48,17 @@ export default function JobCardTaxInvoicePage({ params }: { params: Promise<{ id
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Tax Invoice" subtitle={`${job.job_number} · ${job.customer?.name ?? ''}`} />
       <div className="mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
-        <div className="flex items-center justify-between">
-          <Link href={`/workshop/job-cards/${id}`} className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70">
-            <ArrowLeft className="h-4 w-4 rtl:rotate-180" /> Back to Job Card
+        {/* iOS-style nav bar */}
+        <div className="flex items-center justify-between gap-2">
+          <Link
+            href={`/workshop/job-cards/${id}`}
+            className="flex items-center gap-0.5 text-brand font-medium active:opacity-50 transition-opacity -ml-1 py-1 pr-2 min-w-0"
+          >
+            <ChevronLeft className="h-5 w-5 shrink-0" />
+            <span className="text-[15px] truncate">{job.job_number}</span>
           </Link>
-          <Link href="/workshop/transactions" className="text-sm text-brand hover:underline">
-            Transactions
+          <Link href="/workshop/transactions" className="text-[13px] text-brand font-medium active:opacity-50">
+            All Transactions
           </Link>
         </div>
 

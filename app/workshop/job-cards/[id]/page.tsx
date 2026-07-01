@@ -31,6 +31,8 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
   const [technicians, setTechnicians] = useState<{ id: string; name: string; role: string }[]>([])
   const [selectedTech, setSelectedTech] = useState('')
   const [isAssigning, startAssign] = useTransition()
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   type HistoryEntry = { id: string; old_status: string | null; new_status: string; changed_by: string | null; notes: string | null; created_at: string }
   const [history, setHistory] = useState<HistoryEntry[]>([])
@@ -100,12 +102,13 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
     XLSX.writeFile(wb, `JobCard_${job.job_number}.xlsx`)
   }
 
-  async function handleDelete() {
+  function handleDelete() {
+    setShowDeleteConfirm(true)
+  }
+
+  async function confirmDelete() {
     if (!job) return
-    const confirmed = window.confirm(
-      `Delete job card ${job.job_number}?\n\nThis will permanently remove the job card and all related records. This cannot be undone.`
-    )
-    if (!confirmed) return
+    setIsDeleting(true)
     try {
       const res = await fetch(`/api/job-cards/${id}`, { method: 'DELETE' })
       const data = await res.json()
@@ -114,6 +117,9 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
       router.push('/workshop/job-cards')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Delete failed')
+      setShowDeleteConfirm(false)
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -183,14 +189,18 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Action buttons */}
           <div className="flex items-center gap-1.5 shrink-0">
-            <button onClick={load} className="btn-ghost px-2.5 py-2 h-auto text-xs">
+            <button onClick={load} className="btn-ghost px-2.5 py-2 h-auto text-xs" title="Refresh">
               <RefreshCw className="h-3.5 w-3.5" />
             </button>
-            <button onClick={handlePrint} className="hidden sm:flex btn-ghost px-3 py-2 h-auto text-xs items-center gap-1.5">
-              <Printer className="h-3.5 w-3.5" /> Print
+            <button onClick={handlePrint} title="Print job card"
+              className="btn-ghost px-2.5 py-2 h-auto text-xs flex items-center gap-1.5">
+              <Printer className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Print</span>
             </button>
-            <button onClick={handleExportExcel} className="hidden sm:flex btn-ghost px-3 py-2 h-auto text-xs items-center gap-1.5">
-              <Download className="h-3.5 w-3.5" /> Excel
+            <button onClick={handleExportExcel} title="Export to Excel"
+              className="btn-ghost px-2.5 py-2 h-auto text-xs flex items-center gap-1.5">
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Excel</span>
             </button>
             {!isDelivered && (
               <Link
@@ -201,9 +211,9 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
                 <span className="hidden sm:inline">Edit</span>
               </Link>
             )}
-            {canDelete && job && ['inspection', 'cancelled', 'pending', 'waiting_for_approval'].includes(job.status) && (
+            {canDelete && job && (
               <button onClick={handleDelete}
-                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
+                className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors active:bg-red-100 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
                 <Trash2 className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Delete</span>
               </button>
@@ -495,6 +505,48 @@ export default function JobCardDetailPage({ params }: { params: Promise<{ id: st
 
       {/* Inline print target — hidden on screen, full-page on Ctrl+P / Print button */}
       <PrintableJobCard job={job} />
+
+      {/* Custom Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl p-6 space-y-5">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-500/20">
+                <Trash2 className="h-8 w-8 text-red-500" />
+              </div>
+            </div>
+            {/* Text */}
+            <div className="text-center space-y-1.5">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Delete Job Card?</h2>
+              <p className="text-sm text-gray-500 dark:text-white/50">
+                <span className="font-semibold text-brand">{job?.job_number}</span> — {job?.vehicle?.plate_number}
+              </p>
+              <p className="text-xs text-red-500 dark:text-red-400 font-medium">
+                All records including documents, history, and financial data will be permanently removed.
+              </p>
+            </div>
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="btn-ghost flex-1"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600 active:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -406,13 +406,20 @@ export default function QuotationSection({
   return (
     <div className="card space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2 border-b border-gray-100 pb-3 dark:border-white/[0.06]">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-500/15">
-          <FileText className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+      <div className="border-b border-gray-100 pb-3 dark:border-white/[0.06] space-y-2">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-500/15 shrink-0">
+            <FileText className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h3 className="section-title">Quotation</h3>
+          {quotation && (
+            <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold ml-auto', STATUS_BADGE[quotation.status]?.cls)}>
+              {STATUS_BADGE[quotation.status]?.label}
+            </span>
+          )}
         </div>
-        <h3 className="section-title">Quotation</h3>
         {quotation && (
-          <>
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-mono text-xs text-gray-400 dark:text-white/40">{quotation.quotation_number}</span>
             <div className="ml-auto flex items-center gap-1.5">
               {!readOnly && (
@@ -437,11 +444,8 @@ export default function QuotationSection({
               >
                 <Download className="h-3 w-3" /> Export
               </button>
-              <span className={cn('rounded-full px-2.5 py-0.5 text-xs font-bold', STATUS_BADGE[quotation.status]?.cls)}>
-                {STATUS_BADGE[quotation.status]?.label}
-              </span>
             </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -487,9 +491,85 @@ export default function QuotationSection({
             </div>
           )}
 
-          {/* Items table — always editable */}
+          {/* Items — mobile cards */}
           {quotation.items.length > 0 && (
-            <div className="overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
+            <div className="md:hidden divide-y divide-gray-100 dark:divide-white/[0.06] rounded-xl border border-gray-100 dark:border-white/[0.06] overflow-hidden">
+              {quotation.items.map(item => {
+                const isEditing = editingItem?.id === item.id
+                const liveTotal = isEditing
+                  ? (parseFloat(editingItem!.quantity) || 0) * (parseFloat(editingItem!.unit_price) || 0)
+                  : item.total_price
+                return (
+                  <div key={item.id} className="bg-white dark:bg-white/[0.02] p-3">
+                    {!readOnly && isEditing ? (
+                      <div className="space-y-3">
+                        <input
+                          value={editingItem!.description}
+                          onChange={e => setEditingItem(prev => prev && { ...prev, description: e.target.value })}
+                          className="input-base w-full"
+                          placeholder="Description"
+                        />
+                        <div className="flex gap-2">
+                          <div className="w-24">
+                            <label className="label text-[10px] mb-1">Qty</label>
+                            <input type="number" min={0.5} step={0.5} value={editingItem!.quantity}
+                              onChange={e => setEditingItem(prev => prev && { ...prev, quantity: e.target.value })}
+                              className="input-base w-full" />
+                          </div>
+                          <div className="flex-1">
+                            <label className="label text-[10px] mb-1">Price (AED)</label>
+                            <input type="number" min={0} value={editingItem!.unit_price}
+                              onChange={e => setEditingItem(prev => prev && { ...prev, unit_price: e.target.value })}
+                              className="input-base w-full" />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500 dark:text-white/40">
+                            Total: <strong className="text-gray-900 dark:text-white">{formatAED(liveTotal)}</strong>
+                          </span>
+                          <div className="flex gap-2">
+                            <button onClick={handleSaveEditItem} disabled={isPending} className="btn-primary text-xs px-3 py-1.5 h-auto">Save</button>
+                            <button onClick={() => setEditingItem(null)} className="btn-ghost text-xs px-3 py-1.5 h-auto">Cancel</button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex items-start gap-2 mb-2">
+                          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold uppercase shrink-0 mt-0.5', ITEM_TYPE_CLS[item.item_type])}>
+                            {item.item_type}
+                          </span>
+                          <span className="text-sm text-gray-800 dark:text-white/80 flex-1 min-w-0 leading-snug">{item.description}</span>
+                          {!readOnly && (
+                            <div className="flex shrink-0 -mr-1">
+                              <button
+                                onClick={() => setEditingItem({ id: item.id, description: item.description, quantity: item.quantity.toString(), unit_price: item.unit_price.toString() })}
+                                disabled={isPending}
+                                className="p-2 text-gray-400 active:text-brand transition-colors rounded-lg">
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                              <button onClick={() => handleRemoveItem(item.id)} disabled={isPending}
+                                className="p-2 text-gray-400 active:text-red-400 transition-colors rounded-lg">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-400 dark:text-white/30">{item.quantity} × {formatAED(item.unit_price)}</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-white tabular-nums">{formatAED(item.total_price)}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Items table — desktop only */}
+          {quotation.items.length > 0 && (
+            <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-100 dark:border-white/[0.06] -mx-1">
               <table className="min-w-[480px] w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">

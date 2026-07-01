@@ -480,8 +480,7 @@ export default function TechniciansPage() {
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
           <div
-            className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col"
-            style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top, 44px))' }}
+            className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col max-h-[88vh] sm:max-h-[90vh]"
           >
             {/* iOS drag handle */}
             <div className="flex justify-center pt-3 pb-2 shrink-0 sm:hidden">
@@ -598,8 +597,7 @@ export default function TechniciansPage() {
       {editTarget && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm">
           <div
-            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col"
-            style={{ maxHeight: 'calc(100dvh - env(safe-area-inset-top, 44px))' }}
+            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl bg-white dark:bg-surface-800 shadow-2xl flex flex-col max-h-[88vh] sm:max-h-[90vh]"
           >
             {/* iOS drag handle */}
             <div className="flex justify-center pt-3 pb-2 shrink-0 sm:hidden">
