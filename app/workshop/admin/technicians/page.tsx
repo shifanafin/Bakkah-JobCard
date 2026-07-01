@@ -377,7 +377,6 @@ export default function TechniciansPage() {
                 const checkedOut = att && att.checkout_at
                 const isActioning = attLoading === tech.id
                 return (
-                  {/* Tap anywhere to edit */}
                   <div
                     key={tech.id}
                     className=”p-4 space-y-3 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors”
