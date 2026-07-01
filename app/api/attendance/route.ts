@@ -122,6 +122,22 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url)
   const role = session.user.role
 
+  // Employee self history
+  if (url.searchParams.get('history') === 'true') {
+    const days = parseInt(url.searchParams.get('days') ?? '30') || 30
+    const since = new Date()
+    since.setDate(since.getDate() - days + 1)
+    const sinceDate = since.toISOString().split('T')[0]
+    const sb = getSb()
+    const { data } = await sb
+      .from('attendance')
+      .select('id, date, checkin_at, checkout_at')
+      .eq('user_id', session.user.id)
+      .gte('date', sinceDate)
+      .order('date', { ascending: false })
+    return NextResponse.json({ records: data ?? [] })
+  }
+
   // Employee self-check
   if (url.searchParams.get('today') === 'true') {
     const today = new Date().toISOString().split('T')[0]
