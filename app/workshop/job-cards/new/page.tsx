@@ -33,6 +33,7 @@ import {
   Upload,
   ImageIcon,
   Phone,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/cn";
@@ -98,6 +99,15 @@ const PHOTO_CATS: PhotoCategory[] = [
 ];
 
 const DRAFT_KEY = "bakkah_new_jobcard_draft";
+const DRAFT_MAX_AGE_MS = 24 * 60 * 60 * 1000; // discard drafts older than this without prompting
+
+function timeAgo(ms: number): string {
+  const mins = Math.round((Date.now() - ms) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min${mins === 1 ? "" : "s"} ago`;
+  const hrs = Math.round(mins / 60);
+  return `${hrs} hour${hrs === 1 ? "" : "s"} ago`;
+}
 
 // ── Phone helpers ────────────────────────────────────────────────
 
@@ -273,36 +283,77 @@ export default function NewJobCardPage() {
   const isRestoringRef = useRef(false); // true while restoring from localStorage (skip vehicle re-fetch)
   const isFirstSaveRef = useRef(true); // skip saving during the initial render before restore
 
-  // Restore draft from localStorage on mount
+  // Draft resume/discard — a saved draft is never auto-applied silently;
+  // the user must explicitly choose to resume it or start fresh.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [pendingDraft, setPendingDraft] = useState<any | null>(null);
+  const [draftDecided, setDraftDecided] = useState(false);
+
+  function applyDraft(d: Record<string, unknown>) {
+    isRestoringRef.current = true;
+    if (d.activeStep) setActiveStep(d.activeStep as WizardStep);
+    if (d.completedSteps)
+      setCompletedSteps(new Set(d.completedSteps as WizardStep[]));
+    if (d.selectedCustomer !== undefined)
+      setSelectedCustomer(d.selectedCustomer as CustomerOption | null);
+    if (d.customerSearch !== undefined)
+      setCustomerSearch(d.customerSearch as string);
+    if (d.cust) setCust(d.cust as typeof cust);
+    if (d.phoneTouched) setPhoneTouched(d.phoneTouched as boolean);
+    if (d.custVehicles) setCustVehicles(d.custVehicles as VehicleOption[]);
+    if (d.selectedVehicle !== undefined)
+      setSelectedVehicle(d.selectedVehicle as VehicleOption | null);
+    if (d.vehicleSearch !== undefined)
+      setVehicleSearch(d.vehicleSearch as string);
+    if (d.vehicleAutoFilled !== undefined)
+      setVehicleAutoFilled(d.vehicleAutoFilled as VehicleOption | null);
+    if (d.veh) setVeh(d.veh as typeof veh);
+    if (d.wo) setWo(d.wo as typeof wo);
+    if (d.custSig !== undefined) setCustSig(d.custSig as string | null);
+    if (d.supSig !== undefined) setSupSig(d.supSig as string | null);
+    // Release the lock after React has flushed state + run dependent effects
+    setTimeout(() => {
+      isRestoringRef.current = false;
+    }, 0);
+    setPendingDraft(null);
+    setDraftDecided(true);
+  }
+
+  function discardDraft() {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
+    setPendingDraft(null);
+    setDraftDecided(true);
+  }
+
+  // Check for a saved draft on mount — stale/corrupt drafts are discarded
+  // silently, valid ones are surfaced for the user to resume or discard.
   useEffect(() => {
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
-      if (!saved) return;
+      if (!saved) {
+        setDraftDecided(true);
+        return;
+      }
       const d = JSON.parse(saved);
-      isRestoringRef.current = true;
-      if (d.activeStep) setActiveStep(d.activeStep);
-      if (d.completedSteps) setCompletedSteps(new Set(d.completedSteps));
-      if (d.selectedCustomer !== undefined)
-        setSelectedCustomer(d.selectedCustomer);
-      if (d.customerSearch !== undefined) setCustomerSearch(d.customerSearch);
-      if (d.cust) setCust(d.cust);
-      if (d.phoneTouched) setPhoneTouched(d.phoneTouched);
-      if (d.custVehicles) setCustVehicles(d.custVehicles);
-      if (d.selectedVehicle !== undefined)
-        setSelectedVehicle(d.selectedVehicle);
-      if (d.vehicleSearch !== undefined) setVehicleSearch(d.vehicleSearch);
-      if (d.vehicleAutoFilled !== undefined)
-        setVehicleAutoFilled(d.vehicleAutoFilled);
-      if (d.veh) setVeh(d.veh);
-      if (d.wo) setWo(d.wo);
-      if (d.custSig !== undefined) setCustSig(d.custSig);
-      if (d.supSig !== undefined) setSupSig(d.supSig);
-      // Release the lock after React has flushed state + run dependent effects
-      setTimeout(() => {
-        isRestoringRef.current = false;
-      }, 0);
+      const savedAt = typeof d.savedAt === "number" ? d.savedAt : 0;
+      if (!savedAt || Date.now() - savedAt > DRAFT_MAX_AGE_MS) {
+        localStorage.removeItem(DRAFT_KEY);
+        setDraftDecided(true);
+        return;
+      }
+      setPendingDraft(d);
     } catch {
-      /* corrupt/missing draft — ignore */
+      /* corrupt draft — discard */
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        /* ignore */
+      }
+      setDraftDecided(true);
     }
   }, []);
 
@@ -456,10 +507,14 @@ export default function NewJobCardPage() {
       isFirstSaveRef.current = false;
       return;
     }
+    // Don't overwrite a saved draft while the user hasn't decided whether
+    // to resume or discard it yet (the banner is showing).
+    if (!draftDecided) return;
     try {
       localStorage.setItem(
         DRAFT_KEY,
         JSON.stringify({
+          savedAt: Date.now(),
           activeStep,
           completedSteps: [...completedSteps],
           selectedCustomer,
@@ -481,6 +536,7 @@ export default function NewJobCardPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    draftDecided,
     activeStep,
     completedSteps,
     selectedCustomer,
@@ -721,7 +777,44 @@ export default function NewJobCardPage() {
           </Link>
         </div>
 
+        {/* Resume/discard banner — shown instead of the wizard until the user decides */}
+        {pendingDraft && !draftDecided && (
+          <div className="card mb-6 flex flex-col gap-3 border-brand/30 bg-brand/5 sm:flex-row sm:items-center">
+            <Clock className="h-5 w-5 text-brand shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                You have an unfinished job card
+                {pendingDraft.cust?.name
+                  ? ` for ${pendingDraft.cust.name}`
+                  : ""}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-white/40">
+                Started {timeAgo(pendingDraft.savedAt)} — resume where you
+                left off, or start a new job card.
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="btn-ghost text-sm"
+              >
+                Start New
+              </button>
+              <button
+                type="button"
+                onClick={() => applyDraft(pendingDraft)}
+                className="btn-primary text-sm"
+              >
+                Resume
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Step indicator */}
+        {draftDecided && (
+        <>
         <div className="mb-6 flex items-center">
           {STEP_META.map((step, i) => {
             const done = completedSteps.has(step.id);
@@ -1531,6 +1624,8 @@ export default function NewJobCardPage() {
             )}
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

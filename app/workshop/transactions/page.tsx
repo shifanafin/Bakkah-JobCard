@@ -5,11 +5,13 @@ import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Link from 'next/link'
-import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2, Plus, ArrowRightCircle } from 'lucide-react'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import * as XLSX from 'xlsx'
 import { toast } from 'sonner'
+import JobCardPicker from '@/components/job-card/JobCardPicker'
+import type { JobCard } from '@/types'
 
 type JobRef = {
   job_number: string
@@ -29,6 +31,7 @@ type Quotation = {
   created_at: string
   job_card_id: string
   job_card?: JobRef | null
+  has_proforma?: boolean
 }
 
 type Proforma = {
@@ -42,6 +45,7 @@ type Proforma = {
   created_at: string
   job_card_id: string
   job_card?: JobRef | null
+  has_tax_invoice?: boolean
 }
 
 type TaxInvoice = {
@@ -89,6 +93,71 @@ export default function TransactionsPage() {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState<SortKey>('date')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  // ── Create new document / convert existing ──────────────────────
+  const [showPicker, setShowPicker] = useState<Tab | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
+  const TAB_META: Record<Tab, { pickerTitle: string; newLabel: string; endpoint: string; path: string }> = {
+    quotations: { pickerTitle: 'Select a job card for the new quotation', newLabel: 'New Quotation', endpoint: '/api/quotations', path: 'quotation' },
+    proformas: { pickerTitle: 'Select a job card for the new proforma', newLabel: 'New Proforma', endpoint: '/api/proforma-invoices', path: 'proforma' },
+    tax: { pickerTitle: 'Select a job card for the new tax invoice', newLabel: 'New Tax Invoice', endpoint: '/api/tax-invoices', path: 'tax-invoice' },
+  }
+
+  async function handlePickJobCard(jc: JobCard) {
+    const meta = TAB_META[showPicker as Tab]
+    setShowPicker(null)
+    setBusyId(jc.id)
+    try {
+      const res = await fetch(meta.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_card_id: jc.id }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to create'); setBusyId(null); return }
+      router.push(`/workshop/job-cards/${jc.id}/${meta.path}`)
+    } catch {
+      toast.error('Failed to create')
+      setBusyId(null)
+    }
+  }
+
+  async function handleCreateProforma(row: Quotation) {
+    if (!confirm(`Create a proforma invoice from quotation ${row.quotation_number}?`)) return
+    setBusyId(row.id)
+    try {
+      const res = await fetch('/api/proforma-invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_card_id: row.job_card_id, quotation_id: row.id }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to create proforma'); setBusyId(null); return }
+      router.push(`/workshop/job-cards/${row.job_card_id}/proforma`)
+    } catch {
+      toast.error('Failed to create proforma')
+      setBusyId(null)
+    }
+  }
+
+  async function handleConvertToTax(row: Proforma) {
+    if (!confirm(`Convert proforma ${row.proforma_number} to a tax invoice?`)) return
+    setBusyId(row.id)
+    try {
+      const res = await fetch('/api/tax-invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_card_id: row.job_card_id, proforma_id: row.id }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to convert'); setBusyId(null); return }
+      router.push(`/workshop/job-cards/${row.job_card_id}/tax-invoice`)
+    } catch {
+      toast.error('Failed to convert')
+      setBusyId(null)
+    }
+  }
 
   useEffect(() => {
     if (session && role !== 'admin' && role !== 'supervisor') {
@@ -308,6 +377,11 @@ export default function TransactionsPage() {
               className="input-base sm:w-64"
             />
             <button
+              onClick={() => setShowPicker(tab)}
+              className="btn-primary shrink-0">
+              <Plus className="h-4 w-4" /> {TAB_META[tab].newLabel}
+            </button>
+            <button
               onClick={() => { setShowImport(true); setImportRows([]); setImportResult(null) }}
               className="btn-ghost border-blue-600/30 bg-blue-500/8 text-blue-600 hover:bg-blue-500/15 dark:text-blue-400 shrink-0">
               <Upload className="h-4 w-4" /> Import Payments
@@ -423,10 +497,10 @@ export default function TransactionsPage() {
         {/* Table */}
         <div className="card overflow-hidden p-0">
           {tab === 'quotations' && (
-            <QuotationTable rows={filteredQuotations} SortIcon={SortIcon} onSort={toggleSort} />
+            <QuotationTable rows={filteredQuotations} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onCreateProforma={handleCreateProforma} />
           )}
           {tab === 'proformas' && (
-            <ProformaTable rows={filteredProformas} SortIcon={SortIcon} onSort={toggleSort} />
+            <ProformaTable rows={filteredProformas} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onConvertToTax={handleConvertToTax} />
           )}
           {tab === 'tax' && (
             <TaxTable rows={filteredTax} SortIcon={SortIcon} onSort={toggleSort} />
@@ -434,6 +508,14 @@ export default function TransactionsPage() {
         </div>
 
       </div>
+
+      {showPicker && (
+        <JobCardPicker
+          title={TAB_META[showPicker].pickerTitle}
+          onSelect={handlePickJobCard}
+          onClose={() => setShowPicker(null)}
+        />
+      )}
     </div>
   )
 }
@@ -463,10 +545,12 @@ function SummaryCard({
 const thCls = 'px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 cursor-pointer select-none hover:text-gray-600 dark:hover:text-white/60 transition-colors'
 const tdCls = 'px-4 py-3 text-sm'
 
-function QuotationTable({ rows, SortIcon, onSort }: {
+function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma }: {
   rows: Quotation[]
   SortIcon: React.FC<{ k: SortKey }>
   onSort: (k: SortKey) => void
+  busyId: string | null
+  onCreateProforma: (row: Quotation) => void
 }) {
   if (rows.length === 0) return <EmptyState label="No quotations found" />
   return (
@@ -481,7 +565,7 @@ function QuotationTable({ rows, SortIcon, onSort }: {
             <th className={thCls}>Status</th>
             <th className={thCls} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
             <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={thCls}></th>
+            <th className={thCls}>Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
@@ -505,12 +589,23 @@ function QuotationTable({ rows, SortIcon, onSort }: {
                 <td className={cn(tdCls, 'font-semibold tabular-nums text-gray-900 dark:text-white')}>{formatAED(row.total)}</td>
                 <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.created_at)}</td>
                 <td className={tdCls}>
-                  {row.job_card_id && (
-                    <Link href={`/workshop/job-cards/${row.job_card_id}`}
-                      className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
-                      <ExternalLink className="h-3 w-3" /> View Job
-                    </Link>
-                  )}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {row.job_card_id && (
+                      <Link href={`/workshop/job-cards/${row.job_card_id}/quotation`}
+                        className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
+                        <ExternalLink className="h-3 w-3" /> View
+                      </Link>
+                    )}
+                    {row.status === 'approved' && !row.has_proforma && (
+                      <button
+                        onClick={() => onCreateProforma(row)}
+                        disabled={busyId === row.id}
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium disabled:opacity-40 dark:text-blue-400">
+                        {busyId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowRightCircle className="h-3 w-3" />}
+                        Create Proforma
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             )
@@ -521,10 +616,12 @@ function QuotationTable({ rows, SortIcon, onSort }: {
   )
 }
 
-function ProformaTable({ rows, SortIcon, onSort }: {
+function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax }: {
   rows: Proforma[]
   SortIcon: React.FC<{ k: SortKey }>
   onSort: (k: SortKey) => void
+  busyId: string | null
+  onConvertToTax: (row: Proforma) => void
 }) {
   if (rows.length === 0) return <EmptyState label="No proforma invoices found" />
   return (
@@ -541,7 +638,7 @@ function ProformaTable({ rows, SortIcon, onSort }: {
             <th className={thCls}>VAT</th>
             <th className={thCls} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
             <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={thCls}></th>
+            <th className={thCls}>Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
@@ -563,12 +660,23 @@ function ProformaTable({ rows, SortIcon, onSort }: {
               <td className={cn(tdCls, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
               <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
               <td className={tdCls}>
-                {row.job_card_id && (
-                  <Link href={`/workshop/job-cards/${row.job_card_id}`}
-                    className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
-                    <ExternalLink className="h-3 w-3" /> View Job
-                  </Link>
-                )}
+                <div className="flex items-center gap-3 flex-wrap">
+                  {row.job_card_id && (
+                    <Link href={`/workshop/job-cards/${row.job_card_id}/proforma`}
+                      className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
+                      <ExternalLink className="h-3 w-3" /> View
+                    </Link>
+                  )}
+                  {!row.has_tax_invoice && (
+                    <button
+                      onClick={() => onConvertToTax(row)}
+                      disabled={busyId === row.id}
+                      className="flex items-center gap-1 text-xs text-brand hover:underline font-medium disabled:opacity-40">
+                      {busyId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowRightCircle className="h-3 w-3" />}
+                      Convert to Tax Invoice
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           ))}
@@ -627,9 +735,9 @@ function TaxTable({ rows, SortIcon, onSort }: {
                 <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
                 <td className={tdCls}>
                   {row.job_card_id && (
-                    <Link href={`/workshop/job-cards/${row.job_card_id}`}
+                    <Link href={`/workshop/job-cards/${row.job_card_id}/tax-invoice`}
                       className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
-                      <ExternalLink className="h-3 w-3" /> View Job
+                      <ExternalLink className="h-3 w-3" /> View
                     </Link>
                   )}
                 </td>
