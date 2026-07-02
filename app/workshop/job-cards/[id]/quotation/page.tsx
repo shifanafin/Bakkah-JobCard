@@ -8,7 +8,6 @@ import QuotationSection from '@/components/job-card/QuotationSection'
 import { getJobCard } from '@/lib/queries'
 import type { JobCard } from '@/types'
 import { ChevronLeft, FileText, Loader2, ChevronRight } from 'lucide-react'
-import { toast } from 'sonner'
 
 export default function JobCardQuotationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -31,17 +30,6 @@ export default function JobCardQuotationPage({ params }: { params: Promise<{ id:
   }, [id])
 
   useEffect(() => { load() }, [load])
-
-  async function handleNotifyEmail() {
-    try {
-      const res = await fetch(`/api/job-cards/${id}/notify`, { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed to send email')
-      toast.success('Email sent to customer')
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to send email')
-    }
-  }
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-surface-900">
@@ -87,7 +75,6 @@ export default function JobCardQuotationPage({ params }: { params: Promise<{ id:
           customerEmail={job.customer?.email}
           vehiclePlate={job.vehicle?.plate_number}
           canApprove={canAssign}
-          onEmailNotify={handleNotifyEmail}
           onJobUpdate={load}
           readOnly={job.status === 'delivered'}
         />
