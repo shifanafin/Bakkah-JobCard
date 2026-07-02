@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
-import { sendChatRequestNotificationEmail } from '@/lib/email'
 
 function normalizePhone(raw: string): string {
   const d = raw.replace(/\D/g, '')
@@ -85,16 +84,6 @@ export async function POST(req: NextRequest) {
       `Remarks: ${remarks?.trim() || '—'}\n\n` +
       `_Review at: /workshop/enquiries_`
     await sendTelegramNotification(msg)
-
-    sendChatRequestNotificationEmail({
-      name: name.trim(),
-      phone: normalizedPhone,
-      plate: plate?.trim().toUpperCase() || null,
-      make: make?.trim() || null,
-      model: model?.trim() || null,
-      service_type: service_type.trim(),
-      remarks: remarks?.trim() || null,
-    }).catch(() => {})
 
     return NextResponse.json({ success: true }, { status: 201 })
   } catch (err) {

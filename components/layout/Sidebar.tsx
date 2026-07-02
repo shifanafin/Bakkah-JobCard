@@ -34,7 +34,7 @@ const NAV = {
   dashboard: 'Dashboard', myJobs: 'My Jobs', jobCards: 'Job Cards',
   newJobCard: 'New Job Card', customers: 'Customers',
   settings: 'Settings', signOut: 'Sign Out', employees: 'Employees',
-  technicians: 'Technicians', attendance: 'Attendance', feedback: 'Feedback',
+  attendance: 'Attendance', feedback: 'Feedback',
   announcements: 'Announcements', analytics: 'Analytics', website: 'Website CMS',
   services: 'Services',
 }
@@ -157,14 +157,13 @@ function SidebarContent({
       },
       { href: "/workshop/customers", icon: UserRound, label: nav.customers },
       { href: "/workshop/services", icon: Wrench, label: 'Services' },
-      { href: "/workshop/admin/technicians", icon: Users, label: nav.technicians },
+      { href: "/workshop/admin/hr", icon: Users, label: "People & HR" },
       { href: "/workshop/transactions", icon: Receipt, label: 'Transactions' },
     );
   }
 
   if (role === "admin") {
     adminNav.push(
-      { href: "/workshop/admin/hr", icon: Users, label: "People & HR" },
       {
         href: "/workshop/admin/announcements",
         icon: Megaphone,
