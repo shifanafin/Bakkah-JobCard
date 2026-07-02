@@ -307,7 +307,7 @@ export default async function DashboardPage() {
     { href: '/workshop/services', icon: Wrench, label: 'Services', color: 'text-emerald-500', bg: 'bg-emerald-500/10 dark:bg-emerald-500/15' },
     { href: '/workshop/enquiries', icon: Bell, label: 'Enquiries', color: 'text-orange-500', bg: 'bg-orange-500/10 dark:bg-orange-500/15' },
     { href: '/workshop/admin/attendance', icon: Clock, label: 'Attendance', color: 'text-indigo-500', bg: 'bg-indigo-500/10 dark:bg-indigo-500/15', show: role === 'admin' },
-    { href: '/workshop/admin/employees', icon: Briefcase, label: 'Employees', color: 'text-teal-500', bg: 'bg-teal-500/10 dark:bg-teal-500/15', show: role === 'admin' },
+    { href: '/workshop/admin/hr', icon: Briefcase, label: 'Employees', color: 'text-teal-500', bg: 'bg-teal-500/10 dark:bg-teal-500/15', show: role === 'admin' },
     { href: '/workshop/admin/feedback', icon: MessageSquare, label: 'Feedback', color: 'text-pink-500', bg: 'bg-pink-500/10 dark:bg-pink-500/15', show: role === 'admin' },
     { href: '/workshop/admin/announcements', icon: Megaphone, label: 'Notices', color: 'text-cyan-500', bg: 'bg-cyan-500/10 dark:bg-cyan-500/15', show: role === 'admin' },
     { href: '/workshop/admin/website', icon: Globe, label: 'Website', color: 'text-violet-500', bg: 'bg-violet-500/10 dark:bg-violet-500/15', show: role === 'admin' },

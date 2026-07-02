@@ -9,6 +9,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils/format'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 
 type Feedback = {
   id: string
@@ -175,7 +176,9 @@ export default function FeedbackPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <>
+          {/* Desktop list */}
+          <div className="hidden md:block space-y-3">
             {visible.map(f => (
               <div key={f.id} className={cn(
                 'card transition-all',
@@ -239,6 +242,64 @@ export default function FeedbackPage() {
               </div>
             ))}
           </div>
+
+          {/* Mobile card list — swipe-to-delete, Approve/Unpublish stays inline */}
+          <div className="md:hidden space-y-2">
+            {visible.map(f => (
+              <SwipeToDelete key={f.id} onDelete={() => setConfirmDeleteId(f.id)}>
+                <div className={cn(
+                  'rounded-2xl border border-gray-100 bg-white dark:border-white/[0.06] dark:bg-surface-800 p-4',
+                  !f.approved && 'border-amber-200 dark:border-amber-500/20'
+                )}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                        <span className="font-semibold text-gray-900 dark:text-white">{f.customer_name}</span>
+                        {f.job_number && (
+                          <span className="font-mono text-xs text-brand bg-brand/10 px-2 py-0.5 rounded-full">{f.job_number}</span>
+                        )}
+                        <span className={cn(
+                          'rounded-full px-2 py-0.5 text-xs font-semibold',
+                          f.approved ? 'bg-emerald-500/15 text-emerald-500' : 'bg-amber-500/15 text-amber-500'
+                        )}>
+                          {f.approved ? 'Published' : 'Pending'}
+                        </span>
+                      </div>
+                      <StarRow rating={f.rating} />
+                      {f.comment && (
+                        <p className="mt-2 text-sm text-gray-600 dark:text-white/60 leading-relaxed">{f.comment}</p>
+                      )}
+                      <p className="mt-2 text-xs text-gray-400 dark:text-white/25">{formatDate(f.created_at)}</p>
+                    </div>
+
+                    {/* Actions — Approve/Unpublish only, delete is via swipe */}
+                    <div className="flex shrink-0 items-center gap-2">
+                      {processingId === f.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                      ) : !f.approved ? (
+                        <button
+                          onClick={() => handleApprove(f.id, true)}
+                          title="Approve & publish"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-emerald-300 text-emerald-500 hover:bg-emerald-50 transition-colors dark:border-emerald-500/30 dark:hover:bg-emerald-500/10"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleApprove(f.id, false)}
+                          title="Unpublish"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </SwipeToDelete>
+            ))}
+          </div>
+          </>
         )}
       </div>
 

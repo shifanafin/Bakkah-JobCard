@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import { Tag, Plus, Edit2, Trash2, Check, X, Loader2, Search } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -178,19 +179,93 @@ export default function JobTypesPage() {
             <p className="text-sm text-gray-400">No job types match your search</p>
           </div>
         ) : (
-          <div className="card space-y-1">
-            {filtered.map(t => (
-              <div
-                key={t.id}
-                className={cn(
-                  'rounded-lg border px-3 py-2.5',
-                  t.active
-                    ? 'border-gray-100 dark:border-white/[0.06]'
-                    : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50'
-                )}
-              >
-                {editId === t.id ? (
-                  <div className="flex items-center gap-2">
+          <>
+            {/* Desktop list */}
+            <div className="hidden md:block card space-y-1">
+              {filtered.map(t => (
+                <div
+                  key={t.id}
+                  className={cn(
+                    'rounded-lg border px-3 py-2.5',
+                    t.active
+                      ? 'border-gray-100 dark:border-white/[0.06]'
+                      : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50'
+                  )}
+                >
+                  {editId === t.id ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        className="input-base flex-1 text-sm py-1.5"
+                        autoFocus
+                        onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(t.id); if (e.key === 'Escape') setEditId(null) }}
+                      />
+                      <button onClick={() => handleSaveEdit(t.id)} disabled={savingEdit}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand/10 text-brand hover:bg-brand/20 transition">
+                        {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                      </button>
+                      <button onClick={() => setEditId(null)}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition dark:hover:bg-white/[0.06]">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <Tag className="h-3.5 w-3.5 text-gray-300 dark:text-white/20 shrink-0" />
+                      <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white/80">{t.name}</span>
+                      {!t.active && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-gray-300 dark:text-white/20">
+                          Disabled
+                        </span>
+                      )}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => { setEditId(t.id); setEditName(t.name) }}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition dark:hover:bg-white/[0.06] dark:hover:text-white/70"
+                          title="Edit">
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleToggleActive(t)}
+                          className={cn(
+                            'flex h-7 w-7 items-center justify-center rounded-lg transition',
+                            t.active
+                              ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.06]'
+                              : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
+                          )}
+                          title={t.active ? 'Disable' : 'Enable'}>
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(t.id)}
+                          disabled={deletingId === t.id}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition dark:text-white/20 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                          title="Delete">
+                          {deletingId === t.id
+                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile list */}
+            <div className="md:hidden space-y-2">
+              {filtered.map(t => (
+                editId === t.id ? (
+                  <div
+                    key={t.id}
+                    className={cn(
+                      'rounded-2xl border p-4 bg-white dark:bg-surface-800 flex items-center gap-2',
+                      t.active
+                        ? 'border-gray-100 dark:border-white/[0.06]'
+                        : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50'
+                    )}
+                  >
                     <input
                       value={editName}
                       onChange={e => setEditName(e.target.value)}
@@ -208,25 +283,27 @@ export default function JobTypesPage() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3">
-                    <Tag className="h-3.5 w-3.5 text-gray-300 dark:text-white/20 shrink-0" />
-                    <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white/80">{t.name}</span>
-                    {!t.active && (
-                      <span className="text-[10px] font-bold uppercase tracking-wide text-gray-300 dark:text-white/20">
-                        Disabled
-                      </span>
-                    )}
-                    <div className="flex items-center gap-1 shrink-0">
+                  <SwipeToDelete key={t.id} onDelete={() => setConfirmDeleteId(t.id)}>
+                    <div
+                      onClick={() => { setEditId(t.id); setEditName(t.name) }}
+                      className={cn(
+                        'bg-white dark:bg-surface-800 border rounded-2xl p-4 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors flex items-center gap-3',
+                        t.active
+                          ? 'border-gray-100 dark:border-white/[0.06]'
+                          : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50'
+                      )}
+                    >
+                      <Tag className="h-3.5 w-3.5 text-gray-300 dark:text-white/20 shrink-0" />
+                      <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white/80 truncate">{t.name}</span>
+                      {!t.active && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide text-gray-300 dark:text-white/20 shrink-0">
+                          Disabled
+                        </span>
+                      )}
                       <button
-                        onClick={() => { setEditId(t.id); setEditName(t.name) }}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition dark:hover:bg-white/[0.06] dark:hover:text-white/70"
-                        title="Edit">
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleToggleActive(t)}
+                        onClick={e => { e.stopPropagation(); handleToggleActive(t) }}
                         className={cn(
-                          'flex h-7 w-7 items-center justify-center rounded-lg transition',
+                          'flex h-7 w-7 items-center justify-center rounded-lg transition shrink-0',
                           t.active
                             ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.06]'
                             : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
@@ -234,21 +311,12 @@ export default function JobTypesPage() {
                         title={t.active ? 'Disable' : 'Enable'}>
                         <Check className="h-3.5 w-3.5" />
                       </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(t.id)}
-                        disabled={deletingId === t.id}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition dark:text-white/20 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-                        title="Delete">
-                        {deletingId === t.id
-                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          : <Trash2 className="h-3.5 w-3.5" />}
-                      </button>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  </SwipeToDelete>
+                )
+              ))}
+            </div>
+          </>
         )}
       </div>
 

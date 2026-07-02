@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
 import { useSession } from '@/lib/auth-client'
@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import * as XLSX from 'xlsx'
 import Pagination from '@/components/ui/Pagination'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 
 const PAGE_SIZE = 20
 
@@ -45,107 +46,7 @@ const STATUS_ACCENT: Record<string, string> = {
   inspection: 'border-l-yellow-400',
 }
 
-function SwipeToDelete({
-  children,
-  onDelete,
-  disabled,
-}: {
-  children: React.ReactNode
-  onDelete: () => void
-  disabled?: boolean
-}) {
-  const [tx, setTx] = useState(0)
-  const [animating, setAnimating] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const startX = useRef(0)
-  const startY = useRef(0)
-  const startTx = useRef(0)
-  const isHoriz = useRef<boolean | null>(null)
-  const txRef = useRef(0)
-  const REVEAL = 80
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el || disabled) return
-
-    const onTouchStart = (e: TouchEvent) => {
-      startX.current = e.touches[0].clientX
-      startY.current = e.touches[0].clientY
-      startTx.current = txRef.current
-      isHoriz.current = null
-      setAnimating(false)
-    }
-
-    const onTouchMove = (e: TouchEvent) => {
-      const dx = e.touches[0].clientX - startX.current
-      const dy = Math.abs(e.touches[0].clientY - startY.current)
-      if (isHoriz.current === null) {
-        isHoriz.current = Math.abs(dx) > dy
-      }
-      if (!isHoriz.current) return
-      e.preventDefault()
-      const next = Math.max(Math.min(startTx.current + dx, 0), -REVEAL)
-      txRef.current = next
-      setTx(next)
-    }
-
-    const onTouchEnd = () => {
-      if (!isHoriz.current) return
-      setAnimating(true)
-      const next = txRef.current < -REVEAL / 2 ? -REVEAL : 0
-      txRef.current = next
-      setTx(next)
-    }
-
-    el.addEventListener('touchstart', onTouchStart, { passive: true })
-    el.addEventListener('touchmove', onTouchMove, { passive: false })
-    el.addEventListener('touchend', onTouchEnd, { passive: true })
-    return () => {
-      el.removeEventListener('touchstart', onTouchStart)
-      el.removeEventListener('touchmove', onTouchMove)
-      el.removeEventListener('touchend', onTouchEnd)
-    }
-  }, [disabled])
-
-  function close() {
-    setAnimating(true)
-    txRef.current = 0
-    setTx(0)
-  }
-
-  const isOpen = tx < -REVEAL / 2
-
-  return (
-    <div ref={ref} className="relative overflow-hidden rounded-2xl">
-      {/* Red delete zone revealed on left-swipe */}
-      <div
-        className="absolute inset-y-0 right-0 flex flex-col items-center justify-center gap-1 bg-red-500"
-        style={{ width: REVEAL }}
-      >
-        <button
-          onClick={() => { close(); onDelete() }}
-          className="flex h-full w-full flex-col items-center justify-center gap-1"
-          aria-label="Delete"
-        >
-          <Trash2 className="h-5 w-5 text-white" />
-          <span className="text-[9px] font-bold uppercase tracking-wide text-white/90">Delete</span>
-        </button>
-      </div>
-
-      {/* Sliding card content */}
-      <div
-        style={{
-          transform: `translateX(${tx}px)`,
-          transition: animating ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none',
-          willChange: 'transform',
-        }}
-        onClick={isOpen ? (e) => { e.preventDefault(); e.stopPropagation(); close() } : undefined}
-      >
-        {children}
-      </div>
-    </div>
-  )
-}
+const DELETABLE_STATUSES = new Set(['inspection', 'cancelled'])
 
 const TABS: { value: JobStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -223,17 +124,31 @@ export default function JobCardsPage() {
 
   async function executeDelete(ids: string[]) {
     setDeleting(true)
+    const errors = new Set<string>()
     let failed = 0
     for (const id of ids) {
       const res = await fetch(`/api/job-cards/${id}`, { method: 'DELETE' })
-      if (!res.ok) failed++
+      if (!res.ok) {
+        failed++
+        try {
+          const data = await res.json()
+          errors.add(data.error || 'Delete failed')
+        } catch {
+          errors.add('Delete failed')
+        }
+      }
     }
     setDeleting(false)
     setSelectedIds(new Set())
     setConfirmDelete(null)
     await load()
-    if (failed === 0) toast.success(`${ids.length} job card${ids.length > 1 ? 's' : ''} deleted`)
-    else toast.error(`${failed} deletion${failed > 1 ? 's' : ''} failed`)
+    if (failed === 0) {
+      toast.success(`${ids.length} job card${ids.length > 1 ? 's' : ''} deleted`)
+    } else {
+      const succeeded = ids.length - failed
+      const prefix = succeeded > 0 ? `${succeeded} deleted, ${failed} failed: ` : ''
+      toast.error(prefix + [...errors].join(' — '))
+    }
   }
 
   function exportExcel() {
@@ -619,7 +534,7 @@ export default function JobCardsPage() {
                                     <Pencil className="h-3.5 w-3.5" /> Edit
                                   </Link>
                                 )}
-                                {canDelete && !isDelivered && (
+                                {canDelete && DELETABLE_STATUSES.has(job.status) && (
                                   <button onClick={() => handleDeleteSingle(job.id)} disabled={deleting}
                                     className="inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50 px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-100 hover:text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 disabled:opacity-50">
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -638,16 +553,15 @@ export default function JobCardsPage() {
                 <div className="md:hidden space-y-2">
                   {paginated.map(job => {
                     const isSelected = selectedIds.has(job.id)
-                    const isDelivered = job.status === 'delivered'
-                    const canSwipeDelete = canDelete && !isDelivered
+                    const isDeletable = DELETABLE_STATUSES.has(job.status)
+                    const swipeDisabledReason = job.status === 'delivered'
+                      ? "Can't delete — job already delivered"
+                      : !isDeletable
+                        ? 'Cancel the job first — only Inspection or Cancelled jobs can be deleted'
+                        : undefined
 
-                    return (
-                      <SwipeToDelete
-                        key={job.id}
-                        onDelete={() => handleDeleteSingle(job.id)}
-                        disabled={!canSwipeDelete}
-                      >
-                        <div className={cn(
+                    const card = (
+                      <div className={cn(
                           'bg-white dark:bg-surface-800 border border-l-4 border-gray-100 dark:border-white/[0.06] shadow-sm',
                           STATUS_ACCENT[job.status] ?? 'border-l-gray-200',
                           isSelected && 'ring-2 ring-brand ring-inset'
@@ -701,7 +615,19 @@ export default function JobCardsPage() {
                             </Link>
                           </div>
                         </div>
+                    )
+
+                    return canDelete ? (
+                      <SwipeToDelete
+                        key={job.id}
+                        onDelete={() => handleDeleteSingle(job.id)}
+                        disabled={!isDeletable}
+                        disabledReason={swipeDisabledReason}
+                      >
+                        {card}
                       </SwipeToDelete>
+                    ) : (
+                      <div key={job.id}>{card}</div>
                     )
                   })}
                 </div>

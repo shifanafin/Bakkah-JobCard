@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils/format'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -348,10 +349,16 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
             </table>
           </div>
 
-          {/* Mobile cards */}
-          <div className="md:hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 divide-y divide-gray-100 dark:divide-white/[0.05]">
+          {/* Mobile cards — swipe-to-delete */}
+          <div className="md:hidden space-y-2">
             {filtered.map(emp => (
-              <div key={emp.id} className="p-4 space-y-3">
+              <SwipeToDelete
+                key={emp.id}
+                onDelete={() => setDeleteTarget(emp)}
+                disabled={!isAdmin}
+                disabledReason={!isAdmin ? 'Only admins can delete employees' : undefined}
+              >
+              <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 p-4 space-y-3">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">{emp.name[0]?.toUpperCase()}</div>
@@ -381,15 +388,10 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
                       className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
                       <Key className="h-3.5 w-3.5" />
                     </button>
-                    {isAdmin && (
-                      <button onClick={() => setDeleteTarget(emp)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
+              </SwipeToDelete>
             ))}
           </div>
         </>
