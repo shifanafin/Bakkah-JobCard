@@ -11,6 +11,10 @@ const logoSvg     = readFileSync(join(root, 'public', 'logo.svg'))
 const iconSvg     = readFileSync(join(iconsDir, 'icon.svg'))
 const maskableSvg = readFileSync(join(iconsDir, 'icon-maskable.svg'))
 
+// Brand gold (#C9A227) — home-screen icons need an opaque background because
+// iOS/Android render transparent icon regions as black.
+const BRAND_GOLD = { r: 0xC9, g: 0xA2, b: 0x27, alpha: 1 }
+
 const icons = [
   { svg: iconSvg,     size: 192, out: 'icon-192.png' },
   { svg: iconSvg,     size: 512, out: 'icon-512.png' },
@@ -21,7 +25,8 @@ const icons = [
 
 for (const { svg, size, out } of icons) {
   await sharp(svg, { density: 300 })
-    .resize(size, size)
+    .resize(size, size, { fit: 'contain', background: BRAND_GOLD })
+    .flatten({ background: BRAND_GOLD })
     .png()
     .toFile(join(iconsDir, out))
   console.log(`✓  ${out}  (${size}x${size})`)

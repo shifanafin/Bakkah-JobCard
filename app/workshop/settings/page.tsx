@@ -6,7 +6,7 @@ import { signOut } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { useTheme } from '@/components/ThemeProvider'
-import { Sun, Moon, User, Building2, Lock, Loader2, Check, Eye, EyeOff, Shield, AlertCircle, CheckCircle2, ExternalLink, LogOut, ChevronRight } from 'lucide-react'
+import { Sun, Moon, User, Building2, Lock, Loader2, Check, Eye, EyeOff, Shield, AlertCircle, CheckCircle2, ExternalLink, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
@@ -119,25 +119,27 @@ export default function SettingsPage() {
           <p className="mt-3 text-xs text-gray-400 dark:text-white/30 text-center">Current: <span className="font-semibold text-brand capitalize">{theme}</span> · Saved in browser</p>
         </div>
 
-        {/* Account */}
-        <div className="card">
-          <SectionHeader icon={User} title="Account" subtitle="Your account details" />
-          <div className="space-y-3">
-            {[
-              { label: 'Full Name', value: user?.name ?? '—' },
-              { label: 'Email Address', value: user?.email ?? '—' },
-              { label: 'Role', value: user?.role ?? 'admin', badge: true },
-            ].map(({ label, value, badge }) => (
-              <div key={label} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                <span className="text-sm text-gray-500 dark:text-white/40">{label}</span>
-                {badge
-                  ? <span className="rounded-full bg-brand/10 px-3 py-0.5 text-xs font-bold capitalize text-brand">{value}</span>
-                  : <span className="text-sm font-semibold text-gray-900 dark:text-white">{value}</span>
-                }
-              </div>
-            ))}
+        {/* Account — hidden for technicians */}
+        {!isTechnician && (
+          <div className="card">
+            <SectionHeader icon={User} title="Account" subtitle="Your account details" />
+            <div className="space-y-3">
+              {[
+                { label: 'Full Name', value: user?.name ?? '—' },
+                { label: 'Email Address', value: user?.email ?? '—' },
+                { label: 'Role', value: user?.role ?? 'admin', badge: true },
+              ].map(({ label, value, badge }) => (
+                <div key={label} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                  <span className="text-sm text-gray-500 dark:text-white/40">{label}</span>
+                  {badge
+                    ? <span className="rounded-full bg-brand/10 px-3 py-0.5 text-xs font-bold capitalize text-brand">{value}</span>
+                    : <span className="text-sm font-semibold text-gray-900 dark:text-white">{value}</span>
+                  }
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Change Password */}
         <div className="card">
@@ -216,25 +218,6 @@ export default function SettingsPage() {
             <Link href="/workshop/rta-guide" className="flex items-center gap-1.5 text-xs font-bold text-brand hover:underline">
               View full RTA API guide <ExternalLink className="h-3 w-3" />
             </Link>
-          </div>
-        )}
-
-        {/* Employee quick links */}
-        {isTechnician && (
-          <div className="card">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-white/30 mb-3">Employee Services</p>
-            <div className="space-y-1 rounded-xl border border-gray-100 dark:border-white/[0.06] overflow-hidden divide-y divide-gray-100 dark:divide-white/[0.06]">
-              {[
-                { href: '/workshop/my/leave', label: 'Leave Requests' },
-                { href: '/workshop/my/suggestions', label: 'Suggestions' },
-                { href: '/workshop/my/complaints', label: 'Complaints' },
-              ].map(item => (
-                <Link key={item.href} href={item.href} className="flex items-center justify-between px-4 py-3 bg-white dark:bg-surface-800 active:bg-gray-50 dark:active:bg-white/[0.03] transition-colors">
-                  <span className="text-sm font-medium text-gray-700 dark:text-white/70">{item.label}</span>
-                  <ChevronRight className="h-4 w-4 text-gray-300 dark:text-white/20" />
-                </Link>
-              ))}
-            </div>
           </div>
         )}
 

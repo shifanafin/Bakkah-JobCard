@@ -7,6 +7,7 @@ import Header from '@/components/layout/Header'
 import { createClient } from '@/lib/supabase/client'
 import { Megaphone, Plus, Edit2, Trash2, Loader2, X, Check, ToggleLeft, ToggleRight } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -194,78 +195,149 @@ export default function AnnouncementsPage() {
             <button onClick={openAdd} className="mt-3 text-xs text-brand hover:underline">Create the first one →</button>
           </div>
         ) : (
-          <div className="space-y-3">
-            {announcements.map(item => (
-              <div
-                key={item.id}
-                className={cn(
-                  'card transition-all',
-                  !item.active && 'opacity-60'
-                )}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className={cn('rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide', TYPE_STYLES[item.type] ?? TYPE_STYLES.info)}>
-                        {item.type}
-                      </span>
-                      {item.show_on_track && (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-white/[0.06] dark:text-white/40">
-                          Shows on Tracker
+          <>
+            {/* Desktop view */}
+            <div className="hidden md:block space-y-3">
+              {announcements.map(item => (
+                <div
+                  key={item.id}
+                  className={cn(
+                    'card transition-all',
+                    !item.active && 'opacity-60'
+                  )}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className={cn('rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide', TYPE_STYLES[item.type] ?? TYPE_STYLES.info)}>
+                          {item.type}
                         </span>
-                      )}
-                      {!item.active && (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400 dark:bg-white/[0.04] dark:text-white/30">
-                          Hidden
-                        </span>
-                      )}
-                      {item.expires_at && (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400 dark:bg-white/[0.04] dark:text-white/30">
-                          Expires {new Date(item.expires_at).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </span>
+                        {item.show_on_track && (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-white/[0.06] dark:text-white/40">
+                            Shows on Tracker
+                          </span>
+                        )}
+                        {!item.active && (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400 dark:bg-white/[0.04] dark:text-white/30">
+                            Hidden
+                          </span>
+                        )}
+                        {item.expires_at && (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400 dark:bg-white/[0.04] dark:text-white/30">
+                            Expires {new Date(item.expires_at).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-bold text-gray-900 dark:text-white">{item.title}</h3>
+                      <p className="text-sm text-gray-500 mt-0.5 dark:text-white/50 line-clamp-2">{item.content}</p>
+                      {item.created_by && (
+                        <p className="text-xs text-gray-400 mt-1 dark:text-white/25">by {item.created_by}</p>
                       )}
                     </div>
-                    <h3 className="font-bold text-gray-900 dark:text-white">{item.title}</h3>
-                    <p className="text-sm text-gray-500 mt-0.5 dark:text-white/50 line-clamp-2">{item.content}</p>
-                    {item.created_by && (
-                      <p className="text-xs text-gray-400 mt-1 dark:text-white/25">by {item.created_by}</p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => handleToggle(item)}
-                      disabled={togglingId === item.id}
-                      title={item.active ? 'Deactivate' : 'Activate'}
-                      className={cn(
-                        'flex h-8 w-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
-                        item.active
-                          ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
-                          : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30'
-                      )}
-                    >
-                      {togglingId === item.id
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
-                        : item.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />
-                      }
-                    </button>
-                    <button
-                      onClick={() => openEdit(item)}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/30 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => setConfirmDeleteId(item.id)}
-                      disabled={deletingId === item.id}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors disabled:opacity-50 dark:border-white/[0.08] dark:text-white/30"
-                    >
-                      {deletingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => handleToggle(item)}
+                        disabled={togglingId === item.id}
+                        title={item.active ? 'Deactivate' : 'Activate'}
+                        className={cn(
+                          'flex h-8 w-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
+                          item.active
+                            ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
+                            : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30'
+                        )}
+                      >
+                        {togglingId === item.id
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : item.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />
+                        }
+                      </button>
+                      <button
+                        onClick={() => openEdit(item)}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/30 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(item.id)}
+                        disabled={deletingId === item.id}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors disabled:opacity-50 dark:border-white/[0.08] dark:text-white/30"
+                      >
+                        {deletingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden space-y-2">
+              {announcements.map(item => (
+                <SwipeToDelete key={item.id} onDelete={() => setConfirmDeleteId(item.id)}>
+                  <div
+                    className={cn(
+                      'card transition-all',
+                      !item.active && 'opacity-60'
+                    )}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className={cn('rounded-full border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide', TYPE_STYLES[item.type] ?? TYPE_STYLES.info)}>
+                            {item.type}
+                          </span>
+                          {item.show_on_track && (
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-white/[0.06] dark:text-white/40">
+                              Shows on Tracker
+                            </span>
+                          )}
+                          {!item.active && (
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400 dark:bg-white/[0.04] dark:text-white/30">
+                              Hidden
+                            </span>
+                          )}
+                          {item.expires_at && (
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-400 dark:bg-white/[0.04] dark:text-white/30">
+                              Expires {new Date(item.expires_at).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-gray-900 dark:text-white">{item.title}</h3>
+                        <p className="text-sm text-gray-500 mt-0.5 dark:text-white/50 line-clamp-2">{item.content}</p>
+                        {item.created_by && (
+                          <p className="text-xs text-gray-400 mt-1 dark:text-white/25">by {item.created_by}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => handleToggle(item)}
+                          disabled={togglingId === item.id}
+                          title={item.active ? 'Deactivate' : 'Activate'}
+                          className={cn(
+                            'flex h-8 w-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
+                            item.active
+                              ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
+                              : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30'
+                          )}
+                        >
+                          {togglingId === item.id
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : item.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />
+                          }
+                        </button>
+                        <button
+                          onClick={() => openEdit(item)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/30 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </SwipeToDelete>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

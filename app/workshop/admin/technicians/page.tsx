@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils/format'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 
 const SPECIALTIES = ['Technician', 'Inspector', 'Detailer', 'Body Technician', 'Painter', 'Electrician']
 
@@ -374,17 +375,17 @@ export default function TechniciansPage() {
               </table>
             </div>
 
-            {/* Mobile card list */}
-            <div className="md:hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 divide-y divide-gray-100 dark:divide-white/[0.05]">
+            {/* Mobile card list — swipe-to-delete, tap to edit */}
+            <div className="md:hidden space-y-2">
               {technicians.map(tech => {
                 const att = tech.today_attendance
                 const checkedIn  = att && !att.checkout_at
                 const checkedOut = att && att.checkout_at
                 const isActioning = attLoading === tech.id
                 return (
+                  <SwipeToDelete key={tech.id} onDelete={() => setDeleteTarget(tech)}>
                   <div
-                    key={tech.id}
-                    className="p-4 space-y-3 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors"
+                    className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 p-4 space-y-3 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors"
                     onClick={() => openEdit(tech)}
                   >
                     {/* Row 1: avatar + name + specialty */}
@@ -455,12 +456,10 @@ export default function TechniciansPage() {
                             </button>
                           )
                         )}
-                        <button onClick={() => setDeleteTarget(tech)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-400/40 hover:text-red-400 transition-colors dark:border-white/[0.08] dark:text-white/30">
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
                       </div>
                     </div>
                   </div>
+                  </SwipeToDelete>
                 )
               })}
             </div>

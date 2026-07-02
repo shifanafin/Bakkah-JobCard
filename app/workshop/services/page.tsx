@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/layout/Header'
 import { Wrench, Plus, Edit2, Trash2, Check, X, Loader2, Search } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -180,11 +181,65 @@ export default function ServicesPage() {
             <p className="text-sm text-gray-400">No services match your search</p>
           </div>
         ) : (
-          <div className="card space-y-1">
-            {filtered.map(s => (
-              <div key={s.id} className={cn('rounded-lg border px-3 py-2.5', s.active ? 'border-gray-100 dark:border-white/[0.06]' : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50')}>
-                {editId === s.id ? (
-                  <div className="space-y-3 py-1">
+          <>
+            {/* Desktop list */}
+            <div className="hidden md:block card space-y-1">
+              {filtered.map(s => (
+                <div key={s.id} className={cn('rounded-lg border px-3 py-2.5', s.active ? 'border-gray-100 dark:border-white/[0.06]' : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50')}>
+                  {editId === s.id ? (
+                    <div className="space-y-3 py-1">
+                      <ServiceFormFields form={editForm} setForm={setEditForm} inputCls={inputCls} compact />
+                      <div className="flex gap-2">
+                        <button onClick={() => handleSaveEdit(s.id)} disabled={savingEdit}
+                          className="btn-primary gap-1.5 text-xs !py-1.5 !px-3">
+                          {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />} Save
+                        </button>
+                        <button onClick={() => setEditId(null)} className="btn-ghost text-xs">Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-gray-800 dark:text-white/80">{s.name}</span>
+                        {s.description && (
+                          <span className="ml-2 text-xs text-gray-400 dark:text-white/30">{s.description}</span>
+                        )}
+                      </div>
+                      <span className="text-sm font-semibold text-brand shrink-0 tabular-nums">
+                        AED {s.default_price.toFixed(0)}
+                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => startEdit(s)}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition dark:hover:bg-white/[0.06] dark:hover:text-white/70"
+                          title="Edit">
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleToggleActive(s)}
+                          className={cn('flex h-7 w-7 items-center justify-center rounded-lg transition',
+                            s.active
+                              ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.06]'
+                              : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
+                          )}
+                          title={s.active ? 'Disable' : 'Enable'}>
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => setConfirmDeleteId(s.id)} disabled={deletingId === s.id}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition dark:text-white/20 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                          title="Delete">
+                          {deletingId === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile list */}
+            <div className="md:hidden space-y-2">
+              {filtered.map(s => (
+                editId === s.id ? (
+                  <div key={s.id} className={cn('rounded-2xl border p-4 space-y-3 bg-white dark:bg-surface-800', s.active ? 'border-gray-100 dark:border-white/[0.06]' : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50')}>
                     <ServiceFormFields form={editForm} setForm={setEditForm} inputCls={inputCls} compact />
                     <div className="flex gap-2">
                       <button onClick={() => handleSaveEdit(s.id)} disabled={savingEdit}
@@ -195,42 +250,41 @@ export default function ServicesPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm font-medium text-gray-800 dark:text-white/80">{s.name}</span>
-                      {s.description && (
-                        <span className="ml-2 text-xs text-gray-400 dark:text-white/30">{s.description}</span>
+                  <SwipeToDelete key={s.id} onDelete={() => setConfirmDeleteId(s.id)}>
+                    <div
+                      onClick={() => startEdit(s)}
+                      className={cn(
+                        'bg-white dark:bg-surface-800 border rounded-2xl p-4 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors',
+                        s.active ? 'border-gray-100 dark:border-white/[0.06]' : 'border-dashed border-gray-200 dark:border-white/[0.04] opacity-50'
                       )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 dark:text-white/80 truncate">{s.name}</p>
+                          {s.description && (
+                            <p className="mt-0.5 text-xs text-gray-400 dark:text-white/30 truncate">{s.description}</p>
+                          )}
+                        </div>
+                        <span className="text-sm font-semibold text-brand shrink-0 tabular-nums">
+                          AED {s.default_price.toFixed(0)}
+                        </span>
+                        <button
+                          onClick={e => { e.stopPropagation(); handleToggleActive(s) }}
+                          className={cn('flex h-7 w-7 items-center justify-center rounded-lg transition shrink-0',
+                            s.active
+                              ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.06]'
+                              : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
+                          )}
+                          title={s.active ? 'Disable' : 'Enable'}>
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <span className="text-sm font-semibold text-brand shrink-0 tabular-nums">
-                      AED {s.default_price.toFixed(0)}
-                    </span>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => startEdit(s)}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition dark:hover:bg-white/[0.06] dark:hover:text-white/70"
-                        title="Edit">
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => handleToggleActive(s)}
-                        className={cn('flex h-7 w-7 items-center justify-center rounded-lg transition',
-                          s.active
-                            ? 'text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.06]'
-                            : 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
-                        )}
-                        title={s.active ? 'Disable' : 'Enable'}>
-                        <Check className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => setConfirmDeleteId(s.id)} disabled={deletingId === s.id}
-                        className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-500 transition dark:text-white/20 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-                        title="Delete">
-                        {deletingId === s.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  </SwipeToDelete>
+                )
+              ))}
+            </div>
+          </>
         )}
       </div>
 

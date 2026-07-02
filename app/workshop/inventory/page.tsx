@@ -10,6 +10,7 @@ import Pagination from '@/components/ui/Pagination'
 const PAGE_SIZE = 20
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 
 type InventoryItem = {
   id: string
@@ -272,7 +273,8 @@ export default function InventoryPage() {
           </div>
         ) : (
           <>
-          <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
+          {/* Desktop table */}
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-white/[0.06]">
@@ -370,6 +372,88 @@ export default function InventoryPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile card list — swipe-to-delete, stepper/edit stay inline */}
+          <div className="md:hidden space-y-2">
+            {paginated.map(item => {
+              const isLow = item.stock_quantity <= item.min_stock_level
+              return (
+                <SwipeToDelete key={item.id} onDelete={() => setConfirmDeleteId(item.id)}>
+                  <div
+                    className={cn(
+                      'rounded-2xl border border-gray-100 bg-white dark:border-white/[0.06] dark:bg-surface-800 p-4 space-y-3',
+                      isLow && 'border-amber-200 bg-amber-50/50 dark:border-amber-500/20 dark:bg-amber-500/5'
+                    )}
+                  >
+                    {/* Row 1: name/sku + category */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2 min-w-0">
+                        {isLow && <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-500" />}
+                        <div className="min-w-0">
+                          <p className="font-medium text-gray-900 dark:text-white truncate">{item.name}</p>
+                          {item.sku && <p className="text-xs font-mono text-gray-400 dark:text-white/30">{item.sku}</p>}
+                        </div>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium capitalize text-gray-600 dark:bg-white/[0.06] dark:text-white/50">
+                        {item.category}
+                      </span>
+                    </div>
+
+                    {/* Row 2: stock stepper + min */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => adjustStock(item.id, -1)}
+                          disabled={adjustingId === item.id || item.stock_quantity <= 0}
+                          className="flex h-6 w-6 items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors disabled:opacity-30 dark:border-white/[0.08] dark:text-white/30"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className={cn(
+                          'w-14 text-center tabular-nums font-semibold',
+                          isLow ? 'text-amber-500' : 'text-gray-900 dark:text-white'
+                        )}>
+                          {item.stock_quantity} {item.unit}
+                        </span>
+                        <button
+                          onClick={() => adjustStock(item.id, 1)}
+                          disabled={adjustingId === item.id}
+                          className="flex h-6 w-6 items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:border-emerald-300 hover:text-emerald-500 transition-colors disabled:opacity-30 dark:border-white/[0.08] dark:text-white/30"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <span className="text-xs text-gray-500 dark:text-white/40">
+                        Min {item.min_stock_level} {item.unit}
+                      </span>
+                    </div>
+
+                    {/* Row 3: price/cost/supplier + edit */}
+                    <div className="flex items-end justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+                        <span className="font-semibold tabular-nums text-gray-900 dark:text-white">
+                          AED {item.selling_price.toFixed(2)}
+                        </span>
+                        <span className="tabular-nums text-gray-400 dark:text-white/40">
+                          Cost {item.cost_price.toFixed(2)}
+                        </span>
+                        {item.supplier && (
+                          <span className="text-gray-400 dark:text-white/40">{item.supplier}</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={e => { e.stopPropagation(); openEdit(item) }}
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/30 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </SwipeToDelete>
+              )
+            })}
+          </div>
+
           <Pagination page={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onChange={setPage} />
           </>
         )}

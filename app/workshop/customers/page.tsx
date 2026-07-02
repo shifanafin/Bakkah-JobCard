@@ -8,6 +8,7 @@ import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { cn } from '@/lib/utils/cn'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 
 type Customer = {
   id: string
@@ -166,7 +167,9 @@ export default function CustomersPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <>
+          {/* Desktop list */}
+          <div className="hidden md:block space-y-2">
             {filtered.map(c => (
               <div key={c.id} className="card flex items-center gap-4 !p-4 group">
                 {/* Avatar */}
@@ -225,6 +228,53 @@ export default function CustomersPage() {
               </div>
             ))}
           </div>
+
+          {/* Mobile card list — tap to view detail, swipe to delete */}
+          <div className="md:hidden space-y-2">
+            {filtered.map(c => (
+              <SwipeToDelete key={c.id} onDelete={() => setDeleteTarget(c)}>
+                <Link
+                  href={`/workshop/customers/${c.id}`}
+                  className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 dark:border-white/[0.06] dark:bg-surface-800"
+                >
+                  {/* Avatar */}
+                  <div className={cn(
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold',
+                    c.is_fleet
+                      ? 'bg-brand/15 text-brand'
+                      : 'bg-blue-500/10 text-blue-500 dark:text-blue-400',
+                  )}>
+                    {c.is_fleet ? <Star className="h-5 w-5" /> : c.name.charAt(0).toUpperCase()}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">{c.name}</span>
+                      {c.is_fleet && (
+                        <span className="text-[10px] font-bold bg-brand/10 text-brand rounded px-1.5 py-0.5">Fleet</span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                      <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-white/40">
+                        <Phone className="h-3 w-3" />{c.phone}
+                      </span>
+                      {c.company_name && (
+                        <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-white/40">
+                          <Building2 className="h-3 w-3" />{c.company_name}
+                        </span>
+                      )}
+                      <span className="text-xs text-gray-300 dark:text-white/20">
+                        Since {formatDate(c.created_at)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <ChevronRight className="h-4 w-4 shrink-0 text-gray-300 dark:text-white/20" />
+                </Link>
+              </SwipeToDelete>
+            ))}
+          </div>
+          </>
         )}
       </div>
 

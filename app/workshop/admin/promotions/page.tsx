@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { Tag, Plus, Edit2, Trash2, Check, X, Loader2, ToggleLeft, ToggleRight, Sparkles } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import SwipeToDelete from '@/components/ui/SwipeToDelete'
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 
@@ -206,85 +207,169 @@ export default function PromotionsPage() {
             <p className="text-sm">No promotions yet. Create one to get started.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {promotions.map((p) => (
-              <div key={p.id} className={cn(
-                'card space-y-0 p-0 overflow-hidden',
-                p.is_active && 'ring-1 ring-[#C9A227]/30'
-              )}>
-                {editId === p.id ? (
-                  <form onSubmit={handleEdit} className="p-5 space-y-4">
-                    <PromotionForm form={editForm} setForm={setEditForm} input={input} label={label} />
-                    <div className="flex gap-2">
-                      <button type="submit" disabled={savingEdit} className="btn-primary flex items-center gap-2 text-sm">
-                        {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                        Save Changes
-                      </button>
-                      <button type="button" onClick={() => setEditId(null)} className="btn-ghost text-sm">Cancel</button>
-                    </div>
-                  </form>
-                ) : (
-                  <div className="p-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-1">
-                          <span className="font-mono text-xs font-bold text-[#C9A227] bg-[#C9A227]/10 px-2 py-0.5 rounded">{p.code}</span>
-                          <span className={cn(
-                            'text-[10px] font-semibold px-2 py-0.5 rounded-full',
-                            p.is_active
-                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400'
-                              : 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/40'
-                          )}>
-                            {p.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                        <p className="font-semibold text-gray-900 dark:text-white">{p.name}</p>
-                        {p.description && <p className="text-sm text-gray-500 dark:text-white/50 mt-0.5">{p.description}</p>}
-                        <div className="mt-3 flex flex-wrap gap-3 text-sm">
-                          <span className="flex items-center gap-1.5 text-gray-600 dark:text-white/60">
-                            <span className="text-[#C9A227] font-bold">{p.discount_pct}%</span> discount
-                          </span>
-                          {p.free_service && (
-                            <span className="flex items-center gap-1.5 text-gray-600 dark:text-white/60">
-                              <span className="text-emerald-500">+</span> {p.free_service}
+          <>
+            {/* Desktop view */}
+            <div className="hidden md:block space-y-3">
+              {promotions.map((p) => (
+                <div key={p.id} className={cn(
+                  'card space-y-0 p-0 overflow-hidden',
+                  p.is_active && 'ring-1 ring-[#C9A227]/30'
+                )}>
+                  {editId === p.id ? (
+                    <form onSubmit={handleEdit} className="p-5 space-y-4">
+                      <PromotionForm form={editForm} setForm={setEditForm} input={input} label={label} />
+                      <div className="flex gap-2">
+                        <button type="submit" disabled={savingEdit} className="btn-primary flex items-center gap-2 text-sm">
+                          {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          Save Changes
+                        </button>
+                        <button type="button" onClick={() => setEditId(null)} className="btn-ghost text-sm">Cancel</button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 mb-1">
+                            <span className="font-mono text-xs font-bold text-[#C9A227] bg-[#C9A227]/10 px-2 py-0.5 rounded">{p.code}</span>
+                            <span className={cn(
+                              'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                              p.is_active
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400'
+                                : 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/40'
+                            )}>
+                              {p.is_active ? 'Active' : 'Inactive'}
                             </span>
-                          )}
+                          </div>
+                          <p className="font-semibold text-gray-900 dark:text-white">{p.name}</p>
+                          {p.description && <p className="text-sm text-gray-500 dark:text-white/50 mt-0.5">{p.description}</p>}
+                          <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                            <span className="flex items-center gap-1.5 text-gray-600 dark:text-white/60">
+                              <span className="text-[#C9A227] font-bold">{p.discount_pct}%</span> discount
+                            </span>
+                            {p.free_service && (
+                              <span className="flex items-center gap-1.5 text-gray-600 dark:text-white/60">
+                                <span className="text-emerald-500">+</span> {p.free_service}
+                              </span>
+                            )}
+                          </div>
+                          {p.terms && <p className="mt-2 text-xs text-gray-400 dark:text-white/30 italic">{p.terms}</p>}
                         </div>
-                        {p.terms && <p className="mt-2 text-xs text-gray-400 dark:text-white/30 italic">{p.terms}</p>}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={() => handleToggle(p)}
-                          disabled={togglingId === p.id}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-[#C9A227] hover:bg-[#C9A227]/10 transition-all"
-                          title={p.is_active ? 'Deactivate' : 'Activate'}
-                        >
-                          {togglingId === p.id
-                            ? <Loader2 className="h-4 w-4 animate-spin" />
-                            : p.is_active
-                              ? <ToggleRight className="h-5 w-5 text-emerald-500" />
-                              : <ToggleLeft className="h-5 w-5" />}
-                        </button>
-                        <button
-                          onClick={() => startEdit(p)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-brand hover:bg-brand/10 transition-all"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => setConfirmDeleteId(p.id)}
-                          disabled={deletingId === p.id}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
-                        >
-                          {deletingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                        </button>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => handleToggle(p)}
+                            disabled={togglingId === p.id}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-[#C9A227] hover:bg-[#C9A227]/10 transition-all"
+                            title={p.is_active ? 'Deactivate' : 'Activate'}
+                          >
+                            {togglingId === p.id
+                              ? <Loader2 className="h-4 w-4 animate-spin" />
+                              : p.is_active
+                                ? <ToggleRight className="h-5 w-5 text-emerald-500" />
+                                : <ToggleLeft className="h-5 w-5" />}
+                          </button>
+                          <button
+                            onClick={() => startEdit(p)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-brand hover:bg-brand/10 transition-all"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(p.id)}
+                            disabled={deletingId === p.id}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                          >
+                            {deletingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                          </button>
+                        </div>
                       </div>
                     </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Mobile view */}
+            <div className="md:hidden space-y-2">
+              {promotions.map((p) => (
+                editId === p.id ? (
+                  <div key={p.id} className={cn(
+                    'card space-y-0 p-0 overflow-hidden',
+                    p.is_active && 'ring-1 ring-[#C9A227]/30'
+                  )}>
+                    <form onSubmit={handleEdit} className="p-5 space-y-4">
+                      <PromotionForm form={editForm} setForm={setEditForm} input={input} label={label} />
+                      <div className="flex gap-2">
+                        <button type="submit" disabled={savingEdit} className="btn-primary flex items-center gap-2 text-sm">
+                          {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                          Save Changes
+                        </button>
+                        <button type="button" onClick={() => setEditId(null)} className="btn-ghost text-sm">Cancel</button>
+                      </div>
+                    </form>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                ) : (
+                  <SwipeToDelete key={p.id} onDelete={() => setConfirmDeleteId(p.id)}>
+                    <div className={cn(
+                      'card space-y-0 p-0',
+                      p.is_active && 'ring-1 ring-[#C9A227]/30'
+                    )}>
+                      <div className="p-5">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                              <span className="font-mono text-xs font-bold text-[#C9A227] bg-[#C9A227]/10 px-2 py-0.5 rounded">{p.code}</span>
+                              <span className={cn(
+                                'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                                p.is_active
+                                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400'
+                                  : 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/40'
+                              )}>
+                                {p.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </div>
+                            <p className="font-semibold text-gray-900 dark:text-white">{p.name}</p>
+                            {p.description && <p className="text-sm text-gray-500 dark:text-white/50 mt-0.5">{p.description}</p>}
+                            <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                              <span className="flex items-center gap-1.5 text-gray-600 dark:text-white/60">
+                                <span className="text-[#C9A227] font-bold">{p.discount_pct}%</span> discount
+                              </span>
+                              {p.free_service && (
+                                <span className="flex items-center gap-1.5 text-gray-600 dark:text-white/60">
+                                  <span className="text-emerald-500">+</span> {p.free_service}
+                                </span>
+                              )}
+                            </div>
+                            {p.terms && <p className="mt-2 text-xs text-gray-400 dark:text-white/30 italic">{p.terms}</p>}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              onClick={() => handleToggle(p)}
+                              disabled={togglingId === p.id}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-[#C9A227] hover:bg-[#C9A227]/10 transition-all"
+                              title={p.is_active ? 'Deactivate' : 'Activate'}
+                            >
+                              {togglingId === p.id
+                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : p.is_active
+                                  ? <ToggleRight className="h-5 w-5 text-emerald-500" />
+                                  : <ToggleLeft className="h-5 w-5" />}
+                            </button>
+                            <button
+                              onClick={() => startEdit(p)}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:text-brand hover:bg-brand/10 transition-all"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </SwipeToDelete>
+                )
+              ))}
+            </div>
+          </>
         )}
       </main>
 
