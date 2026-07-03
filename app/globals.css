@@ -26,8 +26,7 @@
   body {
     overflow-x: hidden;
     max-width: 100vw;
-    /* Disable pull-to-refresh to feel more native */
-    overscroll-behavior-y: none;
+  
   }
 
   /* Arabic / Urdu — use Cairo for clean Naskh rendering */
