@@ -16,7 +16,6 @@ type Item = {
   total_price: number
   sort_order: number
 }
-
 type TaxInvoice = {
   id: string
   invoice_number: string
@@ -107,7 +106,7 @@ export default function TaxInvoiceSection({
     fetch('/api/services')
       .then(r => r.json())
       .then(d => setCatalog(d.services ?? []))
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const isDraft = invoice?.status === 'draft'
