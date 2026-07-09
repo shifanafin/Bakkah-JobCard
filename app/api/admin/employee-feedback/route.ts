@@ -4,6 +4,7 @@ import { getServerSession } from '@/lib/server-session'
 
 export const runtime = 'nodejs'
 
+
 function getSb() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
