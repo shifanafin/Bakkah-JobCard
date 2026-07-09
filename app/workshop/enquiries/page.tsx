@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from '@/lib/auth-client'
 import {
   Bell,
   CheckCheck,
@@ -11,9 +12,11 @@ import {
   Clock,
   RefreshCw,
   ChevronRight,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/cn'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 type Filter = 'all' | 'new' | 'converted'
 
@@ -44,11 +47,16 @@ function timeAgo(iso: string): string {
 
 export default function EnquiriesPage() {
   const router = useRouter()
+  const { data: session } = useSession()
+  const role = (session?.user as { role?: string })?.role ?? ''
+  const canDelete = role === 'admin' || role === 'supervisor'
   const [enquiries, setEnquiries] = useState<Enquiry[]>([])
   const [filter, setFilter] = useState<Filter>('all')
   const [loading, setLoading] = useState(true)
   const [converting, setConverting] = useState<string | null>(null)
   const [marking, setMarking] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Enquiry | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -104,6 +112,23 @@ export default function EnquiriesPage() {
       toast.error(err instanceof Error ? err.message : 'Conversion failed')
     } finally {
       setConverting(null)
+    }
+  }
+
+  async function doDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/enquiries/${deleteTarget.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'Failed to delete'); return }
+      setEnquiries(prev => prev.filter(e => e.id !== deleteTarget.id))
+      toast.success('Enquiry deleted')
+    } catch {
+      toast.error('Failed to delete')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
     }
   }
 
@@ -171,12 +196,25 @@ export default function EnquiriesPage() {
             enquiry={e}
             isConverting={converting === e.id}
             isMarking={marking === e.id}
+            canDelete={canDelete}
             onMarkRead={() => markRead(e.id)}
             onConvert={() => convertToJobCard(e.id)}
             onViewJobCard={() => router.push(`/workshop/job-cards/${e.job_card_id}`)}
+            onDelete={() => setDeleteTarget(e)}
           />)
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete this enquiry?"
+        message={deleteTarget ? `This will permanently delete the enquiry from ${deleteTarget.name}.` : ''}
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={doDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }
@@ -185,16 +223,20 @@ function EnquiryCard({
   enquiry: e,
   isConverting,
   isMarking,
+  canDelete,
   onMarkRead,
   onConvert,
   onViewJobCard,
+  onDelete,
 }: {
   enquiry: Enquiry
   isConverting: boolean
   isMarking: boolean
+  canDelete: boolean
   onMarkRead: () => void
   onConvert: () => void
   onViewJobCard: () => void
+  onDelete: () => void
 }) {
   const isConverted = !!e.job_card_id
   const isNew = !e.is_read
@@ -294,6 +336,15 @@ function EnquiryCard({
               <ClipboardList className="h-3.5 w-3.5" />
               {isConverting ? 'Creating…' : 'Create Job Card'}
             </button>
+            {canDelete && (
+              <button
+                onClick={onDelete}
+                className="ml-auto flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </button>
+            )}
           </>
         )}
       </div>

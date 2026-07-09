@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import Header from '@/components/layout/Header'
 import { formatAED, formatDate, formatDateTime } from '@/lib/utils/format'
@@ -10,10 +11,12 @@ import {
   ArrowLeft, Car, User, Wrench, Package, Clock, Calendar, Check, ChevronDown,
   ChevronUp, Image as ImageIcon, History, Loader2, AlertCircle, Phone, Mail,
   Building2, CreditCard, Gauge, X, FileText, MessageCircle, UserCheck,
-  TrendingUp, Hash,
+  TrendingUp, Hash, Edit2, Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR } from '@/types'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import { toast } from 'sonner'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -501,10 +504,66 @@ export default function VehicleHistoryPage({ params }: { params: Promise<{ id: s
   const { id } = use(params)
   const { data: session } = useSession()
   const role = (session?.user as { role?: string })?.role ?? ''
+  const canEdit = role === 'admin' || role === 'supervisor' || role === 'receptionist'
+  const canDelete = role === 'admin' || role === 'supervisor'
+  const router = useRouter()
 
   const [data, setData] = useState<VehicleHistoryResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [editing, setEditing] = useState(false)
+  const [editForm, setEditForm] = useState({ plate_number: '', make: '', model: '', year: '', color: '', vin: '' })
+  const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  function startEdit() {
+    if (!data) return
+    setEditForm({
+      plate_number: data.vehicle.plate_number ?? '',
+      make: data.vehicle.make ?? '',
+      model: data.vehicle.model ?? '',
+      year: data.vehicle.year ? String(data.vehicle.year) : '',
+      color: data.vehicle.color ?? '',
+      vin: data.vehicle.vin ?? '',
+    })
+    setEditing(true)
+  }
+
+  async function saveEdit() {
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/vehicles/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to update vehicle'); return }
+      setData(prev => prev ? { ...prev, vehicle: { ...prev.vehicle, ...d.vehicle } } : prev)
+      setEditing(false)
+      toast.success('Vehicle updated')
+    } catch {
+      toast.error('Failed to update vehicle')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/vehicles/${id}`, { method: 'DELETE' })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to delete vehicle'); setDeleting(false); return }
+      toast.success('Vehicle deleted')
+      router.push('/workshop/job-cards')
+    } catch {
+      toast.error('Failed to delete vehicle')
+      setDeleting(false)
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -568,43 +627,105 @@ export default function VehicleHistoryPage({ params }: { params: Promise<{ id: s
               </div>
               <h2 className="font-bold text-gray-900 dark:text-white">Vehicle Details</h2>
               {activeJob && (
-                <span className={cn('ml-auto badge text-xs', JOB_STATUS_COLOR[activeJob.status as keyof typeof JOB_STATUS_COLOR] ?? '')}>
+                <span className={cn('badge text-xs', JOB_STATUS_COLOR[activeJob.status as keyof typeof JOB_STATUS_COLOR] ?? '')}>
                   {JOB_STATUS_LABEL[activeJob.status as keyof typeof JOB_STATUS_LABEL] ?? activeJob.status}
                 </span>
               )}
+              {canEdit && !editing && (
+                <div className="ml-auto flex items-center gap-1">
+                  <button onClick={startEdit} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-brand dark:text-white/30 dark:hover:bg-white/[0.06]" title="Edit vehicle">
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </button>
+                  {canDelete && (
+                    jobs.length === 0 ? (
+                      <button onClick={() => setConfirmDelete(true)} className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 dark:text-white/30 dark:hover:bg-red-500/10" title="Delete vehicle">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    ) : (
+                      <span className="rounded-lg p-1.5 text-gray-200 dark:text-white/10" title="Cannot delete a vehicle with job history">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </span>
+                    )
+                  )}
+                </div>
+              )}
             </div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-400 dark:text-white/40">Plate</span>
-                <span className="font-mono font-black text-gray-900 dark:text-white tracking-widest">{vehicle.plate_number}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400 dark:text-white/40">Make / Model</span>
-                <span className="text-gray-700 dark:text-white/70 font-medium">{vehicle.make} {vehicle.model}</span>
-              </div>
-              {vehicle.year && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400 dark:text-white/40">Year</span>
-                  <span className="text-gray-700 dark:text-white/70">{vehicle.year}</span>
+
+            {editing ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label">Plate Number</label>
+                    <input className="input-base" value={editForm.plate_number}
+                      onChange={e => setEditForm(f => ({ ...f, plate_number: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="label">Year</label>
+                    <input className="input-base" value={editForm.year}
+                      onChange={e => setEditForm(f => ({ ...f, year: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="label">Make</label>
+                    <input className="input-base" value={editForm.make}
+                      onChange={e => setEditForm(f => ({ ...f, make: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="label">Model</label>
+                    <input className="input-base" value={editForm.model}
+                      onChange={e => setEditForm(f => ({ ...f, model: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="label">Color</label>
+                    <input className="input-base" value={editForm.color}
+                      onChange={e => setEditForm(f => ({ ...f, color: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="label">VIN</label>
+                    <input className="input-base" value={editForm.vin}
+                      onChange={e => setEditForm(f => ({ ...f, vin: e.target.value }))} />
+                  </div>
                 </div>
-              )}
-              {vehicle.color && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400 dark:text-white/40">Color</span>
-                  <span className="text-gray-700 dark:text-white/70">{vehicle.color}</span>
+                <div className="flex gap-2">
+                  <button onClick={saveEdit} disabled={saving} className="btn-primary flex-1 gap-2">
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />} Save
+                  </button>
+                  <button onClick={() => setEditing(false)} disabled={saving} className="btn-ghost">Cancel</button>
                 </div>
-              )}
-              {vehicle.vin && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400 dark:text-white/40">VIN</span>
-                  <span className="font-mono text-xs text-gray-400 dark:text-white/40">{vehicle.vin}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-400 dark:text-white/40">First Visit</span>
-                <span className="text-gray-700 dark:text-white/70">{formatDate(vehicle.created_at)}</span>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400 dark:text-white/40">Plate</span>
+                  <span className="font-mono font-black text-gray-900 dark:text-white tracking-widest">{vehicle.plate_number}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400 dark:text-white/40">Make / Model</span>
+                  <span className="text-gray-700 dark:text-white/70 font-medium">{vehicle.make} {vehicle.model}</span>
+                </div>
+                {vehicle.year && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400 dark:text-white/40">Year</span>
+                    <span className="text-gray-700 dark:text-white/70">{vehicle.year}</span>
+                  </div>
+                )}
+                {vehicle.color && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400 dark:text-white/40">Color</span>
+                    <span className="text-gray-700 dark:text-white/70">{vehicle.color}</span>
+                  </div>
+                )}
+                {vehicle.vin && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400 dark:text-white/40">VIN</span>
+                    <span className="font-mono text-xs text-gray-400 dark:text-white/40">{vehicle.vin}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-400 dark:text-white/40">First Visit</span>
+                  <span className="text-gray-700 dark:text-white/70">{formatDate(vehicle.created_at)}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Customer card */}
@@ -717,6 +838,17 @@ export default function VehicleHistoryPage({ params }: { params: Promise<{ id: s
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Delete this vehicle?"
+        message={`This will permanently delete ${vehicle.plate_number} (${vehicle.make} ${vehicle.model}). This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   )
 }

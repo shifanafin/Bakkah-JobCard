@@ -118,3 +118,21 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
   }
 }
+
+// DELETE /api/tax-invoices/[id] — blocked once paid (protects ledger income integrity)
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+
+  const { id } = await params
+  const sb = createServiceClient()
+
+  const { data: inv } = await sb.from('tax_invoices').select('id, status').eq('id', id).single()
+  if (!inv) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (inv.status === 'paid') {
+    return NextResponse.json({ error: 'Cannot delete a paid invoice' }, { status: 409 })
+  }
+
+  const { error } = await sb.from('tax_invoices').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}

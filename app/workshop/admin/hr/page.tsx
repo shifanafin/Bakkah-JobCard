@@ -1374,6 +1374,8 @@ function LeaveTab() {
   const [reviewTarget, setReviewTarget] = useState<{ request: LeaveRequest; action: 'approved' | 'rejected' } | null>(null)
   const [adminNote, setAdminNote] = useState('')
   const [reviewing, setReviewing] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<LeaveRequest | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1405,6 +1407,19 @@ function LeaveTab() {
       toast.success(`Leave request ${reviewTarget.action}`)
     } catch (err) { toast.error(err instanceof Error ? err.message : 'Failed') }
     finally { setReviewing(false) }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/leave?id=${deleteTarget.id}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      setRequests(prev => prev.filter(r => r.id !== deleteTarget.id))
+      toast.success('Leave request deleted')
+    } catch (err) { toast.error(err instanceof Error ? err.message : 'Failed') }
+    finally { setDeleting(false); setDeleteTarget(null) }
   }
 
   return (

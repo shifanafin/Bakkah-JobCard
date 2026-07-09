@@ -5,7 +5,7 @@ import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import Link from 'next/link'
-import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2, Plus, ArrowRightCircle } from 'lucide-react'
+import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2, Plus, ArrowRightCircle, Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
@@ -100,6 +100,37 @@ export default function TransactionsPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [confirmProforma, setConfirmProforma] = useState<Quotation | null>(null)
   const [confirmTaxConvert, setConfirmTaxConvert] = useState<Proforma | null>(null)
+
+  // ── Delete ────────────────────────────────────────────────────
+  type DeleteTarget = { kind: 'quotation' | 'proforma' | 'tax'; id: string; number: string }
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const DELETE_ENDPOINT: Record<DeleteTarget['kind'], string> = {
+    quotation: '/api/quotations',
+    proforma: '/api/proforma-invoices',
+    tax: '/api/tax-invoices',
+  }
+
+  async function doDelete() {
+    if (!deleteTarget) return
+    const { kind, id } = deleteTarget
+    setDeletingId(id)
+    try {
+      const res = await fetch(`${DELETE_ENDPOINT[kind]}/${id}`, { method: 'DELETE' })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to delete'); setDeletingId(null); return }
+      if (kind === 'quotation') setQuotations(rows => rows.filter(r => r.id !== id))
+      if (kind === 'proforma') setProformas(rows => rows.filter(r => r.id !== id))
+      if (kind === 'tax') setTaxInvoices(rows => rows.filter(r => r.id !== id))
+      toast.success('Deleted')
+    } catch {
+      toast.error('Failed to delete')
+    } finally {
+      setDeletingId(null)
+      setDeleteTarget(null)
+    }
+  }
 
   const TAB_META: Record<Tab, { pickerTitle: string; newLabel: string; endpoint: string; path: string }> = {
     quotations: { pickerTitle: 'Select a job card for the new quotation', newLabel: 'New Quotation', endpoint: '/api/quotations', path: 'quotation' },
@@ -508,13 +539,16 @@ export default function TransactionsPage() {
         {/* Table */}
         <div className="card overflow-hidden p-0">
           {tab === 'quotations' && (
-            <QuotationTable rows={filteredQuotations} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onCreateProforma={handleCreateProforma} />
+            <QuotationTable rows={filteredQuotations} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onCreateProforma={handleCreateProforma}
+              onDelete={row => setDeleteTarget({ kind: 'quotation', id: row.id, number: row.quotation_number })} />
           )}
           {tab === 'proformas' && (
-            <ProformaTable rows={filteredProformas} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onConvertToTax={handleConvertToTax} />
+            <ProformaTable rows={filteredProformas} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onConvertToTax={handleConvertToTax}
+              onDelete={row => setDeleteTarget({ kind: 'proforma', id: row.id, number: row.proforma_number })} />
           )}
           {tab === 'tax' && (
-            <TaxTable rows={filteredTax} SortIcon={SortIcon} onSort={toggleSort} />
+            <TaxTable rows={filteredTax} SortIcon={SortIcon} onSort={toggleSort}
+              onDelete={row => setDeleteTarget({ kind: 'tax', id: row.id, number: row.invoice_number })} />
           )}
         </div>
 
@@ -549,6 +583,17 @@ export default function TransactionsPage() {
         onConfirm={() => confirmTaxConvert && doConvertToTax(confirmTaxConvert)}
         onCancel={() => setConfirmTaxConvert(null)}
       />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete this document?"
+        message={deleteTarget ? `This will permanently delete ${deleteTarget.number}. This cannot be undone.` : ''}
+        confirmLabel="Delete"
+        variant="danger"
+        loading={!!deleteTarget && deletingId === deleteTarget.id}
+        onConfirm={doDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }
@@ -578,12 +623,13 @@ function SummaryCard({
 const thCls = 'px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 cursor-pointer select-none hover:text-gray-600 dark:hover:text-white/60 transition-colors'
 const tdCls = 'px-4 py-3 text-sm'
 
-function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma }: {
+function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma, onDelete }: {
   rows: Quotation[]
   SortIcon: React.FC<{ k: SortKey }>
   onSort: (k: SortKey) => void
   busyId: string | null
   onCreateProforma: (row: Quotation) => void
+  onDelete: (row: Quotation) => void
 }) {
   if (rows.length === 0) return <EmptyState label="No quotations found" />
   return (
@@ -638,6 +684,15 @@ function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma }: {
                         Create Proforma
                       </button>
                     )}
+                    {row.status === 'draft' ? (
+                      <button onClick={() => onDelete(row)} className="flex items-center gap-1 text-xs text-red-600 hover:underline font-medium dark:text-red-400">
+                        <Trash2 className="h-3 w-3" /> Delete
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-300 dark:text-white/15" title="Only draft quotations can be deleted">
+                        <Trash2 className="h-3 w-3" />
+                      </span>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -649,12 +704,13 @@ function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma }: {
   )
 }
 
-function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax }: {
+function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelete }: {
   rows: Proforma[]
   SortIcon: React.FC<{ k: SortKey }>
   onSort: (k: SortKey) => void
   busyId: string | null
   onConvertToTax: (row: Proforma) => void
+  onDelete: (row: Proforma) => void
 }) {
   if (rows.length === 0) return <EmptyState label="No proforma invoices found" />
   return (
@@ -709,6 +765,15 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax }: {
                       Convert to Tax Invoice
                     </button>
                   )}
+                  {!row.has_tax_invoice ? (
+                    <button onClick={() => onDelete(row)} className="flex items-center gap-1 text-xs text-red-600 hover:underline font-medium dark:text-red-400">
+                      <Trash2 className="h-3 w-3" /> Delete
+                    </button>
+                  ) : (
+                    <span className="text-xs text-gray-300 dark:text-white/15" title="Cannot delete — a tax invoice already exists for this job">
+                      <Trash2 className="h-3 w-3" />
+                    </span>
+                  )}
                 </div>
               </td>
             </tr>
@@ -719,10 +784,11 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax }: {
   )
 }
 
-function TaxTable({ rows, SortIcon, onSort }: {
+function TaxTable({ rows, SortIcon, onSort, onDelete }: {
   rows: TaxInvoice[]
   SortIcon: React.FC<{ k: SortKey }>
   onSort: (k: SortKey) => void
+  onDelete: (row: TaxInvoice) => void
 }) {
   if (rows.length === 0) return <EmptyState label="No tax invoices found" />
   return (
@@ -767,12 +833,23 @@ function TaxTable({ rows, SortIcon, onSort }: {
                 <td className={cn(tdCls, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
                 <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
                 <td className={tdCls}>
-                  {row.job_card_id && (
-                    <Link href={`/workshop/job-cards/${row.job_card_id}/tax-invoice`}
-                      className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
-                      <ExternalLink className="h-3 w-3" /> View
-                    </Link>
-                  )}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {row.job_card_id && (
+                      <Link href={`/workshop/job-cards/${row.job_card_id}/tax-invoice`}
+                        className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
+                        <ExternalLink className="h-3 w-3" /> View
+                      </Link>
+                    )}
+                    {row.status !== 'paid' ? (
+                      <button onClick={() => onDelete(row)} className="flex items-center gap-1 text-xs text-red-600 hover:underline font-medium dark:text-red-400">
+                        <Trash2 className="h-3 w-3" /> Delete
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-300 dark:text-white/15" title="Cannot delete a paid invoice">
+                        <Trash2 className="h-3 w-3" />
+                      </span>
+                    )}
+                  </div>
                 </td>
               </tr>
             )

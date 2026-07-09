@@ -70,3 +70,24 @@ export async function PATCH(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ request: data })
 }
+
+// DELETE — remove a leave request while it is still pending (audit trail preserved once actioned)
+export async function DELETE(req: NextRequest) {
+  const session = await requireAdmin()
+  if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const url = new URL(req.url)
+  const id = url.searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  const sb = getSb()
+  const { data: existing } = await sb.from('leave_requests').select('status').eq('id', id).single()
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.status !== 'pending') {
+    return NextResponse.json({ error: 'Only pending requests can be deleted' }, { status: 409 })
+  }
+
+  const { error } = await sb.from('leave_requests').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}

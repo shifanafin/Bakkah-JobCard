@@ -6,7 +6,12 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 import { useEffect, Suspense } from 'react'
 
-if (typeof window !== 'undefined') {
+let posthogInitialized = false
+
+function initPostHog() {
+  if (posthogInitialized || typeof window === 'undefined') return
+  posthogInitialized = true
+
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com',
     capture_pageview: false,
@@ -67,6 +72,13 @@ export function PostHogUserIdentifier() {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Defer PostHog's script injection until after hydration completes —
+    // initializing at module-eval time raced with React hydrating the
+    // JSON-LD <script> in app/page.tsx, corrupting reconciliation.
+    initPostHog()
+  }, [])
+
   return (
     <PHProvider client={posthog}>
       <Suspense fallback={null}>

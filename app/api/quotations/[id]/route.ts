@@ -140,6 +140,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
 // DELETE /api/quotations/[id] — draft only
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const session = await getServerSession()
+  const role = (session?.user as { role?: string } | undefined)?.role
+  if (!session || (role !== 'admin' && role !== 'supervisor')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
   const { id } = await params
   const sb = createServiceClient()
   const { data: q } = await sb.from('quotations').select('status').eq('id', id).single()

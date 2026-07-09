@@ -184,3 +184,26 @@ export async function POST(_req: NextRequest, { params }: Params) {
     { status: 201 },
   )
 }
+
+// DELETE /api/enquiries/[id]
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  const session = await getServerSession()
+  const role = (session?.user as { role?: string } | undefined)?.role
+  if (!session || (role !== 'admin' && role !== 'supervisor')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
+  const { id } = await params
+  if (!UUID_RE.test(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+  const sb = createServiceClient()
+
+  const { data: enquiry } = await sb.from('chat_notifications').select('job_card_id').eq('id', id).single()
+  if (!enquiry) return NextResponse.json({ error: 'Enquiry not found' }, { status: 404 })
+  if (enquiry.job_card_id) {
+    return NextResponse.json({ error: 'Cannot delete an enquiry already converted to a job card' }, { status: 409 })
+  }
+
+  const { error } = await sb.from('chat_notifications').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}

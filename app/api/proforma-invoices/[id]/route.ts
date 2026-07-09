@@ -91,3 +91,27 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
   }
 }
+
+// DELETE /api/proforma-invoices/[id]
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  if (!await requireAuth()) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+
+  const { id } = await params
+  const sb = createServiceClient()
+
+  const { data: pi } = await sb.from('proforma_invoices').select('id, job_card_id').eq('id', id).single()
+  if (!pi) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const { data: taxInvoice } = await sb
+    .from('tax_invoices')
+    .select('id')
+    .or(`proforma_id.eq.${id},job_card_id.eq.${pi.job_card_id}`)
+    .maybeSingle()
+  if (taxInvoice) {
+    return NextResponse.json({ error: 'Cannot delete a proforma that already has a tax invoice' }, { status: 409 })
+  }
+
+  const { error } = await sb.from('proforma_invoices').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}

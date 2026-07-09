@@ -72,3 +72,24 @@ export async function PATCH(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ feedback: data })
 }
+
+// DELETE — remove a suggestion/complaint while still open (audit trail preserved once actioned)
+export async function DELETE(req: NextRequest) {
+  const session = await requireAdmin()
+  if (!session) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const url = new URL(req.url)
+  const id = url.searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  const sb = getSb()
+  const { data: existing } = await sb.from('employee_feedback').select('status').eq('id', id).single()
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.status !== 'open') {
+    return NextResponse.json({ error: 'Only open items can be deleted' }, { status: 409 })
+  }
+
+  const { error } = await sb.from('employee_feedback').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}
