@@ -126,10 +126,10 @@ export async function POST(_req: NextRequest, { params }: Params) {
 
   const promoFields = appliedPromo
     ? {
-        promotion_code: appliedPromo.code,
-        promotion_discount_pct: appliedPromo.discount_pct,
-        internal_notes: `🎉 PROMOTION (${appliedPromo.code}): ${appliedPromo.discount_pct}% off${appliedPromo.free_service ? ` + ${appliedPromo.free_service}` : ''}. Apply percentage discount on confirmed subtotal before issuing invoice.`,
-      }
+      promotion_code: appliedPromo.code,
+      promotion_discount_pct: appliedPromo.discount_pct,
+      internal_notes: `🎉 PROMOTION (${appliedPromo.code}): ${appliedPromo.discount_pct}% off${appliedPromo.free_service ? ` + ${appliedPromo.free_service}` : ''}. Apply percentage discount on confirmed subtotal before issuing invoice.`,
+    }
     : {}
 
   // Create job card — requires source column migration:

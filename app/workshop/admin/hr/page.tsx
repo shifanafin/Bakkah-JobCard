@@ -65,12 +65,12 @@ type TechRow = {
 const SPECIALTIES = ['Technician', 'Inspector', 'Detailer', 'Body Technician', 'Painter', 'Electrician']
 
 const SPECIALTY_COLORS: Record<string, string> = {
-  'Technician':      'bg-brand/15 text-brand',
-  'Inspector':       'bg-blue-500/15 text-blue-400',
-  'Detailer':        'bg-purple-500/15 text-purple-400',
+  'Technician': 'bg-brand/15 text-brand',
+  'Inspector': 'bg-blue-500/15 text-blue-400',
+  'Detailer': 'bg-purple-500/15 text-purple-400',
   'Body Technician': 'bg-golden/15 text-golden',
-  'Painter':         'bg-pink-500/15 text-pink-400',
-  'Electrician':     'bg-yellow-500/15 text-yellow-400',
+  'Painter': 'bg-pink-500/15 text-pink-400',
+  'Electrician': 'bg-yellow-500/15 text-yellow-400',
 }
 
 const ROLES = ['admin', 'supervisor', 'receptionist', 'technician']
@@ -84,12 +84,12 @@ const LEAVE_TYPE_LABELS: Record<string, string> = {
   annual: 'Annual', sick: 'Sick', emergency: 'Emergency', unpaid: 'Unpaid',
 }
 const LEAVE_STATUS_COLORS = {
-  pending:  'bg-amber-500/15 text-amber-500',
+  pending: 'bg-amber-500/15 text-amber-500',
   approved: 'bg-emerald-500/15 text-emerald-500',
   rejected: 'bg-red-500/15 text-red-400',
 }
 const FEEDBACK_STATUS_COLORS = {
-  open:     'bg-amber-500/15 text-amber-500',
+  open: 'bg-amber-500/15 text-amber-500',
   reviewed: 'bg-blue-500/15 text-blue-400',
   resolved: 'bg-emerald-500/15 text-emerald-500',
 }
@@ -116,12 +116,12 @@ function hoursWorked(checkin: string, checkout: string | null) {
 type Tab = 'employees' | 'technicians' | 'attendance' | 'leave' | 'suggestions' | 'complaints'
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'employees',   label: 'Employees',   icon: Users },
+  { id: 'employees', label: 'Employees', icon: Users },
   { id: 'technicians', label: 'Technicians', icon: Wrench },
-  { id: 'attendance',  label: 'Attendance',  icon: Clock },
-  { id: 'leave',       label: 'Leave',       icon: CalendarOff },
+  { id: 'attendance', label: 'Attendance', icon: Clock },
+  { id: 'leave', label: 'Leave', icon: CalendarOff },
   { id: 'suggestions', label: 'Suggestions', icon: Lightbulb },
-  { id: 'complaints',  label: 'Complaints',  icon: AlertCircle },
+  { id: 'complaints', label: 'Complaints', icon: AlertCircle },
 ]
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -172,12 +172,12 @@ export default function HRPage() {
         </div>
 
         {/* Tab panels */}
-        {tab === 'employees'   && <EmployeesTab isAdmin={role === 'admin'} />}
+        {tab === 'employees' && <EmployeesTab isAdmin={role === 'admin'} />}
         {tab === 'technicians' && <TechniciansTab />}
-        {tab === 'attendance'  && <AttendanceTab />}
-        {tab === 'leave'       && <LeaveTab />}
+        {tab === 'attendance' && <AttendanceTab />}
+        {tab === 'leave' && <LeaveTab />}
         {tab === 'suggestions' && <FeedbackTab type="suggestion" />}
-        {tab === 'complaints'  && <FeedbackTab type="complaint" />}
+        {tab === 'complaints' && <FeedbackTab type="complaint" />}
       </div>
     </div>
   )
@@ -388,39 +388,39 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
                 disabled={!isAdmin}
                 disabledReason={!isAdmin ? 'Only admins can delete employees' : undefined}
               >
-              <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 p-4 space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">{emp.name[0]?.toUpperCase()}</div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-gray-900 dark:text-white truncate">{emp.name}</p>
-                      <p className="text-xs font-mono text-gray-400 dark:text-white/30 truncate">@{emp.username}</p>
+                <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">{emp.name[0]?.toUpperCase()}</div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-gray-900 dark:text-white truncate">{emp.name}</p>
+                        <p className="text-xs font-mono text-gray-400 dark:text-white/30 truncate">@{emp.username}</p>
+                      </div>
+                    </div>
+                    <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', ROLE_COLORS[emp.role] ?? 'bg-gray-100 text-gray-500')}>{emp.role}</span>
+                  </div>
+                  <p className="text-sm text-gray-500 dark:text-white/50 truncate">{emp.email}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', emp.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
+                        {emp.active ? 'Active' : 'Inactive'}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-white/30">{formatDate(emp.created_at)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => handleToggle(emp)} disabled={togglingId === emp.id}
+                        className={cn('flex h-8 w-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
+                          emp.active ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
+                            : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30')}>
+                        {togglingId === emp.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emp.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
+                      </button>
+                      <button onClick={() => { setResetTarget(emp); setResetPwd(generatePassword()) }}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
+                        <Key className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
-                  <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize', ROLE_COLORS[emp.role] ?? 'bg-gray-100 text-gray-500')}>{emp.role}</span>
                 </div>
-                <p className="text-sm text-gray-500 dark:text-white/50 truncate">{emp.email}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className={cn('inline-flex rounded-full px-2 py-0.5 text-xs font-semibold', emp.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
-                      {emp.active ? 'Active' : 'Inactive'}
-                    </span>
-                    <span className="text-xs text-gray-400 dark:text-white/30">{formatDate(emp.created_at)}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button onClick={() => handleToggle(emp)} disabled={togglingId === emp.id}
-                      className={cn('flex h-8 w-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
-                        emp.active ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
-                          : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30')}>
-                      {togglingId === emp.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emp.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
-                    </button>
-                    <button onClick={() => { setResetTarget(emp); setResetPwd(generatePassword()) }}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
-                      <Key className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
               </SwipeToDelete>
             ))}
           </div>
@@ -753,7 +753,7 @@ function TechniciansTab() {
               <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
                 {technicians.map(tech => {
                   const att = tech.today_attendance
-                  const checkedIn  = att && !att.checkout_at
+                  const checkedIn = att && !att.checkout_at
                   const checkedOut = att && att.checkout_at
                   const isActioning = attLoading === tech.id
 
@@ -858,86 +858,86 @@ function TechniciansTab() {
           <div className="md:hidden space-y-2">
             {technicians.map(tech => {
               const att = tech.today_attendance
-              const checkedIn  = att && !att.checkout_at
+              const checkedIn = att && !att.checkout_at
               const checkedOut = att && att.checkout_at
               const isActioning = attLoading === tech.id
               return (
                 <SwipeToDelete key={tech.id} onDelete={() => setDeleteTarget(tech)}>
-                <div
-                  className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 p-4 space-y-3 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors"
-                  onClick={() => openEdit(tech)}
-                >
-                  {/* Row 1: avatar + name + specialty */}
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="relative shrink-0">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">
-                          {tech.name[0]?.toUpperCase()}
+                  <div
+                    className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 p-4 space-y-3 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02] transition-colors"
+                    onClick={() => openEdit(tech)}
+                  >
+                    {/* Row 1: avatar + name + specialty */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="relative shrink-0">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand/15 text-brand font-bold text-sm">
+                            {tech.name[0]?.toUpperCase()}
+                          </div>
+                          {checkedIn && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />}
                         </div>
-                        {checkedIn && <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500 dark:border-surface-800" />}
+                        <div className="min-w-0">
+                          <p className="font-semibold text-gray-900 dark:text-white truncate">{tech.name}</p>
+                          {tech.username && <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{tech.username}</p>}
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 dark:text-white truncate">{tech.name}</p>
-                        {tech.username && <p className="text-xs font-mono text-gray-400 dark:text-white/30">@{tech.username}</p>}
-                      </div>
+                      <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold', SPECIALTY_COLORS[tech.role] ?? 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/50')}>
+                        {tech.role || 'Technician'}
+                      </span>
                     </div>
-                    <span className={cn('shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold', SPECIALTY_COLORS[tech.role] ?? 'bg-gray-100 text-gray-500 dark:bg-white/[0.06] dark:text-white/50')}>
-                      {tech.role || 'Technician'}
-                    </span>
-                  </div>
 
-                  {/* Row 2: phone + status + active jobs */}
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    {tech.phone ? (
-                      <span className="flex items-center gap-1 text-gray-600 dark:text-white/60 text-xs">
-                        <Phone className="h-3 w-3 text-gray-400" />{tech.phone}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400 dark:text-white/25 italic">No phone</span>
-                    )}
-                    <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', tech.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
-                      {tech.active ? 'Active' : 'Inactive'}
-                    </span>
-                    {tech.active_jobs > 0 && (
-                      <span onClick={e => e.stopPropagation()}>
-                        <Link href={`/workshop/job-cards?technician=${tech.id}`} className="flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold text-brand">
-                          <Briefcase className="h-3 w-3" />{tech.active_jobs} job{tech.active_jobs !== 1 ? 's' : ''}
-                        </Link>
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Row 3: attendance */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="text-xs">
-                      {checkedOut ? (
-                        <span className="text-gray-500 dark:text-white/40">{formatTime(att!.checkin_at)} – {formatTime(att!.checkout_at!)}</span>
-                      ) : checkedIn ? (
-                        <span className="flex items-center gap-1 text-emerald-500 font-medium">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          In since {formatTime(att!.checkin_at)}
+                    {/* Row 2: phone + status + active jobs */}
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      {tech.phone ? (
+                        <span className="flex items-center gap-1 text-gray-600 dark:text-white/60 text-xs">
+                          <Phone className="h-3 w-3 text-gray-400" />{tech.phone}
                         </span>
                       ) : (
-                        <span className="text-gray-400 dark:text-white/25 italic">Not checked in</span>
+                        <span className="text-xs text-gray-400 dark:text-white/25 italic">No phone</span>
+                      )}
+                      <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', tech.active ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-400')}>
+                        {tech.active ? 'Active' : 'Inactive'}
+                      </span>
+                      {tech.active_jobs > 0 && (
+                        <span onClick={e => e.stopPropagation()}>
+                          <Link href={`/workshop/job-cards?technician=${tech.id}`} className="flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-xs font-bold text-brand">
+                            <Briefcase className="h-3 w-3" />{tech.active_jobs} job{tech.active_jobs !== 1 ? 's' : ''}
+                          </Link>
+                        </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                      {!checkedOut && (
-                        checkedIn ? (
-                          <button onClick={() => handleCheckOut(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50">
-                            {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
-                            Out
-                          </button>
+
+                    {/* Row 3: attendance */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs">
+                        {checkedOut ? (
+                          <span className="text-gray-500 dark:text-white/40">{formatTime(att!.checkin_at)} – {formatTime(att!.checkout_at!)}</span>
+                        ) : checkedIn ? (
+                          <span className="flex items-center gap-1 text-emerald-500 font-medium">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            In since {formatTime(att!.checkin_at)}
+                          </span>
                         ) : (
-                          <button onClick={() => handleCheckIn(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
-                            {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
-                            In
-                          </button>
-                        )
-                      )}
+                          <span className="text-gray-400 dark:text-white/25 italic">Not checked in</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                        {!checkedOut && (
+                          checkedIn ? (
+                            <button onClick={() => handleCheckOut(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-orange-200 dark:border-orange-500/30 px-2.5 py-1 text-xs font-semibold text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors disabled:opacity-50">
+                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogOut className="h-3 w-3" />}
+                              Out
+                            </button>
+                          ) : (
+                            <button onClick={() => handleCheckIn(tech)} disabled={isActioning} className="flex items-center gap-1 rounded-lg border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
+                              {isActioning ? <Loader2 className="h-3 w-3 animate-spin" /> : <LogIn className="h-3 w-3" />}
+                              In
+                            </button>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
                 </SwipeToDelete>
               )
             })}
@@ -1071,7 +1071,7 @@ function TechniciansTab() {
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* ── Edit Modal ── */}
       {mounted && editTarget && createPortal(
@@ -1129,7 +1129,7 @@ function TechniciansTab() {
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
 
       {/* ── Delete Confirm Modal ── */}
       {mounted && deleteTarget && createPortal(
@@ -1165,7 +1165,7 @@ function TechniciansTab() {
             </div>
           </div>
         </div>
-      , document.body)}
+        , document.body)}
     </>
   )
 }
@@ -1192,9 +1192,9 @@ function AttendanceTab() {
   useEffect(() => { load() }, [load])
 
   const isToday = date === new Date().toISOString().split('T')[0]
-  const checkedIn  = records.filter(r => r.attendance?.checkin_at && !r.attendance?.checkout_at)
+  const checkedIn = records.filter(r => r.attendance?.checkin_at && !r.attendance?.checkout_at)
   const checkedOut = records.filter(r => r.attendance?.checkout_at)
-  const absent     = records.filter(r => !r.attendance)
+  const absent = records.filter(r => !r.attendance)
 
   async function handleCheckIn(r: AttRow) {
     setAttLoading(r.id)
@@ -1231,9 +1231,9 @@ function AttendanceTab() {
       {/* Summary */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
-          { label: 'Checked In',        value: checkedIn.length,  icon: UserCheck,   color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'Checked Out',       value: checkedOut.length, icon: LogOut,       color: 'text-gray-400',    bg: 'bg-gray-500/10' },
-          { label: 'Absent',            value: absent.length,     icon: UserX,        color: 'text-red-400',     bg: 'bg-red-500/10' },
+          { label: 'Checked In', value: checkedIn.length, icon: UserCheck, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Checked Out', value: checkedOut.length, icon: LogOut, color: 'text-gray-400', bg: 'bg-gray-500/10' },
+          { label: 'Absent', value: absent.length, icon: UserX, color: 'text-red-400', bg: 'bg-red-500/10' },
           { label: 'Jobs Closed Today', value: records.reduce((s, r) => s + r.jobs_closed_today, 0), icon: CheckCircle, color: 'text-brand', bg: 'bg-brand/10' },
         ].map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} className="card cursor-default">
@@ -1265,9 +1265,9 @@ function AttendanceTab() {
               <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
                 {records.map(r => {
                   const att = r.attendance
-                  const isIn  = att && !att.checkout_at
+                  const isIn = att && !att.checkout_at
                   const isOut = att && att.checkout_at
-                  const busy  = attLoading === r.id
+                  const busy = attLoading === r.id
                   return (
                     <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
                       <td className="px-4 py-3">
@@ -1313,9 +1313,9 @@ function AttendanceTab() {
           <div className="md:hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.07] dark:bg-surface-800 divide-y divide-gray-100 dark:divide-white/[0.05]">
             {records.map(r => {
               const att = r.attendance
-              const isIn  = att && !att.checkout_at
+              const isIn = att && !att.checkout_at
               const isOut = att && att.checkout_at
-              const busy  = attLoading === r.id
+              const busy = attLoading === r.id
               return (
                 <div key={r.id} className="p-4 space-y-2.5">
                   <div className="flex items-center justify-between gap-3">

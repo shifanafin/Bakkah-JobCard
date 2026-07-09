@@ -70,6 +70,7 @@ export default function JobCardTaxInvoicePage({ params }: { params: Promise<{ id
           vehiclePlate={job.vehicle?.plate_number}
           canCreate={canAssign}
           onJobUpdate={load}
+          readOnly={job.status === 'delivered'}
         />
       </div>
     </div>
