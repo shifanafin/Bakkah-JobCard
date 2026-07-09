@@ -47,7 +47,7 @@ export default function JobCardTaxInvoicePage({ params }: { params: Promise<{ id
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Tax Invoice" subtitle={`${job.job_number} · ${job.customer?.name ?? ''}`} />
-      <div className="mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
+      <div className="mx-auto max-w-5xl space-y-4 p-4 lg:p-6">
         {/* iOS-style nav bar */}
         <div className="flex items-center justify-between gap-2">
           <Link
@@ -70,7 +70,6 @@ export default function JobCardTaxInvoicePage({ params }: { params: Promise<{ id
           vehiclePlate={job.vehicle?.plate_number}
           canCreate={canAssign}
           onJobUpdate={load}
-          readOnly={job.status === 'delivered'}
         />
       </div>
     </div>

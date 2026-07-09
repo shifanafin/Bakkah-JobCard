@@ -43,7 +43,7 @@ export default function JobCardProformaPage({ params }: { params: Promise<{ id: 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title="Proforma Invoice" subtitle={`${job.job_number} · ${job.customer?.name ?? ''}`} />
-      <div className="mx-auto max-w-3xl space-y-4 p-4 lg:p-6">
+      <div className="mx-auto max-w-5xl space-y-4 p-4 lg:p-6">
         {/* iOS-style nav bar */}
         <div className="flex items-center justify-between gap-2">
           <Link
@@ -69,7 +69,6 @@ export default function JobCardProformaPage({ params }: { params: Promise<{ id: 
           customerPhone={job.customer?.phone}
           customerName={job.customer?.name}
           vehiclePlate={job.vehicle?.plate_number}
-          readOnly={job.status === 'delivered'}
         />
       </div>
     </div>
