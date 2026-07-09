@@ -16,8 +16,6 @@ type Item = {
   total_price: number
   sort_order: number
 }
-
-
 type TaxInvoice = {
   id: string
   invoice_number: string
