@@ -131,6 +131,42 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ success: true, active: newActive })
     }
 
+    if (action === 'update_details') {
+      const { name, email, username, role } = body
+      if (!name || !email || !username || !role) {
+        return NextResponse.json({ error: 'name, email, username and role are required' }, { status: 400 })
+      }
+
+      const { data: existing } = await sb
+        .from('users')
+        .select('id')
+        .neq('id', id)
+        .or(`email.eq.${email},username.eq.${username}`)
+        .limit(1)
+      if (existing && existing.length > 0) {
+        return NextResponse.json({ error: 'Email or username already in use' }, { status: 409 })
+      }
+
+      const { data: before } = await sb.from('users').select('role').eq('id', id).single()
+
+      const { data, error } = await sb
+        .from('users')
+        .update({ name, email, username: username.toLowerCase(), role })
+        .eq('id', id)
+        .select('id, name, email, username, role, active, created_at')
+        .single()
+      if (error) throw error
+
+      // Keep technicians table in sync when a role changes to/from technician
+      if (role === 'technician') {
+        await sb.from('technicians').upsert({ id, name, active: data.active }, { onConflict: 'id' })
+      } else if (before?.role === 'technician') {
+        await sb.from('technicians').delete().eq('id', id)
+      }
+
+      return NextResponse.json({ user: data })
+    }
+
     if (action === 'reset_password') {
       if (!password) return NextResponse.json({ error: 'password required' }, { status: 400 })
       const password_hash = await bcrypt.hash(password, 10)

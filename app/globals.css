@@ -128,7 +128,7 @@
 
   /* ── Buttons ───────────────────────────────────────── */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-black transition-all duration-150 hover:bg-brand/90 active:scale-[0.94] active:brightness-90 disabled:cursor-not-allowed disabled:opacity-40 shadow-[0_2px_12px_rgba(107, 122, 40, 0.30)] hover:shadow-[0_4px_20px_rgba(201, 162, 39, 0.40)];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-black transition-all duration-150 hover:bg-brand/90 active:scale-[0.94] active:brightness-90 disabled:cursor-not-allowed disabled:opacity-40 shadow-[0_2px_12px_rgba(107,122,40,0.30)] hover:shadow-[0_4px_20px_rgba(201,162,39,0.40)];
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -142,20 +142,20 @@
   /* ── Cards ─────────────────────────────────────────── */
   .card {
     @apply rounded-2xl border p-5;
-    @apply bg-white border-gray-200 shadow-[0_1px_8px_rgba(0, 0, 0, 0.06)];
+    @apply bg-white border-gray-200 shadow-[0_1px_8px_rgba(0,0,0,0.06)];
     @apply dark:bg-surface-800 dark:border-white/[0.07] dark:shadow-none;
   }
 
   .card-hover {
     @apply card transition-all duration-200 cursor-pointer;
-    @apply hover:border-gray-300 hover:shadow-[0_4px_16px_rgba(0, 0, 0, 0.08)] hover:-translate-y-0.5;
+    @apply hover:border-gray-300 hover:shadow-[0_4px_16px_rgba(0,0,0,0.08)] hover:-translate-y-0.5;
     @apply dark:hover:border-white/[0.12] dark:hover:bg-white/[0.03];
   }
 
   .card-elevated {
     @apply rounded-2xl border p-5;
-    @apply bg-white border-gray-200 shadow-[0_4px_24px_rgba(0, 0, 0, 0.08)];
-    @apply dark:bg-surface-800 dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0, 0, 0, 0.4)];
+    @apply bg-white border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.08)];
+    @apply dark:bg-surface-800 dark:border-white/[0.08] dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)];
   }
 
   /* ── Typography ────────────────────────────────────── */

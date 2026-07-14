@@ -7,7 +7,7 @@ export type JobType = string
 export type PaymentStatus = 'unpaid' | 'partial' | 'paid'
 export type JobSource = 'application' | 'website_chat' | 'import'
 export type PhotoCategory = 'exterior_front' | 'exterior_rear' | 'exterior_left' | 'exterior_right' | 'interior' | 'engine_bay' | 'damage' | 'before_work' | 'after_work' | 'other'
-export type UserRole = 'admin' | 'supervisor' | 'technician' | 'receptionist'
+export type UserRole = 'admin' | 'supervisor' | 'manager' | 'technician' | 'receptionist' | 'accountant'
 
 export interface User {
   id: string

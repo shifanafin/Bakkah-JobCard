@@ -34,9 +34,23 @@ import {
   ImageIcon,
   Phone,
   Clock,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils/cn";
+import DocumentScanButton, {
+  type ScannedField,
+} from "@/components/ai/DocumentScanButton";
+
+function findScannedField(
+  fields: ScannedField[],
+  ...keywords: string[]
+): string | undefined {
+  const f = fields.find((f) =>
+    keywords.some((k) => f.key.toLowerCase().includes(k)),
+  );
+  return f?.value;
+}
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -269,6 +283,63 @@ export default function NewJobCardPage() {
     technician_id: "",
   });
   const [woErr, setWoErr] = useState<Record<string, string>>({});
+
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<{
+    possible_causes: string[];
+    inspection_checklist: string[];
+    technician_tasks: string[];
+  } | null>(null);
+
+  async function handleAiSuggest() {
+    if (!wo.complaint.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiSuggestion(null);
+    try {
+      const res = await fetch("/api/ai/service-advisor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          complaint: wo.complaint,
+          vehicle: {
+            make: veh.make || undefined,
+            model: veh.model || undefined,
+            year: veh.year ? Number(veh.year) : undefined,
+          },
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast.error(json.error || "AI suggestion is not available right now");
+        return;
+      }
+      setAiSuggestion(json.suggestion);
+    } catch {
+      toast.error("Could not reach AI Service Advisor");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  function insertAiSuggestion() {
+    if (!aiSuggestion) return;
+    const text = [
+      "Likely causes:",
+      ...aiSuggestion.possible_causes.map((c) => `- ${c}`),
+      "",
+      "Inspection checklist:",
+      ...aiSuggestion.inspection_checklist.map((c) => `- ${c}`),
+      "",
+      "Technician tasks:",
+      ...aiSuggestion.technician_tasks.map((c) => `- ${c}`),
+    ].join("\n");
+    setWo((f) => ({
+      ...f,
+      instructions: f.instructions ? `${f.instructions}\n\n${text}` : text,
+    }));
+    setAiSuggestion(null);
+    toast.success("Added to Work Instructions");
+  }
 
   // Photos
   const [photos, setPhotos] = useState<PendingPhoto[]>([]);
@@ -883,6 +954,17 @@ export default function NewJobCardPage() {
                 <User className="h-3.5 w-3.5 text-brand" />
               </div>
               <h2 className="section-title">Customer Details</h2>
+              <DocumentScanButton
+                documentType="emirates_id"
+                label="Scan Emirates ID"
+                className="ml-auto"
+                onResult={(fields) => {
+                  setCust((f) => ({
+                    ...f,
+                    name: findScannedField(fields, "name") ?? f.name,
+                  }));
+                }}
+              />
             </div>
 
             {/* Customer search combobox */}
@@ -1101,8 +1183,31 @@ export default function NewJobCardPage() {
                 <Car className="h-3.5 w-3.5 text-brand" />
               </div>
               <h2 className="section-title">Vehicle Details</h2>
+              <DocumentScanButton
+                documentType="mulkiya"
+                label="Scan Mulkiya"
+                className="ml-auto"
+                onResult={(fields) => {
+                  setVeh((f) => ({
+                    ...f,
+                    plate:
+                      findScannedField(fields, "plate")?.toUpperCase() ??
+                      f.plate,
+                    vin:
+                      findScannedField(
+                        fields,
+                        "vin",
+                        "chassis",
+                      )?.toUpperCase() ?? f.vin,
+                    make: findScannedField(fields, "make") ?? f.make,
+                    model: findScannedField(fields, "model") ?? f.model,
+                    year: findScannedField(fields, "year") ?? f.year,
+                    color: findScannedField(fields, "color") ?? f.color,
+                  }));
+                }}
+              />
               {selectedCustomer && (
-                <span className="ml-auto text-xs text-gray-400 dark:text-white/30">
+                <span className="text-xs text-gray-400 dark:text-white/30">
                   Customer:{" "}
                   <span className="font-semibold text-gray-700 dark:text-white/70">
                     {selectedCustomer.name}
@@ -1379,6 +1484,70 @@ export default function NewJobCardPage() {
                   rows={3}
                   className="input-base resize-none w-full"
                 />
+                <button
+                  type="button"
+                  onClick={handleAiSuggest}
+                  disabled={!wo.complaint.trim() || aiLoading}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-brand/30 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand transition hover:bg-brand/15 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {aiLoading ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3.5 w-3.5" />
+                  )}
+                  Suggest with AI
+                </button>
+
+                {aiSuggestion && (
+                  <div className="mt-3 space-y-3 rounded-xl border border-brand/20 bg-brand/5 p-4 dark:bg-brand/[0.06]">
+                    <div>
+                      <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">
+                        Likely Causes
+                      </p>
+                      <ul className="list-disc space-y-0.5 pl-4 text-sm text-gray-700 dark:text-white/70">
+                        {aiSuggestion.possible_causes.map((c, i) => (
+                          <li key={i}>{c}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">
+                        Inspection Checklist
+                      </p>
+                      <ul className="list-disc space-y-0.5 pl-4 text-sm text-gray-700 dark:text-white/70">
+                        {aiSuggestion.inspection_checklist.map((c, i) => (
+                          <li key={i}>{c}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30">
+                        Technician Tasks
+                      </p>
+                      <ul className="list-disc space-y-0.5 pl-4 text-sm text-gray-700 dark:text-white/70">
+                        {aiSuggestion.technician_tasks.map((c, i) => (
+                          <li key={i}>{c}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={insertAiSuggestion}
+                        className="btn-primary text-xs"
+                      >
+                        Add to Work Instructions
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAiSuggestion(null)}
+                        className="btn-ghost text-xs"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  </div>
+                )}
               </Field>
 
               <Field label="Work Instructions (internal)" full>

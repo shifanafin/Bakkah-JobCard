@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
-import { ChevronLeft, AlertTriangle, Plus, Loader2, Check, X, Clock } from 'lucide-react'
+import { ChevronLeft, AlertTriangle, Plus, Loader2, Check, X, Clock, Edit2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 type FeedbackItem = { id: string; subject: string; body: string; status: string; created_at: string }
 
@@ -20,6 +21,9 @@ export default function ComplaintsPage() {
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({ subject: '', message: '' })
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<FeedbackItem | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -38,20 +42,46 @@ export default function ComplaintsPage() {
     setSubmitting(true)
     try {
       const res = await fetch('/api/my/feedback', {
-        method: 'POST',
+        method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'complaint', subject: form.subject, message: form.message }),
+        body: JSON.stringify(editingId
+          ? { id: editingId, subject: form.subject, message: form.message }
+          : { type: 'complaint', subject: form.subject, message: form.message }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Complaint submitted. We\'ll review it soon.')
+      toast.success(editingId ? 'Complaint updated' : 'Complaint submitted. We\'ll review it soon.')
       setShowForm(false)
+      setEditingId(null)
       setForm({ subject: '', message: '' })
       await load()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to submit')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  function startEdit(item: FeedbackItem) {
+    setEditingId(item.id)
+    setForm({ subject: item.subject, message: item.body })
+    setShowForm(true)
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/my/feedback?id=${deleteTarget.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
+      toast.success('Complaint deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
     }
   }
 
@@ -66,7 +96,10 @@ export default function ComplaintsPage() {
             <ChevronLeft className="h-5 w-5" />
             <span className="text-[15px]">Back</span>
           </Link>
-          <button onClick={() => setShowForm(s => !s)}
+          <button onClick={() => {
+              if (showForm) { setShowForm(false); setEditingId(null); setForm({ subject: '', message: '' }) }
+              else setShowForm(true)
+            }}
             className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-bold text-black active:opacity-80 transition-opacity">
             {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
             {showForm ? 'Cancel' : 'New Complaint'}
@@ -90,7 +123,7 @@ export default function ComplaintsPage() {
               <div className="h-8 w-8 rounded-xl bg-orange-500/10 flex items-center justify-center">
                 <AlertTriangle className="h-4 w-4 text-orange-500" />
               </div>
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">Submit a Complaint</h3>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">{editingId ? 'Edit Complaint' : 'Submit a Complaint'}</h3>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -105,7 +138,9 @@ export default function ComplaintsPage() {
                   className="input-base w-full resize-none" required />
               </div>
               <button type="submit" disabled={submitting} className="btn-primary w-full">
-                {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting...</> : <><Check className="h-4 w-4" /> Submit Complaint</>}
+                {submitting
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> {editingId ? 'Saving...' : 'Submitting...'}</>
+                  : <><Check className="h-4 w-4" /> {editingId ? 'Save Changes' : 'Submit Complaint'}</>}
               </button>
             </form>
           </div>
@@ -132,9 +167,21 @@ export default function ComplaintsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-white/40 line-clamp-2">{item.body}</p>
-                  <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-white/25">
-                    <Clock className="h-3 w-3" />
-                    {new Date(item.created_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1 text-[10px] text-gray-400 dark:text-white/25">
+                      <Clock className="h-3 w-3" />
+                      {new Date(item.created_at).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                    {item.status === 'open' && (
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => startEdit(item)} className="flex items-center gap-1 text-xs font-semibold text-brand hover:underline">
+                          <Edit2 className="h-3 w-3" /> Edit
+                        </button>
+                        <button onClick={() => setDeleteTarget(item)} className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:underline">
+                          <Trash2 className="h-3 w-3" /> Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -142,6 +189,17 @@ export default function ComplaintsPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete this complaint?"
+        message="This will permanently delete your complaint."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

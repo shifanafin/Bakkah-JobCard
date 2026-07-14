@@ -475,8 +475,11 @@ export default function JobCardsPage() {
                             </button>
                           </th>
                         )}
-                        {['Job #', 'Vehicle', 'Customer', 'Type', 'Date In', 'Status', 'Total', ''].map(h => (
-                          <th key={h} className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">{h}</th>
+                        {['Job #', 'Vehicle', 'Customer', 'Type', 'Date In', 'Status', 'Total', 'Actions'].map(h => (
+                          <th key={h} className={cn(
+                            'px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-white/30',
+                            (h === 'Total' || h === 'Actions') && 'text-right',
+                          )}>{h}</th>
                         ))}
                       </tr>
                     </thead>
@@ -523,20 +526,20 @@ export default function JobCardsPage() {
                               <p className={cn('text-xs capitalize', PAYMENT_STATUS_COLOR[job.payment_status])}>{job.payment_status}</p>
                             </td>
                             <td className="px-4 py-3">
-                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Link href={`/workshop/job-cards/${job.id}`}
-                                  className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-500 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
-                                  <Eye className="h-3.5 w-3.5" /> View
+                              <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                <Link href={`/workshop/job-cards/${job.id}`} title="View"
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+                                  <Eye className="h-3.5 w-3.5" />
                                 </Link>
                                 {!isDelivered && (
-                                  <Link href={`/workshop/job-cards/${job.id}/edit`}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-500 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
-                                    <Pencil className="h-3.5 w-3.5" /> Edit
+                                  <Link href={`/workshop/job-cards/${job.id}/edit`} title="Edit"
+                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-500 transition hover:border-brand/30 hover:text-brand dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+                                    <Pencil className="h-3.5 w-3.5" />
                                   </Link>
                                 )}
                                 {canDelete && DELETABLE_STATUSES.has(job.status) && (
-                                  <button onClick={() => handleDeleteSingle(job.id)} disabled={deleting}
-                                    className="inline-flex items-center gap-1 rounded-lg border border-red-100 bg-red-50 px-2 py-1.5 text-xs text-red-400 transition hover:bg-red-100 hover:text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 disabled:opacity-50">
+                                  <button onClick={() => handleDeleteSingle(job.id)} disabled={deleting} title="Delete"
+                                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 bg-red-50 text-red-400 transition hover:bg-red-100 hover:text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:hover:bg-red-500/20 disabled:opacity-50">
                                     <Trash2 className="h-3.5 w-3.5" />
                                   </button>
                                 )}

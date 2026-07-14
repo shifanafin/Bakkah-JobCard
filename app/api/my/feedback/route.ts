@@ -76,3 +76,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
+
+// PATCH — edit own suggestion/complaint while still open
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession()
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json()
+  const { id, subject, message } = body
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  const sb = getSb()
+  const { data: existing } = await sb.from('employee_feedback').select('user_id, status').eq('id', id).single()
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.user_id !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (existing.status !== 'open') return NextResponse.json({ error: 'Only open items can be edited' }, { status: 409 })
+
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  if (subject !== undefined) updates.subject = subject
+  if (message !== undefined) updates.body = message
+
+  const { data, error } = await sb.from('employee_feedback').update(updates).eq('id', id).select().single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ item: data })
+}
+
+// DELETE — remove own suggestion/complaint while still open
+export async function DELETE(req: NextRequest) {
+  const session = await getServerSession()
+  if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const url = new URL(req.url)
+  const id = url.searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+
+  const sb = getSb()
+  const { data: existing } = await sb.from('employee_feedback').select('user_id, status').eq('id', id).single()
+  if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (existing.user_id !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (existing.status !== 'open') return NextResponse.json({ error: 'Only open items can be deleted' }, { status: 409 })
+
+  const { error } = await sb.from('employee_feedback').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}

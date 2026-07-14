@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
-import Link from 'next/link'
-import { FileText, Receipt, ClipboardList, Loader2, ExternalLink, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2, Plus, ArrowRightCircle, Trash2 } from 'lucide-react'
+import { FileText, Receipt, ClipboardList, Loader2, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2, Plus, ArrowRightCircle, Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
@@ -100,6 +99,7 @@ export default function TransactionsPage() {
   const [busyId, setBusyId] = useState<string | null>(null)
   const [confirmProforma, setConfirmProforma] = useState<Quotation | null>(null)
   const [confirmTaxConvert, setConfirmTaxConvert] = useState<Proforma | null>(null)
+  const [confirmMarkPaid, setConfirmMarkPaid] = useState<TaxInvoice | null>(null)
 
   // ── Delete ────────────────────────────────────────────────────
   type DeleteTarget = { kind: 'quotation' | 'proforma' | 'tax'; id: string; number: string }
@@ -181,6 +181,30 @@ export default function TransactionsPage() {
 
   async function handleConvertToTax(row: Proforma) {
     setConfirmTaxConvert(row)
+  }
+
+  async function handleMarkPaid(row: TaxInvoice) {
+    setConfirmMarkPaid(row)
+  }
+
+  async function doMarkPaid(row: TaxInvoice) {
+    setConfirmMarkPaid(null)
+    setBusyId(row.id)
+    try {
+      const res = await fetch(`/api/tax-invoices/${row.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'mark_paid' }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to mark as paid'); return }
+      setTaxInvoices(rows => rows.map(r => r.id === row.id ? { ...r, status: 'paid' } : r))
+      toast.success('Marked as paid')
+    } catch {
+      toast.error('Failed to mark as paid')
+    } finally {
+      setBusyId(null)
+    }
   }
 
   async function doConvertToTax(row: Proforma) {
@@ -547,7 +571,7 @@ export default function TransactionsPage() {
               onDelete={row => setDeleteTarget({ kind: 'proforma', id: row.id, number: row.proforma_number })} />
           )}
           {tab === 'tax' && (
-            <TaxTable rows={filteredTax} SortIcon={SortIcon} onSort={toggleSort}
+            <TaxTable rows={filteredTax} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onMarkPaid={handleMarkPaid}
               onDelete={row => setDeleteTarget({ kind: 'tax', id: row.id, number: row.invoice_number })} />
           )}
         </div>
@@ -582,6 +606,17 @@ export default function TransactionsPage() {
         loading={busyId === confirmTaxConvert?.id}
         onConfirm={() => confirmTaxConvert && doConvertToTax(confirmTaxConvert)}
         onCancel={() => setConfirmTaxConvert(null)}
+      />
+
+      <ConfirmDialog
+        open={!!confirmMarkPaid}
+        title="Mark Invoice as Paid?"
+        message={confirmMarkPaid ? `Mark ${confirmMarkPaid.invoice_number} as paid? This updates the job card's payment status too.` : ''}
+        confirmLabel="Mark as Paid"
+        variant="warning"
+        loading={busyId === confirmMarkPaid?.id}
+        onConfirm={() => confirmMarkPaid && doMarkPaid(confirmMarkPaid)}
+        onCancel={() => setConfirmMarkPaid(null)}
       />
 
       <ConfirmDialog
@@ -621,7 +656,9 @@ function SummaryCard({
 }
 
 const thCls = 'px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wide text-gray-400 dark:text-white/30 cursor-pointer select-none hover:text-gray-600 dark:hover:text-white/60 transition-colors'
+const thClsRight = cn(thCls, 'text-right')
 const tdCls = 'px-4 py-3 text-sm'
+const tdClsRight = cn(tdCls, 'text-right')
 
 function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma, onDelete }: {
   rows: Quotation[]
@@ -631,6 +668,7 @@ function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma, onDe
   onCreateProforma: (row: Quotation) => void
   onDelete: (row: Quotation) => void
 }) {
+  const router = useRouter()
   if (rows.length === 0) return <EmptyState label="No quotations found" />
   return (
     <div className="overflow-x-auto">
@@ -642,16 +680,18 @@ function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma, onDe
             <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
             <th className={thCls}>Status</th>
-            <th className={thCls} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
+            <th className={thClsRight} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
             <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={thCls}>Actions</th>
+            <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
           {rows.map(row => {
             const st = QUOTATION_STATUS[row.status] ?? QUOTATION_STATUS.draft
             return (
-              <tr key={row.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
+              <tr key={row.id}
+                onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/quotation`)}
+                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
                 <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.quotation_number}</td>
                 <td className={tdCls}>
                   <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
@@ -665,16 +705,10 @@ function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma, onDe
                 <td className={tdCls}>
                   <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)}>{st.label}</span>
                 </td>
-                <td className={cn(tdCls, 'font-semibold tabular-nums text-gray-900 dark:text-white')}>{formatAED(row.total)}</td>
+                <td className={cn(tdClsRight, 'font-semibold tabular-nums text-gray-900 dark:text-white')}>{formatAED(row.total)}</td>
                 <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.created_at)}</td>
-                <td className={tdCls}>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {row.job_card_id && (
-                      <Link href={`/workshop/job-cards/${row.job_card_id}/quotation`}
-                        className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
-                        <ExternalLink className="h-3 w-3" /> View
-                      </Link>
-                    )}
+                <td className={tdCls} onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-end gap-3 whitespace-nowrap">
                     {row.status === 'approved' && !row.has_proforma && (
                       <button
                         onClick={() => onCreateProforma(row)}
@@ -712,6 +746,7 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
   onConvertToTax: (row: Proforma) => void
   onDelete: (row: Proforma) => void
 }) {
+  const router = useRouter()
   if (rows.length === 0) return <EmptyState label="No proforma invoices found" />
   return (
     <div className="overflow-x-auto">
@@ -722,17 +757,19 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
             <th className={thCls}>Customer</th>
             <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
-            <th className={thCls} onClick={() => onSort('total')}>Subtotal</th>
-            <th className={thCls}>Discount</th>
-            <th className={thCls}>VAT</th>
-            <th className={thCls} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
+            <th className={thClsRight} onClick={() => onSort('total')}>Subtotal</th>
+            <th className={thClsRight}>Discount</th>
+            <th className={thClsRight}>VAT</th>
+            <th className={thClsRight} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
             <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={thCls}>Actions</th>
+            <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
           {rows.map(row => (
-            <tr key={row.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
+            <tr key={row.id}
+              onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/proforma`)}
+              className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
               <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.proforma_number}</td>
               <td className={tdCls}>
                 <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
@@ -743,19 +780,13 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
                 <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
               </td>
               <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
-              <td className={cn(tdCls, 'tabular-nums text-gray-600 dark:text-white/60')}>{formatAED(row.subtotal)}</td>
-              <td className={cn(tdCls, 'tabular-nums text-emerald-600 dark:text-emerald-400')}>{row.discount > 0 ? `−${formatAED(row.discount)}` : '—'}</td>
-              <td className={cn(tdCls, 'tabular-nums text-gray-500 dark:text-white/40')}>{formatAED(row.vat_amount)}</td>
-              <td className={cn(tdCls, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
+              <td className={cn(tdClsRight, 'tabular-nums text-gray-600 dark:text-white/60')}>{formatAED(row.subtotal)}</td>
+              <td className={cn(tdClsRight, 'tabular-nums text-emerald-600 dark:text-emerald-400')}>{row.discount > 0 ? `−${formatAED(row.discount)}` : '—'}</td>
+              <td className={cn(tdClsRight, 'tabular-nums text-gray-500 dark:text-white/40')}>{formatAED(row.vat_amount)}</td>
+              <td className={cn(tdClsRight, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
               <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
-              <td className={tdCls}>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {row.job_card_id && (
-                    <Link href={`/workshop/job-cards/${row.job_card_id}/proforma`}
-                      className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
-                      <ExternalLink className="h-3 w-3" /> View
-                    </Link>
-                  )}
+              <td className={tdCls} onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-end gap-3 whitespace-nowrap">
                   {!row.has_tax_invoice && (
                     <button
                       onClick={() => onConvertToTax(row)}
@@ -784,12 +815,15 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
   )
 }
 
-function TaxTable({ rows, SortIcon, onSort, onDelete }: {
+function TaxTable({ rows, SortIcon, onSort, busyId, onMarkPaid, onDelete }: {
   rows: TaxInvoice[]
   SortIcon: React.FC<{ k: SortKey }>
   onSort: (k: SortKey) => void
+  busyId: string | null
+  onMarkPaid: (row: TaxInvoice) => void
   onDelete: (row: TaxInvoice) => void
 }) {
+  const router = useRouter()
   if (rows.length === 0) return <EmptyState label="No tax invoices found" />
   return (
     <div className="overflow-x-auto">
@@ -801,19 +835,21 @@ function TaxTable({ rows, SortIcon, onSort, onDelete }: {
             <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
             <th className={thCls}>Status</th>
-            <th className={thCls}>Subtotal</th>
-            <th className={thCls}>Discount</th>
-            <th className={thCls}>VAT</th>
-            <th className={thCls} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
+            <th className={thClsRight}>Subtotal</th>
+            <th className={thClsRight}>Discount</th>
+            <th className={thClsRight}>VAT</th>
+            <th className={thClsRight} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
             <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={thCls}></th>
+            <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
           {rows.map(row => {
             const st = TAX_STATUS[row.status] ?? TAX_STATUS.draft
             return (
-              <tr key={row.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
+              <tr key={row.id}
+                onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/tax-invoice`)}
+                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
                 <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.invoice_number}</td>
                 <td className={tdCls}>
                   <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
@@ -825,20 +861,23 @@ function TaxTable({ rows, SortIcon, onSort, onDelete }: {
                 </td>
                 <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
                 <td className={tdCls}>
-                  <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)}>{st.label}</span>
+                  <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)} title={st.label === 'Issued' ? 'Open the invoice to mark it as paid' : undefined}>{st.label}</span>
                 </td>
-                <td className={cn(tdCls, 'tabular-nums text-gray-600 dark:text-white/60')}>{formatAED(row.subtotal)}</td>
-                <td className={cn(tdCls, 'tabular-nums text-emerald-600 dark:text-emerald-400')}>{row.discount > 0 ? `−${formatAED(row.discount)}` : '—'}</td>
-                <td className={cn(tdCls, 'tabular-nums text-gray-500 dark:text-white/40')}>{formatAED(row.vat_amount)}</td>
-                <td className={cn(tdCls, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
+                <td className={cn(tdClsRight, 'tabular-nums text-gray-600 dark:text-white/60')}>{formatAED(row.subtotal)}</td>
+                <td className={cn(tdClsRight, 'tabular-nums text-emerald-600 dark:text-emerald-400')}>{row.discount > 0 ? `−${formatAED(row.discount)}` : '—'}</td>
+                <td className={cn(tdClsRight, 'tabular-nums text-gray-500 dark:text-white/40')}>{formatAED(row.vat_amount)}</td>
+                <td className={cn(tdClsRight, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
                 <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
-                <td className={tdCls}>
-                  <div className="flex items-center gap-3 flex-wrap">
-                    {row.job_card_id && (
-                      <Link href={`/workshop/job-cards/${row.job_card_id}/tax-invoice`}
-                        className="flex items-center gap-1 text-xs text-brand hover:underline font-medium">
-                        <ExternalLink className="h-3 w-3" /> View
-                      </Link>
+                <td className={tdCls} onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                    {row.status === 'issued' && (
+                      <button
+                        onClick={() => onMarkPaid(row)}
+                        disabled={busyId === row.id}
+                        className="flex items-center gap-1 text-xs text-emerald-600 hover:underline font-medium disabled:opacity-40 dark:text-emerald-400">
+                        {busyId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                        Mark as Paid
+                      </button>
                     )}
                     {row.status !== 'paid' ? (
                       <button onClick={() => onDelete(row)} className="flex items-center gap-1 text-xs text-red-600 hover:underline font-medium dark:text-red-400">

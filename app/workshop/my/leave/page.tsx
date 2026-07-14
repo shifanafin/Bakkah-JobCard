@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Header from '@/components/layout/Header'
-import { ChevronLeft, CalendarDays, Plus, Loader2, Check, Clock, X, ChevronDown } from 'lucide-react'
+import { ChevronLeft, CalendarDays, Plus, Loader2, Check, Clock, X, ChevronDown, Edit2, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 type LeaveType = 'annual' | 'sick' | 'emergency' | 'unpaid'
 type LeaveStatus = 'pending' | 'approved' | 'rejected'
@@ -47,6 +48,9 @@ export default function LeaveRequestPage() {
   const [showForm, setShowForm] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [form, setForm] = useState({ type: 'annual' as LeaveType, from_date: '', to_date: '', reason: '' })
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<LeaveRequest | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -68,20 +72,44 @@ export default function LeaveRequestPage() {
     setSubmitting(true)
     try {
       const res = await fetch('/api/my/leave', {
-        method: 'POST',
+        method: editingId ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(editingId ? { ...form, id: editingId } : form),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Leave request submitted!')
+      toast.success(editingId ? 'Leave request updated!' : 'Leave request submitted!')
       setShowForm(false)
+      setEditingId(null)
       setForm({ type: 'annual', from_date: '', to_date: '', reason: '' })
       await load()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to submit')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  function startEdit(req: LeaveRequest) {
+    setEditingId(req.id)
+    setForm({ type: req.type, from_date: req.from_date, to_date: req.to_date, reason: req.reason ?? '' })
+    setShowForm(true)
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/my/leave?id=${deleteTarget.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setRequests(prev => prev.filter(r => r.id !== deleteTarget.id))
+      toast.success('Leave request deleted')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete')
+    } finally {
+      setDeleting(false)
+      setDeleteTarget(null)
     }
   }
 
@@ -98,7 +126,10 @@ export default function LeaveRequestPage() {
             <span className="text-[15px]">Attendance</span>
           </Link>
           <button
-            onClick={() => setShowForm(s => !s)}
+            onClick={() => {
+              if (showForm) { setShowForm(false); setEditingId(null); setForm({ type: 'annual', from_date: '', to_date: '', reason: '' }) }
+              else setShowForm(true)
+            }}
             className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-xs font-bold text-black active:opacity-80 transition-opacity"
           >
             {showForm ? <X className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
@@ -122,7 +153,7 @@ export default function LeaveRequestPage() {
         {/* New request form */}
         {showForm && (
           <div className="card space-y-4">
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">New Leave Request</h3>
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">{editingId ? 'Edit Leave Request' : 'New Leave Request'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="label mb-1">Leave Type</label>
@@ -163,7 +194,9 @@ export default function LeaveRequestPage() {
                   className="input-base w-full resize-none" />
               </div>
               <button type="submit" disabled={submitting} className="btn-primary w-full">
-                {submitting ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting...</> : <><Check className="h-4 w-4" /> Submit Request</>}
+                {submitting
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> {editingId ? 'Saving...' : 'Submitting...'}</>
+                  : <><Check className="h-4 w-4" /> {editingId ? 'Save Changes' : 'Submit Request'}</>}
               </button>
             </form>
           </div>
@@ -211,6 +244,16 @@ export default function LeaveRequestPage() {
                         Manager: {req.admin_note}
                       </p>
                     )}
+                    {req.status === 'pending' && (
+                      <div className="flex items-center gap-3 pt-1">
+                        <button onClick={() => startEdit(req)} className="flex items-center gap-1 text-xs font-semibold text-brand hover:underline">
+                          <Edit2 className="h-3 w-3" /> Edit
+                        </button>
+                        <button onClick={() => setDeleteTarget(req)} className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:underline">
+                          <Trash2 className="h-3 w-3" /> Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -218,6 +261,17 @@ export default function LeaveRequestPage() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete this leave request?"
+        message="This will permanently delete your request."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   )
 }

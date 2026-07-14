@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Header from '@/components/layout/Header'
-import { createClient } from '@/lib/supabase/client'
 import { Package, Plus, Search, Edit2, Trash2, AlertTriangle, Loader2, X, Check, Minus } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import Pagination from '@/components/ui/Pagination'
@@ -71,14 +70,10 @@ export default function InventoryPage() {
 
   const load = useCallback(async () => {
     try {
-      const sb = createClient()
-      const { data, error } = await sb
-        .from('inventory')
-        .select('*')
-        .eq('active', true)
-        .order('name')
-      if (error) throw error
-      setItems((data ?? []) as InventoryItem[])
+      const res = await fetch('/api/inventory')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setItems((data.items ?? []) as InventoryItem[])
     } catch {
       toast.error('Failed to load inventory')
     } finally {
@@ -131,7 +126,6 @@ export default function InventoryPage() {
     if (!form.name.trim()) return
     setSaving(true)
     try {
-      const sb = createClient()
       const payload = {
         name: form.name.trim(),
         sku: form.sku.trim() || null,
@@ -144,18 +138,18 @@ export default function InventoryPage() {
         min_stock_level: parseFloat(form.min_stock_level) || 5,
         supplier: form.supplier.trim() || null,
         location: form.location.trim() || null,
-        updated_at: new Date().toISOString(),
       }
 
-      if (editItem) {
-        const { error } = await sb.from('inventory').update(payload).eq('id', editItem.id)
-        if (error) throw error
-        toast.success('Item updated')
-      } else {
-        const { error } = await sb.from('inventory').insert(payload)
-        if (error) throw error
-        toast.success('Item added')
-      }
+      const res = editItem
+        ? await fetch(`/api/inventory/${editItem.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          })
+        : await fetch('/api/inventory', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success(editItem ? 'Item updated' : 'Item added')
       setShowModal(false)
       await load()
     } catch (err: unknown) {
@@ -169,9 +163,9 @@ export default function InventoryPage() {
     setConfirmDeleteId(null)
     setDeletingId(id)
     try {
-      const sb = createClient()
-      const { error } = await sb.from('inventory').update({ active: false }).eq('id', id)
-      if (error) throw error
+      const res = await fetch(`/api/inventory/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
       toast.success('Item deleted')
       setItems(prev => prev.filter(i => i.id !== id))
     } catch {
@@ -187,11 +181,11 @@ export default function InventoryPage() {
     const newQty = Math.max(0, item.stock_quantity + delta)
     setAdjustingId(id)
     try {
-      const sb = createClient()
-      const { error } = await sb.from('inventory')
-        .update({ stock_quantity: newQty, updated_at: new Date().toISOString() })
-        .eq('id', id)
-      if (error) throw error
+      const res = await fetch(`/api/inventory/${id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stock_quantity: newQty }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
       setItems(prev => prev.map(i => i.id === id ? { ...i, stock_quantity: newQty } : i))
     } catch {
       toast.error('Failed to adjust stock')

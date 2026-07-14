@@ -73,10 +73,12 @@ const SPECIALTY_COLORS: Record<string, string> = {
   'Electrician': 'bg-yellow-500/15 text-yellow-400',
 }
 
-const ROLES = ['admin', 'supervisor', 'receptionist', 'technician']
+const ROLES = ['admin', 'supervisor', 'manager', 'accountant', 'receptionist', 'technician']
 const ROLE_COLORS: Record<string, string> = {
   admin: 'bg-red-500/15 text-red-400',
   supervisor: 'bg-amber-500/15 text-amber-400',
+  manager: 'bg-purple-500/15 text-purple-400',
+  accountant: 'bg-emerald-500/15 text-emerald-400',
   receptionist: 'bg-blue-500/15 text-blue-400',
   technician: 'bg-brand/15 text-brand',
 }
@@ -203,6 +205,10 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const [editTarget, setEditTarget] = useState<Employee | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', email: '', username: '', role: 'receptionist' })
+  const [savingEdit, setSavingEdit] = useState(false)
+
   const load = useCallback(async () => {
     setLoading(true)
     try {
@@ -266,6 +272,29 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
       setResetTarget(null); setResetPwd('')
     } catch { toast.error('Failed to reset password') }
     finally { setResetting(false) }
+  }
+
+  function openEdit(emp: Employee) {
+    setEditTarget(emp)
+    setEditForm({ name: emp.name, email: emp.email, username: emp.username, role: emp.role })
+  }
+
+  async function handleSaveEdit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!editTarget) return
+    setSavingEdit(true)
+    try {
+      const res = await fetch('/api/admin/employees', {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editTarget.id, action: 'update_details', ...editForm }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      setEmployees(prev => prev.map(e => e.id === editTarget.id ? json.user : e))
+      toast.success('Employee updated')
+      setEditTarget(null)
+    } catch (err) { toast.error(err instanceof Error ? err.message : 'Failed to update employee') }
+    finally { setSavingEdit(false) }
   }
 
   async function handleDelete(emp: Employee) {
@@ -355,6 +384,10 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
                     <td className="px-4 py-3 text-xs text-gray-400 dark:text-white/30">{formatDate(emp.created_at)}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-1.5">
+                        <button onClick={() => openEdit(emp)} title="Edit"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/40 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30">
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
                         <button onClick={() => handleToggle(emp)} disabled={togglingId === emp.id} title={emp.active ? 'Deactivate' : 'Activate'}
                           className={cn('flex h-7 w-7 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
                             emp.active ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
@@ -538,6 +571,44 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
                 <button type="button" onClick={() => setResetTarget(null)} className="btn-ghost flex-1">Cancel</button>
                 <button type="submit" disabled={resetting} className="btn-primary flex-1">
                   {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Key className="h-4 w-4" />} Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Employee modal */}
+      {editTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl dark:bg-surface-800">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4 dark:border-white/[0.06]">
+              <h2 className="text-base font-bold text-gray-900 dark:text-white">Edit Employee</h2>
+              <button onClick={() => setEditTarget(null)} className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 dark:text-white/30 dark:hover:bg-white/[0.06]"><X className="h-4 w-4" /></button>
+            </div>
+            <form onSubmit={handleSaveEdit} className="p-6 space-y-4">
+              <div>
+                <label className="label mb-1">Full Name *</label>
+                <input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="input-base w-full" required />
+              </div>
+              <div>
+                <label className="label mb-1">Email *</label>
+                <input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))} className="input-base w-full" required />
+              </div>
+              <div>
+                <label className="label mb-1">Username *</label>
+                <input value={editForm.username} onChange={e => setEditForm(f => ({ ...f, username: e.target.value.toLowerCase().replace(/\s/g, '') }))} className="input-base w-full" required />
+              </div>
+              <div>
+                <label className="label mb-1">Role *</label>
+                <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))} className="input-base w-full">
+                  {ROLES.map(r => <option key={r} value={r} className="capitalize">{r.charAt(0).toUpperCase() + r.slice(1)}</option>)}
+                </select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setEditTarget(null)} className="btn-ghost flex-1">Cancel</button>
+                <button type="submit" disabled={savingEdit} className="btn-primary flex-1">
+                  {savingEdit ? <Loader2 className="h-4 w-4 animate-spin" /> : <Edit2 className="h-4 w-4" />} Save
                 </button>
               </div>
             </form>
@@ -1479,6 +1550,10 @@ function LeaveTab() {
                       className="flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-100 transition dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
                       <X className="h-3.5 w-3.5" /> Reject
                     </button>
+                    <button onClick={() => setDeleteTarget(req)}
+                      className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs font-semibold text-gray-500 hover:bg-gray-100 transition dark:border-white/10 dark:bg-white/[0.04] dark:text-white/40">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 )}
               </div>
@@ -1516,6 +1591,17 @@ function LeaveTab() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete this leave request?"
+        message={deleteTarget ? `This will permanently delete ${deleteTarget.user_name}'s leave request.` : ''}
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   )
 }
@@ -1530,6 +1616,8 @@ function FeedbackTab({ type }: { type: 'suggestion' | 'complaint' }) {
   const [newStatus, setNewStatus] = useState<string>('')
   const [adminNote, setAdminNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<FeedbackItem | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -1561,6 +1649,19 @@ function FeedbackTab({ type }: { type: 'suggestion' | 'complaint' }) {
       toast.success('Updated')
     } catch (err) { toast.error(err instanceof Error ? err.message : 'Failed') }
     finally { setSaving(false) }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/admin/employee-feedback?id=${deleteTarget.id}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      setItems(prev => prev.filter(i => i.id !== deleteTarget.id))
+      toast.success('Deleted')
+    } catch (err) { toast.error(err instanceof Error ? err.message : 'Failed') }
+    finally { setDeleting(false); setDeleteTarget(null) }
   }
 
   const Icon = type === 'suggestion' ? Lightbulb : AlertCircle
@@ -1608,6 +1709,12 @@ function FeedbackTab({ type }: { type: 'suggestion' | 'complaint' }) {
                     <p className="mt-1 text-xs text-gray-400 dark:text-white/30 italic">Note: {item.admin_note}</p>
                   )}
                 </div>
+                {item.status === 'open' && (
+                  <button onClick={e => { e.stopPropagation(); setDeleteTarget(item) }}
+                    className="shrink-0 rounded-lg p-1.5 text-gray-300 hover:bg-gray-100 hover:text-red-500 transition-colors dark:text-white/20 dark:hover:bg-white/[0.06]">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -1653,6 +1760,17 @@ function FeedbackTab({ type }: { type: 'suggestion' | 'complaint' }) {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete this item?"
+        message={deleteTarget ? `This will permanently delete "${deleteTarget.subject}".` : ''}
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </>
   )
 }

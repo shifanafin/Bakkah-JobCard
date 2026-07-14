@@ -7,7 +7,6 @@ import { signOut, useSession } from "@/lib/auth-client";
 import {
   LayoutDashboard,
   ClipboardList,
-  Plus,
   Settings,
   LogOut,
   ChevronRight,
@@ -134,14 +133,8 @@ function SidebarContent({
         label: nav.dashboard,
       },
       { href: "/workshop/job-cards", icon: ClipboardList, label: nav.jobCards },
-      {
-        href: "/workshop/job-cards/new",
-        icon: Plus,
-        label: nav.newJobCard,
-        highlight: true,
-      },
     );
-  } else if (role === "supervisor" || role === "admin") {
+  } else if (role === "supervisor" || role === "admin" || role === "manager") {
     workshopNav.push(
       {
         href: "/workshop/dashboard",
@@ -149,15 +142,20 @@ function SidebarContent({
         label: nav.dashboard,
       },
       { href: "/workshop/job-cards", icon: ClipboardList, label: nav.jobCards },
-      {
-        href: "/workshop/job-cards/new",
-        icon: Plus,
-        label: nav.newJobCard,
-        highlight: true,
-      },
       { href: "/workshop/customers", icon: UserRound, label: nav.customers },
       { href: "/workshop/services", icon: Wrench, label: 'Services' },
       { href: "/workshop/admin/hr", icon: Users, label: "People & HR" },
+      { href: "/workshop/transactions", icon: Receipt, label: 'Transactions' },
+    );
+  } else if (role === "accountant") {
+    workshopNav.push(
+      {
+        href: "/workshop/dashboard",
+        icon: LayoutDashboard,
+        label: nav.dashboard,
+      },
+      { href: "/workshop/job-cards", icon: ClipboardList, label: nav.jobCards },
+      { href: "/workshop/customers", icon: UserRound, label: nav.customers },
       { href: "/workshop/transactions", icon: Receipt, label: 'Transactions' },
     );
   }

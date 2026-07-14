@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { useSession } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
-import { createClient } from '@/lib/supabase/client'
 import { Megaphone, Plus, Edit2, Trash2, Loader2, X, Check, ToggleLeft, ToggleRight } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import SwipeToDelete from '@/components/ui/SwipeToDelete'
@@ -65,13 +64,10 @@ export default function AnnouncementsPage() {
 
   const load = useCallback(async () => {
     try {
-      const sb = createClient()
-      const { data, error } = await sb
-        .from('announcements')
-        .select('*')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      setAnnouncements((data ?? []) as Announcement[])
+      const res = await fetch('/api/announcements')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setAnnouncements((data.announcements ?? []) as Announcement[])
     } catch {
       toast.error('Failed to load announcements')
     } finally {
@@ -104,25 +100,24 @@ export default function AnnouncementsPage() {
     if (!form.title.trim() || !form.content.trim()) return
     setSaving(true)
     try {
-      const sb = createClient()
       const payload = {
         title: form.title.trim(),
         content: form.content.trim(),
         type: form.type,
         show_on_track: form.show_on_track,
         expires_at: form.expires_at ? new Date(form.expires_at + 'T23:59:59Z').toISOString() : null,
-        created_by: session?.user?.name ?? 'admin',
       }
 
-      if (editItem) {
-        const { error } = await sb.from('announcements').update(payload).eq('id', editItem.id)
-        if (error) throw error
-        toast.success('Announcement updated')
-      } else {
-        const { error } = await sb.from('announcements').insert({ ...payload, active: true })
-        if (error) throw error
-        toast.success('Announcement created')
-      }
+      const res = editItem
+        ? await fetch(`/api/announcements/${editItem.id}`, {
+            method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          })
+        : await fetch('/api/announcements', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+          })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success(editItem ? 'Announcement updated' : 'Announcement created')
       setShowModal(false)
       await load()
     } catch (err: unknown) {
@@ -136,9 +131,9 @@ export default function AnnouncementsPage() {
     setDeletingId(id)
     setConfirmDeleteId(null)
     try {
-      const sb = createClient()
-      const { error } = await sb.from('announcements').delete().eq('id', id)
-      if (error) throw error
+      const res = await fetch(`/api/announcements/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
       toast.success('Announcement deleted')
       setAnnouncements(prev => prev.filter(a => a.id !== id))
     } catch {
@@ -151,9 +146,11 @@ export default function AnnouncementsPage() {
   async function handleToggle(item: Announcement) {
     setTogglingId(item.id)
     try {
-      const sb = createClient()
-      const { error } = await sb.from('announcements').update({ active: !item.active }).eq('id', item.id)
-      if (error) throw error
+      const res = await fetch(`/api/announcements/${item.id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !item.active }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
       setAnnouncements(prev => prev.map(a => a.id === item.id ? { ...a, active: !item.active } : a))
       toast.success(`Announcement ${!item.active ? 'activated' : 'deactivated'}`)
     } catch {
