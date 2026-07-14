@@ -187,7 +187,6 @@ export default function BakkahHomePage() {
         <MessageCircle className="h-5 w-5 fill-white" />
         <span className="hidden sm:block">WhatsApp Us</span>
       </motion.a>
-
       {/* ── Navbar ─────────────────────────────────────────── */}
       <motion.nav
         initial={{ y: -72, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
