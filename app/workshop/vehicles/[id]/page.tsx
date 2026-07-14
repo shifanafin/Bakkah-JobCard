@@ -610,7 +610,7 @@ export default function VehicleHistoryPage({ params }: { params: Promise<{ id: s
         subtitle={`${vehicle.plate_number}${vehicle.year ? ` · ${vehicle.year}` : ''}${vehicle.color ? ` · ${vehicle.color}` : ''}`}
       />
 
-      <div className="p-4 space-y-5 max-w-4xl mx-auto lg:p-6">
+      <div className="p-4 space-y-5 w-full max-w-full lg:p-6">
         {/* Back */}
         <Link href="/workshop/job-cards"
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-white/40 dark:hover:text-white/70 w-fit">

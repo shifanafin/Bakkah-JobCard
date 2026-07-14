@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
   let query = sb
     .from('customers')
     .select('id, name, phone, email, company_name, is_fleet, notes, created_at')
+    .is('deleted_at', null)
     .order('name')
     .limit(500)
 

@@ -20,6 +20,7 @@ export async function GET() {
     const { data, error } = await sb
       .from('users')
       .select('id, name, email, username, role, active, created_at')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
     if (error) throw error
     return NextResponse.json({ users: data ?? [] })
@@ -90,16 +91,16 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE — permanently remove employee
+// DELETE — soft delete. Hidden from lists immediately (and can no longer log in,
+// since sessions are cleared), permanently purged after 30 days.
 export async function DELETE(req: NextRequest) {
   try {
     const { id } = await req.json()
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
     const sb = getServiceClient()
-    // Remove from technicians table first if applicable
-    await sb.from('technicians').delete().eq('id', id)
-    await sb.from('ba_account').delete().eq('user_id', id)
-    const { error } = await sb.from('users').delete().eq('id', id)
+    await sb.from('ba_session').delete().eq('user_id', id)
+    // active:false too, so a deleted account is blocked from sign-in the same way a deactivated one is
+    const { error } = await sb.from('users').update({ deleted_at: new Date().toISOString(), active: false }).eq('id', id)
     if (error) throw error
     return NextResponse.json({ success: true })
   } catch (err: unknown) {

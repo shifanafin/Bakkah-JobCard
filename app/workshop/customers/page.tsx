@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils/cn'
 import { formatDate } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import SwipeToDelete from '@/components/ui/SwipeToDelete'
+import RowActionsMenu from '@/components/ui/RowActionsMenu'
 
 type Customer = {
   id: string
@@ -207,20 +208,10 @@ export default function CustomersPage() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0">
-                  <Link
-                    href={`/workshop/customers/${c.id}`}
-                    className="p-2 rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors"
-                    title="View / Edit"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Link>
-                  <button
-                    onClick={() => setDeleteTarget(c)}
-                    className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <RowActionsMenu actions={[
+                    { label: 'View / Edit', icon: Edit2, href: `/workshop/customers/${c.id}` },
+                    { label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => setDeleteTarget(c) },
+                  ]} />
                   <Link href={`/workshop/customers/${c.id}`} className="hidden sm:block">
                     <ChevronRight className="h-4 w-4 text-gray-300 dark:text-white/20 group-hover:text-gray-500 dark:group-hover:text-white/50 transition-colors" />
                   </Link>

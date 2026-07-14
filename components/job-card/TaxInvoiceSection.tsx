@@ -397,15 +397,17 @@ export default function TaxInvoiceSection({
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-mono text-xs text-gray-400 dark:text-white/40 sm:hidden">{invoice.invoice_number}</span>
             <div className="ml-auto flex items-center gap-1.5 flex-wrap">
+              {isDraft && (
+                <button
+                  onClick={handleSyncFromProforma}
+                  disabled={isPending}
+                  className="flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-700 hover:bg-blue-100 transition-colors dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 disabled:opacity-40">
+                  {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                  Sync
+                </button>
+              )}
               {!readOnly && (
                 <>
-                  <button
-                    onClick={handleSyncFromProforma}
-                    disabled={isPending}
-                    className="flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-700 hover:bg-blue-100 transition-colors dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300 disabled:opacity-40">
-                    {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                    Sync
-                  </button>
                   <button
                     onClick={() => importRef.current?.click()}
                     disabled={importing}
@@ -744,8 +746,9 @@ export default function TaxInvoiceSection({
             )}
           </div>
 
-          {/* Issue button — draft only, hidden when locked */}
-          {!readOnly && isDraft && (
+          {/* Issue button — draft only. Always available, even once the job is delivered:
+              invoicing/payment normally happens around or after handover. */}
+          {isDraft && (
             <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
               <button onClick={handleIssue} disabled={isPending} className="btn-primary flex-1">
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
@@ -754,8 +757,8 @@ export default function TaxInvoiceSection({
             </div>
           )}
 
-          {/* Issued — show Mark as Paid, hidden when locked */}
-          {!readOnly && isIssued && (
+          {/* Issued — show Mark as Paid. Always available, even once the job is delivered. */}
+          {isIssued && (
             <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-500/20 bg-emerald-50 dark:bg-emerald-500/10 px-4 py-3">
                 <Check className="h-4 w-4 text-emerald-500 shrink-0" />

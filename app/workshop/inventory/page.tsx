@@ -10,6 +10,7 @@ const PAGE_SIZE = 20
 import { cn } from '@/lib/utils/cn'
 import { toast } from 'sonner'
 import SwipeToDelete from '@/components/ui/SwipeToDelete'
+import RowActionsMenu from '@/components/ui/RowActionsMenu'
 
 type InventoryItem = {
   id: string
@@ -279,7 +280,7 @@ export default function InventoryPage() {
                   <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Price (AED)</th>
                   <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Cost (AED)</th>
                   <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Supplier</th>
-                  <th className="px-4 py-3 text-center text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Actions</th>
+                  <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 dark:divide-white/[0.04]">
@@ -343,22 +344,11 @@ export default function InventoryPage() {
                       <td className="px-4 py-3 text-gray-500 dark:text-white/40 text-xs">
                         {item.supplier ?? '—'}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => openEdit(item)}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/30 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setConfirmDeleteId(item.id)}
-                            disabled={deletingId === item.id}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors disabled:opacity-50 dark:border-white/[0.08] dark:text-white/30"
-                          >
-                            {deletingId === item.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                          </button>
-                        </div>
+                      <td className="px-4 py-3 text-right">
+                        <RowActionsMenu actions={[
+                          { label: 'Edit', icon: Edit2, onClick: () => openEdit(item) },
+                          { label: 'Delete', icon: Trash2, variant: 'danger' as const, disabled: deletingId === item.id, onClick: () => setConfirmDeleteId(item.id) },
+                        ]} />
                       </td>
                     </tr>
                   )

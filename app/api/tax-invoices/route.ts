@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     .from('tax_invoices')
     .select('*')
     .eq('job_card_id', jobCardId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()

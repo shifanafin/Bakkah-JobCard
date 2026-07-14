@@ -8,7 +8,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const sb = createServiceClient()
 
   const [custRes, vehRes, jobRes] = await Promise.all([
-    sb.from('customers').select('*').eq('id', id).single(),
+    sb.from('customers').select('*').eq('id', id).is('deleted_at', null).single(),
     sb.from('vehicles').select('*').eq('customer_id', id).order('created_at', { ascending: false }),
     sb.from('job_cards')
       .select('id, job_number, status, job_type, date_in, date_out, total, payment_status, vehicle:vehicles(plate_number, make, model)')
@@ -27,11 +27,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
   })
 }
 
+// Soft delete — hidden from lists immediately, permanently purged after 30 days.
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const { id } = await params
     const sb = createServiceClient()
-    const { error } = await sb.from('customers').delete().eq('id', id)
+    const { error } = await sb.from('customers').update({ deleted_at: new Date().toISOString() }).eq('id', id)
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
   } catch (err) {

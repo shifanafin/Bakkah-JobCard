@@ -166,7 +166,7 @@ export default function EditJobCardPage({ params }: { params: Promise<{ id: stri
     <div className="min-h-screen bg-gray-50 dark:bg-surface-900">
       <Header title={`Edit ${job.job_number}`} subtitle={`${job.vehicle?.plate_number} · ${job.vehicle?.make} ${job.vehicle?.model}`} />
 
-      <div className="p-4 space-y-5 lg:p-6 max-w-3xl">
+      <div className="p-4 space-y-5 lg:p-6 w-full max-w-full">
         {/* Breadcrumb */}
         <div className="flex items-center justify-between">
           <Link href={`/workshop/job-cards/${id}`}

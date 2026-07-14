@@ -53,8 +53,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 // DELETE /api/job-cards/[id]
-// Admin only. Hard-deletes a job card and all related records (via DB cascade).
-// Jobs that have progressed past 'inspection' require status=cancelled first.
+// Admin/supervisor only. Soft-deletes — sets deleted_at, hidden from lists immediately,
+// permanently purged after 30 days by the scheduled purge_soft_deleted() job.
+// Jobs that have progressed past pre-work statuses require status=cancelled first.
 export async function DELETE(req: NextRequest, { params }: Params) {
   try {
     const session = await getServerSession()
@@ -75,25 +76,16 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
     if (fetchErr || !job) return NextResponse.json({ error: 'Job card not found' }, { status: 404 })
 
-    // Only allow deleting inspection-stage or cancelled jobs (not in-progress work)
-    const deletableStatuses = ['inspection', 'cancelled']
+    // Only deletable before work actually starts, or if cancelled
+    const deletableStatuses = ['inspection', 'waiting_for_approval', 'pending', 'assigned', 'received', 'cancelled']
     if (!deletableStatuses.includes(job.status)) {
       return NextResponse.json({
         error: `Cannot delete a job in "${job.status}" status. Cancel the job first.`,
       }, { status: 400 })
     }
 
-    // Delete related records (quotation items / quotations / photos / services / parts / history)
-    // Most have ON DELETE CASCADE but we handle quotations manually for clarity
-    await sb.from('quotation_items').delete()
-      .in('quotation_id',
-        (await sb.from('quotations').select('id').eq('job_card_id', id)).data?.map(q => q.id) ?? [])
-    await sb.from('quotations').delete().eq('job_card_id', id)
-    await sb.from('job_card_photos').delete().eq('job_card_id', id)
-    await sb.from('job_card_services').delete().eq('job_card_id', id)
-    await sb.from('job_card_parts').delete().eq('job_card_id', id)
-    await sb.from('job_card_history').delete().eq('job_card_id', id)
-    await sb.from('job_cards').delete().eq('id', id)
+    const { error } = await sb.from('job_cards').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
     return NextResponse.json({ success: true, job_number: job.job_number })
   } catch (err) {

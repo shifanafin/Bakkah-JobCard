@@ -15,6 +15,7 @@ export async function getJobCards(filters?: {
   const sb = createClient()
   let q = sb.from('job_cards')
     .select(`*, customer:customers(*), vehicle:vehicles(*), technician:technicians(name,role)`)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   if (filters?.status) q = q.eq('status', filters.status)
@@ -42,7 +43,7 @@ export async function getJobCard(id: string): Promise<JobCard> {
     *, customer:customers(*), vehicle:vehicles(*), technician:technicians(*),
     services:job_card_services(*), parts:job_card_parts(*),
     photos:job_card_photos(* )
-  `).eq('id', id).single()
+  `).eq('id', id).is('deleted_at', null).single()
   if (error) throw error
   return data as JobCard
 }

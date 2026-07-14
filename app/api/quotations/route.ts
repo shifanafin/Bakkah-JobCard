@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     .from('quotations')
     .select('*, items:quotation_items(*)')
     .eq('job_card_id', jobCardId)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()

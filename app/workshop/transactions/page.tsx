@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { FileText, Receipt, ClipboardList, Loader2, ChevronDown, ChevronUp, Upload, Download, X, AlertCircle, CheckCircle2, Plus, ArrowRightCircle, Trash2 } from 'lucide-react'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
+import RowActionsMenu from '@/components/ui/RowActionsMenu'
 import { formatAED, formatDate } from '@/lib/utils/format'
 import { cn } from '@/lib/utils/cn'
 import * as XLSX from 'xlsx'
@@ -185,6 +186,25 @@ export default function TransactionsPage() {
 
   async function handleMarkPaid(row: TaxInvoice) {
     setConfirmMarkPaid(row)
+  }
+
+  async function handleIssue(row: TaxInvoice) {
+    setBusyId(row.id)
+    try {
+      const res = await fetch(`/api/tax-invoices/${row.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'issue' }),
+      })
+      const d = await res.json()
+      if (!res.ok) { toast.error(d.error || 'Failed to issue invoice'); return }
+      setTaxInvoices(rows => rows.map(r => r.id === row.id ? { ...r, status: 'issued' } : r))
+      toast.success('Invoice issued')
+    } catch {
+      toast.error('Failed to issue invoice')
+    } finally {
+      setBusyId(null)
+    }
   }
 
   async function doMarkPaid(row: TaxInvoice) {
@@ -571,7 +591,7 @@ export default function TransactionsPage() {
               onDelete={row => setDeleteTarget({ kind: 'proforma', id: row.id, number: row.proforma_number })} />
           )}
           {tab === 'tax' && (
-            <TaxTable rows={filteredTax} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onMarkPaid={handleMarkPaid}
+            <TaxTable rows={filteredTax} SortIcon={SortIcon} onSort={toggleSort} busyId={busyId} onIssue={handleIssue} onMarkPaid={handleMarkPaid}
               onDelete={row => setDeleteTarget({ kind: 'tax', id: row.id, number: row.invoice_number })} />
           )}
         </div>
@@ -707,27 +727,15 @@ function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma, onDe
                 </td>
                 <td className={cn(tdClsRight, 'font-semibold tabular-nums text-gray-900 dark:text-white')}>{formatAED(row.total)}</td>
                 <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.created_at)}</td>
-                <td className={tdCls} onClick={e => e.stopPropagation()}>
-                  <div className="flex items-center justify-end gap-3 whitespace-nowrap">
-                    {row.status === 'approved' && !row.has_proforma && (
-                      <button
-                        onClick={() => onCreateProforma(row)}
-                        disabled={busyId === row.id}
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium disabled:opacity-40 dark:text-blue-400">
-                        {busyId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowRightCircle className="h-3 w-3" />}
-                        Create Proforma
-                      </button>
-                    )}
-                    {row.status === 'draft' ? (
-                      <button onClick={() => onDelete(row)} className="flex items-center gap-1 text-xs text-red-600 hover:underline font-medium dark:text-red-400">
-                        <Trash2 className="h-3 w-3" /> Delete
-                      </button>
-                    ) : (
-                      <span className="text-xs text-gray-300 dark:text-white/15" title="Only draft quotations can be deleted">
-                        <Trash2 className="h-3 w-3" />
-                      </span>
-                    )}
-                  </div>
+                <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
+                  <RowActionsMenu actions={[
+                    ...(row.status === 'approved' && !row.has_proforma
+                      ? [{ label: 'Create Proforma', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onCreateProforma(row) }]
+                      : []),
+                    ...(row.status === 'draft'
+                      ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
+                      : []),
+                  ]} />
                 </td>
               </tr>
             )
@@ -757,10 +765,7 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
             <th className={thCls}>Customer</th>
             <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
-            <th className={thClsRight} onClick={() => onSort('total')}>Subtotal</th>
-            <th className={thClsRight}>Discount</th>
-            <th className={thClsRight}>VAT</th>
-            <th className={thClsRight} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
+            <th className={thClsRight} onClick={() => onSort('total')}>Amount <SortIcon k="total" /></th>
             <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
             <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
           </tr>
@@ -780,32 +785,22 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
                 <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
               </td>
               <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
-              <td className={cn(tdClsRight, 'tabular-nums text-gray-600 dark:text-white/60')}>{formatAED(row.subtotal)}</td>
-              <td className={cn(tdClsRight, 'tabular-nums text-emerald-600 dark:text-emerald-400')}>{row.discount > 0 ? `−${formatAED(row.discount)}` : '—'}</td>
-              <td className={cn(tdClsRight, 'tabular-nums text-gray-500 dark:text-white/40')}>{formatAED(row.vat_amount)}</td>
-              <td className={cn(tdClsRight, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
+              <td className={tdClsRight}>
+                <p className="font-bold tabular-nums text-brand">{formatAED(row.total)}</p>
+                <p className="text-[11px] tabular-nums text-gray-400 dark:text-white/30">
+                  {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
+                </p>
+              </td>
               <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
-              <td className={tdCls} onClick={e => e.stopPropagation()}>
-                <div className="flex items-center justify-end gap-3 whitespace-nowrap">
-                  {!row.has_tax_invoice && (
-                    <button
-                      onClick={() => onConvertToTax(row)}
-                      disabled={busyId === row.id}
-                      className="flex items-center gap-1 text-xs text-brand hover:underline font-medium disabled:opacity-40">
-                      {busyId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowRightCircle className="h-3 w-3" />}
-                      Convert to Tax Invoice
-                    </button>
-                  )}
-                  {!row.has_tax_invoice ? (
-                    <button onClick={() => onDelete(row)} className="flex items-center gap-1 text-xs text-red-600 hover:underline font-medium dark:text-red-400">
-                      <Trash2 className="h-3 w-3" /> Delete
-                    </button>
-                  ) : (
-                    <span className="text-xs text-gray-300 dark:text-white/15" title="Cannot delete — a tax invoice already exists for this job">
-                      <Trash2 className="h-3 w-3" />
-                    </span>
-                  )}
-                </div>
+              <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
+                <RowActionsMenu actions={[
+                  ...(!row.has_tax_invoice
+                    ? [{ label: 'Convert to Tax Invoice', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onConvertToTax(row) }]
+                    : []),
+                  ...(!row.has_tax_invoice
+                    ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
+                    : []),
+                ]} />
               </td>
             </tr>
           ))}
@@ -815,11 +810,12 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
   )
 }
 
-function TaxTable({ rows, SortIcon, onSort, busyId, onMarkPaid, onDelete }: {
+function TaxTable({ rows, SortIcon, onSort, busyId, onIssue, onMarkPaid, onDelete }: {
   rows: TaxInvoice[]
   SortIcon: React.FC<{ k: SortKey }>
   onSort: (k: SortKey) => void
   busyId: string | null
+  onIssue: (row: TaxInvoice) => void
   onMarkPaid: (row: TaxInvoice) => void
   onDelete: (row: TaxInvoice) => void
 }) {
@@ -835,10 +831,7 @@ function TaxTable({ rows, SortIcon, onSort, busyId, onMarkPaid, onDelete }: {
             <th className={thCls}>Vehicle</th>
             <th className={thCls}>Job Card</th>
             <th className={thCls}>Status</th>
-            <th className={thClsRight}>Subtotal</th>
-            <th className={thClsRight}>Discount</th>
-            <th className={thClsRight}>VAT</th>
-            <th className={thClsRight} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
+            <th className={thClsRight} onClick={() => onSort('total')}>Amount <SortIcon k="total" /></th>
             <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
             <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
           </tr>
@@ -863,32 +856,25 @@ function TaxTable({ rows, SortIcon, onSort, busyId, onMarkPaid, onDelete }: {
                 <td className={tdCls}>
                   <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)} title={st.label === 'Issued' ? 'Open the invoice to mark it as paid' : undefined}>{st.label}</span>
                 </td>
-                <td className={cn(tdClsRight, 'tabular-nums text-gray-600 dark:text-white/60')}>{formatAED(row.subtotal)}</td>
-                <td className={cn(tdClsRight, 'tabular-nums text-emerald-600 dark:text-emerald-400')}>{row.discount > 0 ? `−${formatAED(row.discount)}` : '—'}</td>
-                <td className={cn(tdClsRight, 'tabular-nums text-gray-500 dark:text-white/40')}>{formatAED(row.vat_amount)}</td>
-                <td className={cn(tdClsRight, 'font-bold tabular-nums text-brand')}>{formatAED(row.total)}</td>
+                <td className={tdClsRight}>
+                  <p className="font-bold tabular-nums text-brand">{formatAED(row.total)}</p>
+                  <p className="text-[11px] tabular-nums text-gray-400 dark:text-white/30">
+                    {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
+                  </p>
+                </td>
                 <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
-                <td className={tdCls} onClick={e => e.stopPropagation()}>
-                  <div className="flex items-center justify-end gap-3 whitespace-nowrap">
-                    {row.status === 'issued' && (
-                      <button
-                        onClick={() => onMarkPaid(row)}
-                        disabled={busyId === row.id}
-                        className="flex items-center gap-1 text-xs text-emerald-600 hover:underline font-medium disabled:opacity-40 dark:text-emerald-400">
-                        {busyId === row.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
-                        Mark as Paid
-                      </button>
-                    )}
-                    {row.status !== 'paid' ? (
-                      <button onClick={() => onDelete(row)} className="flex items-center gap-1 text-xs text-red-600 hover:underline font-medium dark:text-red-400">
-                        <Trash2 className="h-3 w-3" /> Delete
-                      </button>
-                    ) : (
-                      <span className="text-xs text-gray-300 dark:text-white/15" title="Cannot delete a paid invoice">
-                        <Trash2 className="h-3 w-3" />
-                      </span>
-                    )}
-                  </div>
+                <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
+                  <RowActionsMenu actions={[
+                    ...(row.status === 'draft'
+                      ? [{ label: 'Issue Invoice', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onIssue(row) }]
+                      : []),
+                    ...(row.status === 'issued'
+                      ? [{ label: 'Mark as Paid', icon: CheckCircle2, disabled: busyId === row.id, onClick: () => onMarkPaid(row) }]
+                      : []),
+                    ...(row.status !== 'paid'
+                      ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
+                      : []),
+                  ]} />
                 </td>
               </tr>
             )

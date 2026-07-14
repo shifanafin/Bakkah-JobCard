@@ -138,7 +138,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   return NextResponse.json({ quotation: data })
 }
 
-// DELETE /api/quotations/[id] — draft only
+// DELETE /api/quotations/[id] — draft only. Soft delete, purged after 30 days.
 export async function DELETE(_req: NextRequest, { params }: Params) {
   const session = await getServerSession()
   const role = (session?.user as { role?: string } | undefined)?.role
@@ -152,7 +152,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
   if (q?.status !== 'draft') {
     return NextResponse.json({ error: 'Only draft quotations can be deleted' }, { status: 400 })
   }
-  const { error } = await sb.from('quotations').delete().eq('id', id)
+  const { error } = await sb.from('quotations').update({ deleted_at: new Date().toISOString() }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
 }

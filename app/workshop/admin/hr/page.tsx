@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 import { formatDate } from '@/lib/utils/format'
 import ConfirmDialog from '@/components/ui/ConfirmDialog'
 import SwipeToDelete from '@/components/ui/SwipeToDelete'
+import RowActionsMenu from '@/components/ui/RowActionsMenu'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -352,7 +353,10 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
               <thead>
                 <tr className="border-b border-gray-100 dark:border-white/[0.06]">
                   {['Name', 'Email / Username', 'Role', 'Status', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap">{h}</th>
+                    <th key={h} className={cn(
+                      'px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap',
+                      h === 'Actions' && 'text-right',
+                    )}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -382,29 +386,13 @@ function EmployeesTab({ isAdmin }: { isAdmin: boolean }) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-400 dark:text-white/30">{formatDate(emp.created_at)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button onClick={() => openEdit(emp)} title="Edit"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/40 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30">
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </button>
-                        <button onClick={() => handleToggle(emp)} disabled={togglingId === emp.id} title={emp.active ? 'Deactivate' : 'Activate'}
-                          className={cn('flex h-7 w-7 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
-                            emp.active ? 'border-emerald-300 text-emerald-500 hover:bg-emerald-50 dark:border-emerald-500/30 dark:hover:bg-emerald-500/10'
-                              : 'border-gray-200 text-gray-400 hover:bg-gray-50 dark:border-white/[0.08] dark:text-white/30')}>
-                          {togglingId === emp.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : emp.active ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
-                        </button>
-                        <button onClick={() => { setResetTarget(emp); setResetPwd(generatePassword()) }} title="Reset Password"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-amber-300 hover:text-amber-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
-                          <Key className="h-3.5 w-3.5" />
-                        </button>
-                        {isAdmin && (
-                          <button onClick={() => setDeleteTarget(emp)} title="Delete"
-                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 transition-colors dark:border-white/[0.08] dark:text-white/30">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </div>
+                    <td className="px-4 py-3 text-right">
+                      <RowActionsMenu actions={[
+                        { label: 'Edit', icon: Edit2, onClick: () => openEdit(emp) },
+                        { label: emp.active ? 'Deactivate' : 'Activate', icon: emp.active ? ToggleLeft : ToggleRight, onClick: () => handleToggle(emp) },
+                        { label: 'Reset Password', icon: Key, onClick: () => { setResetTarget(emp); setResetPwd(generatePassword()) } },
+                        ...(isAdmin ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => setDeleteTarget(emp) }] : []),
+                      ]} />
                     </td>
                   </tr>
                 ))}
@@ -817,7 +805,10 @@ function TechniciansTab() {
               <thead>
                 <tr className="border-b border-gray-100 dark:border-white/[0.06]">
                   {['Name', 'Specialty', 'Phone', 'Active Jobs', 'Status', 'Today\'s Attendance', 'Joined', 'Actions'].map(h => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap">{h}</th>
+                    <th key={h} className={cn(
+                      'px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-white/30 whitespace-nowrap',
+                      h === 'Actions' && 'text-right',
+                    )}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -908,15 +899,11 @@ function TechniciansTab() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-gray-400 dark:text-white/30 text-xs">{formatDate(tech.created_at)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <button onClick={() => openEdit(tech)} title="Edit" className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-brand/40 hover:text-brand transition-colors dark:border-white/[0.08] dark:text-white/30">
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => setDeleteTarget(tech)} title="Delete" className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-red-400/40 hover:text-red-400 transition-colors dark:border-white/[0.08] dark:text-white/30">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                      <td className="px-4 py-3 text-right">
+                        <RowActionsMenu actions={[
+                          { label: 'Edit', icon: Edit2, onClick: () => openEdit(tech) },
+                          { label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => setDeleteTarget(tech) },
+                        ]} />
                       </td>
                     </tr>
                   )

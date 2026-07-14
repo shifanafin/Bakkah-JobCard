@@ -111,7 +111,7 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Cannot delete a proforma that already has a tax invoice' }, { status: 409 })
   }
 
-  const { error } = await sb.from('proforma_invoices').delete().eq('id', id)
+  const { error } = await sb.from('proforma_invoices').update({ deleted_at: new Date().toISOString() }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
 }
