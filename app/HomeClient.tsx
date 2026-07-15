@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
 import ChatWidget from "@/components/ChatWidget";
+import SketchbookBackground from "@/components/marketing/SketchbookBackground";
+import HeroWorkshopScene from "@/components/marketing/illustrations/HeroWorkshopScene";
 
 type CloudImg = { url: string; public_id: string };
 type SiteContent = {
@@ -191,11 +193,11 @@ export default function BakkahHomePage() {
       <motion.nav
         initial={{ y: -72, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: easeOut }}
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "bg-white/96 dark:bg-[#050507]/92 backdrop-blur-2xl border-b border-gray-200 dark:border-white/[0.07] shadow-[0_2px_24px_rgba(0,0,0,0.1)]" : ""
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled ? "bg-paper-100/96 dark:bg-blueprint-900/92 backdrop-blur-2xl border-b border-graphite/15 dark:border-silver/10 shadow-[0_2px_24px_rgba(0,0,0,0.1)]" : "bg-paper-100/80 dark:bg-blueprint-900/70 backdrop-blur-md border-b border-graphite/10 dark:border-silver/[0.07]"
           }`}
       >
-        {/* Announcement bar */}
-        <div className="bg-[#C9A227] px-4 py-1.5 text-center text-[11px] font-bold text-black flex items-center justify-center flex-wrap gap-x-4 gap-y-0.5">
+        {/* Announcement bar — workshop titleblock strip */}
+        <div className="bg-golden px-4 py-1.5 text-center text-[11px] font-bold text-black flex items-center justify-center flex-wrap gap-x-4 gap-y-0.5">
           <span>⏰ Open Today: 8 AM – 8 PM</span>
           <span className="hidden sm:inline h-3 w-px bg-black/20" />
           <a href="tel:+971545886999" className="hover:underline">📞 +971 54 588 6999</a>
@@ -204,49 +206,52 @@ export default function BakkahHomePage() {
         </div>
 
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
-          {/* Logo */}
+          {/* Logo — drawn as a titleblock mark */}
           <a href="#top" className="flex items-center gap-3 group select-none">
-            <div className="relative">
-              <img src="/logo.svg" alt="Bakkah Premium Auto Care" className="h-10 w-10 rounded-full transition-all duration-300 group-hover:shadow-[0_0_24px_rgba(201,162,39,0.5)]" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-full border-[1.5px] border-graphite/40 dark:border-silver/40 transition-all duration-300 group-hover:border-golden group-hover:shadow-[0_0_18px_rgba(201,162,39,0.4)]">
+              <img src="/logo.svg" alt="Bakkah Premium Auto Care" className="h-10 w-10 rounded-full" />
             </div>
             <div className="leading-none">
-              <p className="font-display text-xl tracking-[0.22em] text-gray-900 dark:text-white leading-none">BAKKAH</p>
-              <p className="text-[8px] tracking-[0.18em] text-[#C9A227]/80 uppercase font-medium">PREMIUM AUTO CARE</p>
+              <p className="font-display text-xl tracking-[0.22em] text-graphite dark:text-paper-100 leading-none">BAKKAH</p>
+              <p className="text-[8px] tracking-[0.18em] text-golden/90 uppercase font-medium font-hand">Premium Auto Care</p>
             </div>
           </a>
 
           {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-gray-500 dark:text-white/45">
+          <div className="hidden md:flex items-center gap-7 text-sm font-medium text-graphite/60 dark:text-paper-100/50">
             {[["#services", "Services"], ["#gallery", "Gallery"], ["#how-it-works", "How It Works"], ["#reviews", "Reviews"], ["#contact", "Contact"]].map(([href, label]) => (
-              <a key={href} href={href} className="hover:text-gray-900 dark:hover:text-white transition-colors duration-200">{label}</a>
+              <a key={href} href={href} className="relative hover:text-graphite dark:hover:text-paper-100 transition-colors duration-200 group/link">
+                {label}
+                <span className="absolute -bottom-1 left-0 h-px w-0 bg-golden transition-all duration-300 group-hover/link:w-full" />
+              </a>
             ))}
-            <Link href="/blog" className="hover:text-gray-900 dark:hover:text-white transition-colors duration-200">Blog</Link>
+            <Link href="/blog" className="hover:text-graphite dark:hover:text-paper-100 transition-colors duration-200">Blog</Link>
           </div>
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
             {/* Instagram */}
             <a href="https://www.instagram.com/bakkah_premium_auto_care/" target="_blank" rel="noopener noreferrer"
-              className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/40 hover:border-pink-400/50 hover:text-pink-500 transition-colors" aria-label="Instagram">
+              className="hidden md:flex h-8 w-8 items-center justify-center rounded-lg border border-graphite/15 dark:border-silver/15 text-graphite/50 dark:text-paper-100/40 hover:border-pink-400/50 hover:text-pink-500 transition-colors" aria-label="Instagram">
               <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
             </a>
             {/* Call */}
             <a href="tel:+971545886999"
-              className="hidden lg:flex items-center gap-1.5 rounded-lg border border-[#C9A227]/30 bg-[#C9A227]/10 px-3 py-2 text-xs font-bold text-[#C9A227] hover:bg-[#C9A227]/20 hover:border-[#C9A227]/50 transition-all duration-200">
+              className="hidden lg:flex items-center gap-1.5 rounded-lg border border-golden/30 bg-golden/10 px-3 py-2 text-xs font-bold text-golden hover:bg-golden/20 hover:border-golden/50 transition-all duration-200">
               <Phone className="h-3.5 w-3.5" /> Call Now
             </a>
-            <button onClick={toggle} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors" aria-label="Toggle theme">
+            <button onClick={toggle} className="flex h-8 w-8 items-center justify-center rounded-lg border border-graphite/15 dark:border-silver/15 text-graphite/50 dark:text-paper-100/35 hover:bg-graphite/5 dark:hover:bg-silver/[0.08] transition-colors" aria-label="Toggle theme">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
-            <Link href="/track" className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-white/[0.08] px-3 py-2 text-xs font-semibold text-gray-500 dark:text-white/50 hover:border-[#C9A227]/40 hover:text-[#C9A227] transition-all duration-200">
+            <Link href="/track" className="hidden sm:inline-flex items-center gap-1.5 rounded-lg border border-graphite/15 dark:border-silver/15 px-3 py-2 text-xs font-semibold text-graphite/60 dark:text-paper-100/50 hover:border-golden/40 hover:text-golden transition-all duration-200">
               <Car className="h-3.5 w-3.5" /> Track
             </Link>
-            <Link href="/auth/login" className="inline-flex items-center gap-1.5 rounded-lg bg-[#C9A227] px-3 py-2 text-xs sm:text-sm font-bold text-black shadow-[0_0_16px_rgba(201,162,39,0.3)] hover:shadow-[0_0_24px_rgba(201,162,39,0.5)] hover:bg-[#d4b22e] transition-all duration-200 whitespace-nowrap">
+            <Link href="/auth/login" className="inline-flex items-center gap-1.5 rounded-lg bg-golden px-3 py-2 text-xs sm:text-sm font-bold text-black shadow-[0_0_16px_rgba(201,162,39,0.3)] hover:shadow-[0_0_24px_rgba(201,162,39,0.5)] hover:bg-[#d4b22e] transition-all duration-200 whitespace-nowrap">
               <span className="hidden sm:inline">Staff Portal</span>
               <span className="sm:hidden">Login</span>
               <ChevronRight className="h-3.5 w-3.5" />
             </Link>
-            <button onClick={() => setMobileNavOpen(o => !o)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-white/35 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors md:hidden" aria-label="Toggle menu">
+            <button onClick={() => setMobileNavOpen(o => !o)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-graphite/15 dark:border-silver/15 text-graphite/50 dark:text-paper-100/35 hover:bg-graphite/5 dark:hover:bg-silver/[0.08] transition-colors md:hidden" aria-label="Toggle menu">
               {mobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
           </div>
@@ -256,20 +261,20 @@ export default function BakkahHomePage() {
         <AnimatePresence>
           {mobileNavOpen && (
             <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}
-              className="md:hidden border-t border-gray-100 dark:border-white/[0.06] bg-white/98 dark:bg-[#050507]/95 backdrop-blur-2xl px-5 pb-5 pt-3 space-y-1">
+              className="md:hidden border-t border-graphite/10 dark:border-silver/10 bg-paper-100/98 dark:bg-blueprint-900/95 backdrop-blur-2xl px-5 pb-5 pt-3 space-y-1">
               {[["#services", "Services"], ["#gallery", "Gallery"], ["#how-it-works", "How It Works"], ["#reviews", "Reviews"], ["#contact", "Contact"]].map(([href, label]) => (
-                <a key={href} href={href} onClick={() => setMobileNavOpen(false)} className="flex items-center py-3 text-sm font-medium text-gray-600 dark:text-white/60 hover:text-[#C9A227] transition-colors border-b border-gray-50 dark:border-white/[0.04] last:border-0">
+                <a key={href} href={href} onClick={() => setMobileNavOpen(false)} className="flex items-center py-3 text-sm font-medium text-graphite/70 dark:text-paper-100/60 hover:text-golden transition-colors border-b border-graphite/5 dark:border-silver/[0.06] last:border-0">
                   {label}
                 </a>
               ))}
-              <Link href="/blog" onClick={() => setMobileNavOpen(false)} className="flex items-center py-3 text-sm font-medium text-gray-600 dark:text-white/60 hover:text-[#C9A227] transition-colors border-b border-gray-50 dark:border-white/[0.04]">
+              <Link href="/blog" onClick={() => setMobileNavOpen(false)} className="flex items-center py-3 text-sm font-medium text-graphite/70 dark:text-paper-100/60 hover:text-golden transition-colors border-b border-graphite/5 dark:border-silver/[0.06]">
                 Blog
               </Link>
               <div className="pt-3 flex flex-col gap-2.5">
-                <Link href="/track" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 dark:border-white/10 px-4 py-3 text-sm font-semibold text-gray-600 dark:text-white/60 hover:border-[#C9A227]/40 hover:text-[#C9A227] transition-all">
+                <Link href="/track" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-center gap-2 rounded-xl border border-graphite/15 dark:border-silver/15 px-4 py-3 text-sm font-semibold text-graphite/70 dark:text-paper-100/60 hover:border-golden/40 hover:text-golden transition-all">
                   <Car className="h-4 w-4" /> Track My Vehicle
                 </Link>
-                <Link href="/auth/login" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-center gap-2 rounded-xl bg-[#C9A227] px-4 py-3 text-sm font-bold text-black hover:bg-[#d4b22e] transition-all">
+                <Link href="/auth/login" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-center gap-2 rounded-xl bg-golden px-4 py-3 text-sm font-bold text-black hover:bg-[#d4b22e] transition-all">
                   Staff Portal <ChevronRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -279,108 +284,145 @@ export default function BakkahHomePage() {
       </motion.nav>
 
       {/* ═══════════════════════════════════════════════════════
-          HERO
+          HERO — Living Automotive Sketchbook
       ═══════════════════════════════════════════════════════ */}
-      <section id="top" className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 pt-24 text-center">
-        {/* Hero background images */}
-        {HERO_IMAGES.map((src, i) => (
-          <motion.div key={src} className="pointer-events-none absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: heroIdx === i ? 1 : 0 }} transition={{ duration: 1.8 }}>
-            <img src={src} alt="" aria-hidden className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-b from-white/85 via-white/55 to-white dark:from-black/75 dark:via-black/55 dark:to-[#050507]" />
-          </motion.div>
-        ))}
-        {/* Subtle gold glow */}
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="h-[500px] w-[500px] sm:h-[800px] sm:w-[800px] rounded-full bg-[#C9A227]/[0.05] dark:bg-[#C9A227]/[0.07] blur-[120px] sm:blur-[180px] animate-pulse-slow" />
-        </div>
-        {/* Faint grid */}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.025)_1px,transparent_1px)] dark:bg-[linear-gradient(rgba(255,255,255,0.012)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.012)_1px,transparent_1px)] bg-[size:60px_60px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,black,transparent)]" />
+      <section id="top" className="relative flex min-h-screen flex-col justify-center overflow-hidden px-5 pb-20 pt-28 lg:px-8">
+        <SketchbookBackground />
 
-        <div className="relative z-10 max-w-5xl w-full">
-          {/* Badge */}
-          <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#C9A227]/30 bg-[#C9A227]/10 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-[#C9A227]">
-            <Star className="h-3 w-3 fill-[#C9A227]" />
-            Al Qusais, Dubai 🇦🇪
-            <Star className="h-3 w-3 fill-[#C9A227]" />
-          </motion.div>
-
-          {/* Main headline — single H1 wrapping animated spans */}
-          <h1 className="font-display leading-[0.88] tracking-[0.05em] text-[clamp(3rem,10.5vw,8.5rem)]">
-            {(["EXCELLENCE", "IN EVERY", "DETAIL."] as const).map((word, i) => (
-              <div key={i} className="overflow-hidden">
-                <motion.span
-                  initial={{ y: 120, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                  transition={{ duration: 0.7, delay: 0.2 + i * 0.1, ease: easeOut }}
-                  className={`block ${i === 1 ? goldGrad : "text-gray-900 dark:text-white"}`}
-                >
-                  {word}
-                </motion.span>
-              </div>
-            ))}
-          </h1>
-
-          {/* Arabic tagline */}
-          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.52 }}
-            className="mt-5 text-base text-[#C9A227]/80 dark:text-[#C9A227]/70 font-medium tracking-wide" dir="rtl" lang="ar">
-            مرحباً بك في بكه للعناية المتميزة بالسيارات — القصيص، دبي
-          </motion.p>
-
-          {/* English subtitle */}
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.6 }}
-            className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-gray-600 dark:text-white/55 sm:text-base">
-            Al Qusais, Dubai's most trusted specialists in ceramic coatings, paint correction, and complete vehicle detailing.{" "}
-            <span className="font-semibold text-gray-800 dark:text-white/80">5,000+ happy customers</span> — and your car is next.
-          </motion.p>
-
-          {/* Inspection note */}
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.68 }}
-            className="mt-3 text-sm text-gray-500 dark:text-white/35">
-            Free inspection on arrival · Reply in under 2 minutes ·{" "}
-            <span className="font-semibold text-[#C9A227]">Limited slots — WhatsApp to book today</span>
-          </motion.p>
-
-          {/* CTAs */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.72 }}
-            className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <a href="https://wa.me/971545886999?text=Hi+Bakkah!+I'd+like+to+book+a+detailing+service" target="_blank" rel="noopener noreferrer" className={goldBtn}>
-              <MessageCircle className="h-5 w-5" /> Book via WhatsApp
-            </a>
-            <Link href="/track" className="inline-flex items-center gap-2.5 rounded-xl border border-gray-300 dark:border-white/[0.12] bg-white/80 dark:bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-gray-700 dark:text-white/65 hover:border-[#C9A227]/40 hover:text-[#C9A227] hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm">
-              <Car className="h-5 w-5" /> Track My Vehicle
-            </Link>
-          </motion.div>
-
-          {/* Trust pills */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.82 }}
-            className="mt-12 flex flex-wrap items-center justify-center gap-4 text-xs">
-            <div className="flex items-center gap-2 rounded-full border border-[#C9A227]/20 bg-[#C9A227]/[0.06] px-4 py-2 text-[#C9A227]">
-              {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-[#C9A227]" />)}
-              <span className="font-bold ml-1">5.0</span>
-            </div>
-            <span className="text-gray-400 dark:text-white/30">1,200+ Google Reviews</span>
-            <div className="h-3 w-px bg-gray-300 dark:bg-white/10" />
-            <span className="text-gray-400 dark:text-white/30">Certified Detailers</span>
-            <div className="h-3 w-px bg-gray-300 dark:bg-white/10" />
-            <a href="tel:+971545886999" className="text-gray-400 dark:text-white/30 hover:text-[#C9A227] transition-colors font-semibold">📞 +971 54 588 6999</a>
-          </motion.div>
-
-          {/* Slideshow dots */}
-          {HERO_IMAGES.length > 0 && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="mt-10 flex items-center justify-center gap-2">
-              {HERO_IMAGES.map((_, i) => (
-                <button key={i} onClick={() => setHeroIdx(i)} aria-label={`Slide ${i + 1}`}
-                  className={`h-1.5 rounded-full transition-all duration-500 ${heroIdx === i ? "w-8 bg-[#C9A227]" : "w-2 bg-gray-400/30 dark:bg-white/15 hover:bg-[#C9A227]/50"}`} />
-              ))}
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-14 lg:grid-cols-2 lg:gap-10">
+          {/* ── Left: dynamic content ───────────────────────── */}
+          <div className="text-center lg:text-left">
+            {/* Badge */}
+            <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.1 }}
+              className="mb-6 inline-flex items-center gap-2 rounded-full border border-golden/40 bg-golden/10 px-5 py-2 text-[11px] font-bold uppercase tracking-[0.2em] text-golden">
+              <Star className="h-3 w-3 fill-golden" />
+              Al Qusais, Dubai 🇦🇪
+              <Star className="h-3 w-3 fill-golden" />
             </motion.div>
-          )}
+
+            {/* Kicker */}
+            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.16 }}
+              className="font-hand text-2xl text-graphite/60 dark:text-paper-100/50 -mb-1">
+              Excellence in every detail
+            </motion.p>
+
+            {/* Main headline */}
+            <h1 className="font-display leading-[0.92] tracking-[0.03em] text-[clamp(2.6rem,7vw,5.2rem)] text-graphite dark:text-paper-100">
+              {(["PREMIUM CAR CARE,", "REDEFINED."] as const).map((line, i) => (
+                <div key={i} className="overflow-hidden">
+                  <motion.span
+                    initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.7, delay: 0.22 + i * 0.1, ease: easeOut }}
+                    className={`block ${i === 1 ? goldGrad : ""}`}
+                  >
+                    {line}
+                  </motion.span>
+                </div>
+              ))}
+            </h1>
+
+            {/* Arabic tagline */}
+            <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}
+              className="mt-5 text-base text-golden/80 font-medium tracking-wide" dir="rtl" lang="ar">
+              مرحباً بك في بكه للعناية المتميزة بالسيارات — القصيص، دبي
+            </motion.p>
+
+            {/* English subtitle */}
+            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.58 }}
+              className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-graphite/65 dark:text-paper-100/60 sm:text-base lg:mx-0">
+              Al Qusais, Dubai's most trusted specialists in ceramic coatings, paint correction, and complete vehicle detailing.{" "}
+              <span className="font-semibold text-graphite dark:text-paper-100">5,000+ happy customers</span> — and your car is next.
+            </motion.p>
+
+            {/* Inspection note */}
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.66 }}
+              className="mt-3 text-sm text-graphite/45 dark:text-paper-100/35">
+              Free inspection on arrival · Reply in under 2 minutes ·{" "}
+              <span className="font-semibold text-golden">Limited slots — WhatsApp to book today</span>
+            </motion.p>
+
+            {/* CTAs — Book Appointment / Explore Services */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.72 }}
+              className="mt-10 flex flex-wrap items-center justify-center gap-4 lg:justify-start">
+              <a href="https://wa.me/971545886999?text=Hi+Bakkah!+I'd+like+to+book+an+appointment" target="_blank" rel="noopener noreferrer" className={goldBtn}>
+                <MessageCircle className="h-5 w-5" /> Book Appointment
+              </a>
+              <a href="#services" className="inline-flex items-center gap-2.5 rounded-xl border-[1.5px] border-graphite/25 dark:border-paper-100/[0.18] bg-paper-50/70 dark:bg-white/[0.04] px-7 py-3.5 text-sm font-semibold text-graphite/75 dark:text-paper-100/70 hover:border-golden/50 hover:text-golden hover:scale-[1.02] transition-all duration-300 backdrop-blur-sm">
+                <Sparkles className="h-5 w-5" /> Explore Services
+              </a>
+            </motion.div>
+
+            {/* Trust pills */}
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.82 }}
+              className="mt-10 flex flex-wrap items-center justify-center gap-4 text-xs lg:justify-start">
+              <div className="flex items-center gap-2 rounded-full border border-golden/25 bg-golden/[0.08] px-4 py-2 text-golden">
+                {[...Array(5)].map((_, i) => <Star key={i} className="h-3 w-3 fill-golden" />)}
+                <span className="font-bold ml-1">5.0</span>
+              </div>
+              <span className="text-graphite/45 dark:text-paper-100/35">1,200+ Google Reviews</span>
+              <div className="h-3 w-px bg-graphite/15 dark:bg-paper-100/10" />
+              <Link href="/track" className="text-graphite/45 dark:text-paper-100/35 hover:text-golden transition-colors font-semibold inline-flex items-center gap-1.5">
+                <Car className="h-3.5 w-3.5" /> Track My Vehicle
+              </Link>
+              <div className="h-3 w-px bg-graphite/15 dark:bg-paper-100/10" />
+              <a href="tel:+971545886999" className="text-graphite/45 dark:text-paper-100/35 hover:text-golden transition-colors font-semibold">📞 +971 54 588 6999</a>
+            </motion.div>
+          </div>
+
+          {/* ── Right: workshop scene, sketch-frame ─────────── */}
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3, ease: easeOut }}
+            className="relative mx-auto w-full max-w-lg lg:max-w-none">
+            <div className="relative aspect-[4/3] rounded-2xl border-2 border-graphite/25 dark:border-paper-100/15 bg-paper-50 shadow-[0_20px_70px_rgba(0,0,0,0.12)] overflow-hidden">
+              {/* Corner ticks */}
+              {["top-3 left-3", "top-3 right-3 rotate-90", "bottom-3 left-3 -rotate-90", "bottom-3 right-3 rotate-180"].map((pos, i) => (
+                <svg key={i} className={`absolute h-5 w-5 text-graphite/40 ${pos}`} viewBox="0 0 20 20" fill="none">
+                  <path d="M1 8V1H8" stroke="currentColor" strokeWidth="1.5" />
+                </svg>
+              ))}
+
+              {HERO_IMAGES.length > 0 ? (
+                HERO_IMAGES.map((src, i) => (
+                  <motion.div key={src} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: heroIdx === i ? 1 : 0 }} transition={{ duration: 1.5 }}>
+                    <img src={src} alt="Bakkah Autos detailing bay, Al Qusais Dubai" className="h-full w-full object-cover" />
+                  </motion.div>
+                ))
+              ) : (
+                <div className="absolute inset-3 rounded-xl border border-dashed border-graphite/20 bg-paper-100">
+                  <HeroWorkshopScene />
+                </div>
+              )}
+
+              {/* Caption plate */}
+              <div className="absolute bottom-3 right-3 rounded-md bg-paper-50/90 border border-graphite/15 px-3 py-1.5 backdrop-blur-sm">
+                <span className="font-hand text-lg text-graphite/70">Fig. 01 — The Bay</span>
+              </div>
+            </div>
+
+            {/* Slideshow dots */}
+            {HERO_IMAGES.length > 0 && (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                {HERO_IMAGES.map((_, i) => (
+                  <button key={i} onClick={() => setHeroIdx(i)} aria-label={`Slide ${i + 1}`}
+                    className={`h-1.5 rounded-full transition-all duration-500 ${heroIdx === i ? "w-8 bg-golden" : "w-2 bg-graphite/20 dark:bg-paper-100/15 hover:bg-golden/50"}`} />
+                ))}
+              </div>
+            )}
+          </motion.div>
         </div>
 
         {/* Scroll indicator */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-[9px] uppercase tracking-[0.25em] text-gray-400 dark:text-white/20">Scroll</span>
-          <div className="scroll-bob h-10 w-px bg-gradient-to-b from-[#C9A227]/40 to-transparent" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+          <span className="text-[9px] uppercase tracking-[0.25em] text-graphite/35 dark:text-paper-100/25">Scroll</span>
+          <div className="scroll-bob h-10 w-px bg-gradient-to-b from-golden/50 to-transparent" />
         </motion.div>
+
+        {/* Torn-paper seam into the next section */}
+        <svg aria-hidden className="absolute inset-x-0 bottom-0 h-6 w-full text-gray-50 dark:text-[#080809]" viewBox="0 0 1200 24" preserveAspectRatio="none">
+          <path
+            d="M0,24 L0,10 L40,16 L80,4 L120,14 L160,2 L200,12 L240,6 L280,18 L320,4 L360,10 L400,2 L440,16 L480,6 L520,12 L560,2 L600,14 L640,4 L680,10 L720,2 L760,16 L800,6 L840,12 L880,2 L920,14 L960,4 L1000,10 L1040,2 L1080,16 L1120,6 L1160,12 L1200,4 L1200,24 Z"
+            fill="currentColor"
+          />
+        </svg>
       </section>
 
       {/* ── Photo strip marquee ──────────────────────────── */}

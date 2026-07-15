@@ -12,6 +12,7 @@ const config: Config = {
       fontFamily: {
         display: ['var(--font-bebas)', 'cursive'],
         body:    ['var(--font-geist)', 'system-ui'],
+        hand:    ['var(--font-hand)', 'cursive'],
       },
       colors: {
         brand: {
@@ -47,6 +48,30 @@ const config: Config = {
           900: '#0a0a0a',
           950: '#050505',
         },
+        // ── Sketchbook studio palette ──────────────────────
+        paper: {
+          DEFAULT: '#F6EFDD',
+          50: '#FCF9F0',
+          100: '#F6EFDD',
+          200: '#EFE4C8',
+          300: '#E4D5AC',
+        },
+        graphite: {
+          DEFAULT: '#2A2A28',
+          400: '#54524a',
+          600: '#3a3834',
+          800: '#221f1c',
+          900: '#17140f',
+        },
+        blueprint: {
+          DEFAULT: '#0F2A43',
+          800: '#122f4c',
+          900: '#0a1c2e',
+        },
+        silver: '#B9BFC6',
+        autoBlue: '#1E4FA0',
+        luxRed: '#9E1B32',
+        carbon: '#3A3D42',
       },
       animation: {
         'fade-up':    'fadeUp 0.5s ease forwards',

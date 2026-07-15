@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Bebas_Neue, Geist, Cairo } from "next/font/google";
+import { Bebas_Neue, Geist, Cairo, Caveat } from "next/font/google";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PwaRegister from "@/components/PwaRegister";
@@ -15,6 +15,11 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const cairo = Cairo({
   subsets: ["arabic"],
   variable: "--font-cairo",
+  display: "swap",
+});
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-hand",
   display: "swap",
 });
 
@@ -90,7 +95,7 @@ export default function RootLayout({
     <html lang="en-AE" dir="ltr" className="dark" suppressHydrationWarning>
       <head />
       <body
-        className={`${bebas.variable} ${geist.variable} ${cairo.variable} font-body antialiased bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white`}
+        className={`${bebas.variable} ${geist.variable} ${cairo.variable} ${caveat.variable} font-body antialiased bg-gray-50 dark:bg-surface-900 text-gray-900 dark:text-white`}
       >
         <ThemeProvider>
           <PwaRegister />
