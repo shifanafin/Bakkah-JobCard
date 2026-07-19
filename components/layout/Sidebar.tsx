@@ -22,6 +22,7 @@ import {
   Receipt,
   Bell,
   Tag,
+  Car,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useShell } from "@/components/layout/WorkshopShell";
@@ -143,6 +144,7 @@ function SidebarContent({
       },
       { href: "/workshop/job-cards", icon: ClipboardList, label: nav.jobCards },
       { href: "/workshop/customers", icon: UserRound, label: nav.customers },
+      { href: "/workshop/vehicles", icon: Car, label: 'Vehicles' },
       { href: "/workshop/services", icon: Wrench, label: 'Services' },
       { href: "/workshop/admin/hr", icon: Users, label: "People & HR" },
       { href: "/workshop/transactions", icon: Receipt, label: 'Transactions' },
@@ -156,6 +158,7 @@ function SidebarContent({
       },
       { href: "/workshop/job-cards", icon: ClipboardList, label: nav.jobCards },
       { href: "/workshop/customers", icon: UserRound, label: nav.customers },
+      { href: "/workshop/vehicles", icon: Car, label: 'Vehicles' },
       { href: "/workshop/transactions", icon: Receipt, label: 'Transactions' },
     );
   }

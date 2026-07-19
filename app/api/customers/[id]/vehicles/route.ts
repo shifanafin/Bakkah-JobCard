@@ -43,6 +43,33 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 }
 
+export async function DELETE(req: NextRequest, { params }: Params) {
+  try {
+    const { id: customerId } = await params
+    const vehicleId = req.nextUrl.searchParams.get('vehicleId')
+    if (!vehicleId) return NextResponse.json({ error: 'vehicleId required' }, { status: 400 })
+
+    const sb = createServiceClient()
+    const { count } = await sb
+      .from('job_cards')
+      .select('id', { count: 'exact', head: true })
+      .eq('vehicle_id', vehicleId)
+
+    if (count && count > 0) {
+      return NextResponse.json(
+        { error: `Cannot delete — this vehicle has ${count} job card${count === 1 ? '' : 's'} on record.` },
+        { status: 409 },
+      )
+    }
+
+    const { error } = await sb.from('vehicles').delete().eq('id', vehicleId).eq('customer_id', customerId)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Failed' }, { status: 500 })
+  }
+}
+
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id: customerId } = await params

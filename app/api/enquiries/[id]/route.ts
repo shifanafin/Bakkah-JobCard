@@ -6,7 +6,7 @@ type Params = { params: Promise<{ id: string }> }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-// PATCH /api/enquiries/[id]   body: { action: 'read' | 'dismiss' }
+// PATCH /api/enquiries/[id]   body: { action: 'read' | 'dismiss' } | { action: 'edit', fields: {...} }
 export async function PATCH(req: NextRequest, { params }: Params) {
   const session = await getServerSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -16,11 +16,41 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const body = await req.json()
   const { action } = body
 
+  const sb = createServiceClient()
+
+  if (action === 'edit') {
+    const fields = body.fields ?? {}
+    const updates: Record<string, unknown> = {}
+    if (fields.name !== undefined) updates.name = String(fields.name).trim()
+    if (fields.phone !== undefined) updates.phone = String(fields.phone).trim()
+    if (fields.vehicle_plate !== undefined) updates.vehicle_plate = fields.vehicle_plate?.trim() || null
+    if (fields.vehicle_make !== undefined) updates.vehicle_make = fields.vehicle_make?.trim() || null
+    if (fields.vehicle_model !== undefined) updates.vehicle_model = fields.vehicle_model?.trim() || null
+    if (fields.service_type !== undefined) updates.service_type = String(fields.service_type).trim()
+    if (fields.remarks !== undefined) updates.remarks = fields.remarks?.trim() || null
+
+    if (!updates.name && updates.name !== undefined) {
+      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    }
+    if (!updates.phone && updates.phone !== undefined) {
+      return NextResponse.json({ error: 'Phone is required' }, { status: 400 })
+    }
+
+    const { data, error } = await sb
+      .from('chat_notifications')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ enquiry: data })
+  }
+
   if (action !== 'read' && action !== 'dismiss') {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
   }
 
-  const sb = createServiceClient()
   const { error } = await sb
     .from('chat_notifications')
     .update({ is_read: true })

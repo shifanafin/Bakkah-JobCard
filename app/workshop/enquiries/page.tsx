@@ -13,6 +13,10 @@ import {
   RefreshCw,
   ChevronRight,
   Trash2,
+  Pencil,
+  Save,
+  X,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils/cn'
@@ -57,6 +61,8 @@ export default function EnquiriesPage() {
   const [marking, setMarking] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Enquiry | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [savingEdit, setSavingEdit] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -132,6 +138,26 @@ export default function EnquiriesPage() {
     }
   }
 
+  async function saveEdit(id: string, fields: Partial<Enquiry>) {
+    setSavingEdit(true)
+    try {
+      const res = await fetch(`/api/enquiries/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'edit', fields }),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error ?? 'Failed to save')
+      setEnquiries(prev => prev.map(e => (e.id === id ? { ...e, ...d.enquiry } : e)))
+      setEditingId(null)
+      toast.success('Enquiry updated')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   const newCount = enquiries.filter(e => !e.is_read).length
 
   return (
@@ -197,10 +223,15 @@ export default function EnquiriesPage() {
             isConverting={converting === e.id}
             isMarking={marking === e.id}
             canDelete={canDelete}
+            isEditing={editingId === e.id}
+            savingEdit={savingEdit}
             onMarkRead={() => markRead(e.id)}
             onConvert={() => convertToJobCard(e.id)}
             onViewJobCard={() => router.push(`/workshop/job-cards/${e.job_card_id}`)}
             onDelete={() => setDeleteTarget(e)}
+            onStartEdit={() => setEditingId(e.id)}
+            onCancelEdit={() => setEditingId(null)}
+            onSaveEdit={fields => saveEdit(e.id, fields)}
           />)
         )}
       </div>
@@ -224,22 +255,93 @@ function EnquiryCard({
   isConverting,
   isMarking,
   canDelete,
+  isEditing,
+  savingEdit,
   onMarkRead,
   onConvert,
   onViewJobCard,
   onDelete,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
 }: {
   enquiry: Enquiry
   isConverting: boolean
   isMarking: boolean
   canDelete: boolean
+  isEditing: boolean
+  savingEdit: boolean
   onMarkRead: () => void
   onConvert: () => void
   onViewJobCard: () => void
   onDelete: () => void
+  onStartEdit: () => void
+  onCancelEdit: () => void
+  onSaveEdit: (fields: Partial<Enquiry>) => void
 }) {
   const isConverted = !!e.job_card_id
   const isNew = !e.is_read
+
+  const [form, setForm] = useState({
+    name: e.name,
+    phone: e.phone,
+    vehicle_plate: e.vehicle_plate ?? '',
+    vehicle_make: e.vehicle_make ?? '',
+    vehicle_model: e.vehicle_model ?? '',
+    service_type: e.service_type,
+    remarks: e.remarks ?? '',
+  })
+
+  if (isEditing) {
+    const inputCls = 'input-base w-full text-sm'
+    return (
+      <div className="rounded-xl border border-brand/30 bg-brand/[0.03] p-4 space-y-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <label className="label">Name</label>
+            <input value={form.name} onChange={ev => setForm(f => ({ ...f, name: ev.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="label">Phone</label>
+            <input value={form.phone} onChange={ev => setForm(f => ({ ...f, phone: ev.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="label">Vehicle Plate</label>
+            <input value={form.vehicle_plate} onChange={ev => setForm(f => ({ ...f, vehicle_plate: ev.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="label">Service Type</label>
+            <input value={form.service_type} onChange={ev => setForm(f => ({ ...f, service_type: ev.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="label">Vehicle Make</label>
+            <input value={form.vehicle_make} onChange={ev => setForm(f => ({ ...f, vehicle_make: ev.target.value }))} className={inputCls} />
+          </div>
+          <div>
+            <label className="label">Vehicle Model</label>
+            <input value={form.vehicle_model} onChange={ev => setForm(f => ({ ...f, vehicle_model: ev.target.value }))} className={inputCls} />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="label">Remarks</label>
+            <textarea value={form.remarks} onChange={ev => setForm(f => ({ ...f, remarks: ev.target.value }))} rows={2} className={cn(inputCls, 'resize-none')} />
+          </div>
+        </div>
+        <div className="flex gap-2 pt-1 border-t border-gray-100 dark:border-white/[0.06]">
+          <button
+            onClick={() => onSaveEdit(form)}
+            disabled={savingEdit}
+            className="flex items-center gap-1.5 rounded-lg bg-[#C9A227] px-3 py-1.5 text-xs font-bold text-black hover:bg-[#b8911f] transition disabled:opacity-50"
+          >
+            {savingEdit ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+            Save
+          </button>
+          <button onClick={onCancelEdit} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-white/40 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition">
+            <X className="h-3.5 w-3.5" /> Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -335,6 +437,12 @@ function EnquiryCard({
             >
               <ClipboardList className="h-3.5 w-3.5" />
               {isConverting ? 'Creating…' : 'Create Job Card'}
+            </button>
+            <button
+              onClick={onStartEdit}
+              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-white/40 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition"
+            >
+              <Pencil className="h-3.5 w-3.5" /> Edit
             </button>
             {canDelete && (
               <button
