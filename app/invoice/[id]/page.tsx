@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
@@ -19,40 +19,8 @@ import {
   Car,
   Sun,
   Moon,
-  AlertTriangle,
-  Shield,
-  FileCheck,
-  Gauge,
 } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
-
-type RtaCheck = {
-  fines_count: number;
-  fines_total_aed: number;
-  fines: {
-    id: string;
-    date: string;
-    description: string;
-    amount_aed: number;
-    status: string;
-    source: string;
-  }[];
-  salik_tag_number?: string;
-  salik_balance_aed?: number;
-  mulkiya_expiry?: string;
-  mulkiya_status?: string;
-  registration_number?: string;
-  owner_name?: string;
-  insurance_expiry?: string;
-  insurance_status?: string;
-  insurance_company?: string;
-  inspection_expiry?: string;
-  inspection_status?: string;
-  inspection_center?: string;
-  notes?: string;
-  data_source?: string;
-  checked_at?: string;
-};
 
 type InvoiceJob = {
   id: string;
@@ -156,7 +124,6 @@ export default function PublicInvoicePage({
   const { id } = use(params);
   const { theme, toggle } = useTheme();
   const [job, setJob] = useState<InvoiceJob | null>(null);
-  const [rta, setRta] = useState<RtaCheck | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [origin, setOrigin] = useState("");
@@ -165,27 +132,18 @@ export default function PublicInvoicePage({
     setOrigin(window.location.origin);
     async function load() {
       const sb = createClient();
-      const [{ data: jobData }, { data: rtaData }] = await Promise.all([
-        sb
-          .from("job_cards")
-          .select(
-            `
+      const { data: jobData } = await sb
+        .from("job_cards")
+        .select(
+          `
           *, customer:customers(*), vehicle:vehicles(*), technician:technicians(name),
           services:job_card_services(*), parts:job_card_parts(*), photos:job_card_photos(*)
         `,
-          )
-          .eq("id", id)
-          .single(),
-        sb
-          .from("vehicle_rta_checks")
-          .select("*")
-          .eq("job_card_id", id)
-          .eq("include_in_invoice", true)
-          .maybeSingle(),
-      ]);
+        )
+        .eq("id", id)
+        .single();
       const j = jobData as InvoiceJob;
       setJob(j);
-      setRta(rtaData as RtaCheck | null);
       setLoading(false);
     }
     load();
@@ -203,7 +161,7 @@ export default function PublicInvoicePage({
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-brand" />
           <p className="text-sm text-gray-400 dark:text-white/30">
-            Loading invoice…
+            Loading invoice�
           </p>
         </div>
       </div>
@@ -213,7 +171,7 @@ export default function PublicInvoicePage({
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-5 bg-gray-50 dark:bg-surface-900 px-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 dark:bg-white/[0.06]">
-          <span className="text-2xl">📄</span>
+          <span className="text-2xl">??</span>
         </div>
         <div className="text-center">
           <p className="text-base font-bold text-gray-900 dark:text-white mb-1">
@@ -258,7 +216,7 @@ export default function PublicInvoicePage({
         }
       `}</style>
 
-      {/* ── Action bar ────────────────────────────────── */}
+      {/* -- Action bar ---------------------------------- */}
       <div className="no-print sticky top-0 z-50 flex items-center justify-between gap-2 border-b border-gray-200/80 dark:border-white/[0.06] bg-white/95 dark:bg-surface-900/95 px-4 py-3 backdrop-blur-md shadow-sm flex-wrap">
         <Link
           href={trackUrl}
@@ -312,7 +270,7 @@ export default function PublicInvoicePage({
         </div>
       </div>
 
-      {/* ── Invoice wrapper ──────────────────────────── */}
+      {/* -- Invoice wrapper ---------------------------- */}
       <div className="min-h-screen bg-gray-100 dark:bg-surface-900 py-8 pt-6 print:pt-0 print:bg-white transition-colors">
         <div className="invoice-paper max-w-[210mm] mx-auto bg-white dark:bg-white print:bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.5)] rounded-2xl overflow-hidden print:rounded-none print:shadow-none">
           <div className="p-7 sm:p-10 text-gray-900 font-sans">
@@ -517,7 +475,7 @@ export default function PublicInvoicePage({
                           {p.part_name}
                         </td>
                         <td className="px-3 py-2.5 border-b border-gray-100 font-mono text-xs text-gray-400">
-                          {p.part_number ?? "—"}
+                          {p.part_number ?? "�"}
                         </td>
                         <td className="px-3 py-2.5 border-b border-gray-100 text-center text-gray-600">
                           {p.quantity}
@@ -548,7 +506,7 @@ export default function PublicInvoicePage({
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Discount</span>
                     <span className="tabular-nums text-emerald-600 font-medium">
-                      −AED {job.discount.toFixed(2)}
+                      -AED {job.discount.toFixed(2)}
                     </span>
                   </div>
                 )}
@@ -584,206 +542,6 @@ export default function PublicInvoicePage({
                 Payment Status
               </span>
             </div>
-
-            {/* UAE RTA Vehicle Check */}
-            {rta && (
-              <div className="mb-7 rounded-xl border border-blue-100 bg-blue-50/50 p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="h-4 w-4 text-blue-600" />
-                  <h2 className="text-[10px] font-black uppercase tracking-widest text-blue-600">
-                    UAE Vehicle Status
-                  </h2>
-                  {rta.data_source && rta.data_source !== "manual" && (
-                    <span className="ml-auto text-[9px] uppercase tracking-wider text-blue-400 font-bold">
-                      Verified via RTA
-                    </span>
-                  )}
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                  {/* Fines */}
-                  <div
-                    className={`rounded-lg p-3 ${rta.fines_count > 0 ? "bg-red-50 border border-red-100" : "bg-emerald-50 border border-emerald-100"}`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <AlertTriangle
-                        className={`h-3.5 w-3.5 ${rta.fines_count > 0 ? "text-red-500" : "text-emerald-500"}`}
-                      />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">
-                        Fines
-                      </span>
-                    </div>
-                    <p
-                      className={`text-xl font-black tabular-nums ${rta.fines_count > 0 ? "text-red-600" : "text-emerald-600"}`}
-                    >
-                      {rta.fines_count > 0
-                        ? `AED ${rta.fines_total_aed.toFixed(0)}`
-                        : "Clear"}
-                    </p>
-                    {rta.fines_count > 0 && (
-                      <p className="text-[10px] text-red-400">
-                        {rta.fines_count} violation
-                        {rta.fines_count !== 1 ? "s" : ""}
-                      </p>
-                    )}
-                  </div>
-                  {/* Mulkiya */}
-                  <div
-                    className={`rounded-lg p-3 ${rta.mulkiya_status === "expired" ? "bg-red-50 border border-red-100" : "bg-gray-50 border border-gray-100"}`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <FileCheck className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">
-                        Mulkiya
-                      </span>
-                    </div>
-                    <p
-                      className={`text-sm font-bold capitalize ${rta.mulkiya_status === "active" ? "text-emerald-600" : rta.mulkiya_status === "expired" ? "text-red-600" : "text-gray-600"}`}
-                    >
-                      {rta.mulkiya_status ?? "Unknown"}
-                    </p>
-                    {rta.mulkiya_expiry && (
-                      <p className="text-[10px] text-gray-400">
-                        Exp:{" "}
-                        {new Date(rta.mulkiya_expiry).toLocaleDateString(
-                          "en-AE",
-                          { day: "2-digit", month: "short", year: "numeric" },
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  {/* Insurance */}
-                  <div
-                    className={`rounded-lg p-3 ${rta.insurance_status === "expired" ? "bg-red-50 border border-red-100" : "bg-gray-50 border border-gray-100"}`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Shield className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">
-                        Insurance
-                      </span>
-                    </div>
-                    <p
-                      className={`text-sm font-bold capitalize ${rta.insurance_status === "valid" ? "text-emerald-600" : rta.insurance_status === "expired" ? "text-red-600" : "text-gray-600"}`}
-                    >
-                      {rta.insurance_status ?? "Unknown"}
-                    </p>
-                    {rta.insurance_expiry && (
-                      <p className="text-[10px] text-gray-400">
-                        Exp:{" "}
-                        {new Date(rta.insurance_expiry).toLocaleDateString(
-                          "en-AE",
-                          { day: "2-digit", month: "short", year: "numeric" },
-                        )}
-                      </p>
-                    )}
-                  </div>
-                  {/* Inspection */}
-                  <div
-                    className={`rounded-lg p-3 ${rta.inspection_status === "fail" ? "bg-red-50 border border-red-100" : "bg-gray-50 border border-gray-100"}`}
-                  >
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Gauge className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">
-                        Inspection
-                      </span>
-                    </div>
-                    <p
-                      className={`text-sm font-bold capitalize ${rta.inspection_status === "pass" ? "text-emerald-600" : rta.inspection_status === "fail" ? "text-red-600" : "text-gray-600"}`}
-                    >
-                      {rta.inspection_status ?? "Unknown"}
-                    </p>
-                    {rta.inspection_expiry && (
-                      <p className="text-[10px] text-gray-400">
-                        Exp:{" "}
-                        {new Date(rta.inspection_expiry).toLocaleDateString(
-                          "en-AE",
-                          { day: "2-digit", month: "short", year: "numeric" },
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Salik balance */}
-                {rta.salik_tag_number && (
-                  <div className="flex items-center justify-between rounded-lg bg-white border border-blue-100 px-3 py-2.5 mb-3 text-sm">
-                    <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">
-                      Salik Tag
-                    </span>
-                    <div className="text-right">
-                      <span className="font-mono text-gray-700 text-xs">
-                        {rta.salik_tag_number}
-                      </span>
-                      {rta.salik_balance_aed != null && (
-                        <span className="ml-3 font-black text-blue-600">
-                          AED {rta.salik_balance_aed.toFixed(2)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Fines detail */}
-                {(rta.fines ?? []).length > 0 && (
-                  <div className="rounded-lg bg-white border border-red-100 overflow-hidden">
-                    <p className="text-[9px] uppercase tracking-wider font-black text-red-400 px-3 pt-2.5 pb-1">
-                      Fine Details
-                    </p>
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-red-50">
-                          <th className="px-3 py-1.5 text-left font-bold text-gray-500">
-                            Description
-                          </th>
-                          <th className="px-3 py-1.5 text-center font-bold text-gray-500 w-20">
-                            Date
-                          </th>
-                          <th className="px-3 py-1.5 text-right font-bold text-gray-500 w-20">
-                            Amount
-                          </th>
-                          <th className="px-3 py-1.5 text-right font-bold text-gray-500 w-16">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(rta.fines ?? []).map((f, i) => (
-                          <tr
-                            key={f.id ?? i}
-                            className="border-t border-gray-50"
-                          >
-                            <td className="px-3 py-1.5 text-gray-700">
-                              {f.description}
-                            </td>
-                            <td className="px-3 py-1.5 text-center text-gray-400">
-                              {f.date
-                                ? new Date(f.date).toLocaleDateString("en-AE", {
-                                  day: "2-digit",
-                                  month: "short",
-                                })
-                                : "—"}
-                            </td>
-                            <td className="px-3 py-1.5 text-right tabular-nums font-bold text-red-600">
-                              AED {f.amount_aed.toFixed(0)}
-                            </td>
-                            <td
-                              className={`px-3 py-1.5 text-right capitalize font-bold ${f.status === "paid" ? "text-emerald-500" : "text-red-500"}`}
-                            >
-                              {f.status}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {rta.notes && (
-                  <p className="mt-3 text-xs text-gray-400 italic">
-                    {rta.notes}
-                  </p>
-                )}
-              </div>
-            )}
 
             {/* Track Job CTA */}
             <div className="mb-7 rounded-xl border border-brand-200 bg-brand-50 p-4 no-print">
@@ -906,7 +664,7 @@ export default function PublicInvoicePage({
               style={{ borderTop: "2px solid #6B7A28", paddingTop: "1.25rem" }}
             >
               <p className="text-xs text-gray-400">
-                Bakkah Premium Auto Care · Al Qusais Industrial Area, Dubai, UAE ·
+                Bakkah Premium Auto Care � Al Qusais Industrial Area, Dubai, UAE �
                 TRN: 100 000 000 000 003
               </p>
               <p className="mt-1 text-xs text-gray-400">
@@ -914,7 +672,7 @@ export default function PublicInvoicePage({
                 Bakkah.
               </p>
               <p className="mt-1 text-xs font-bold text-[#6B7A28]">
-                +971 54 588 6999 · bakkahgarage.com
+                +971 54 588 6999 � bakkahgarage.com
               </p>
             </div>
           </div>

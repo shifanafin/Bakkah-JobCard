@@ -1,14 +1,13 @@
 'use client'
 
-import { useState, useTransition, useEffect } from 'react'
+import { useState, useTransition } from 'react'
 import { useSession } from '@/lib/auth-client'
 import { signOut } from '@/lib/auth-client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/layout/Header'
 import { useTheme } from '@/components/ThemeProvider'
-import { Sun, Moon, User, Building2, Lock, Loader2, Check, Eye, EyeOff, Shield, AlertCircle, CheckCircle2, ExternalLink, LogOut } from 'lucide-react'
+import { Sun, Moon, User, Building2, Lock, Loader2, Check, Eye, EyeOff, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
-import Link from 'next/link'
 
 export default function SettingsPage() {
   const { data: session } = useSession()
@@ -20,18 +19,11 @@ export default function SettingsPage() {
   const [showNext, setShowNext] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [pwSuccess, setPwSuccess] = useState(false)
-  const [rtaConfig, setRtaConfig] = useState<{ moi_configured: boolean; dubai_police_configured: boolean; rta_configured: boolean } | null>(null)
   const [loggingOut, setLoggingOut] = useState(false)
 
   const user = session?.user as { name?: string; email?: string; role?: string } | undefined
   const role = user?.role ?? ''
   const isTechnician = role === 'technician'
-
-  useEffect(() => {
-    if (!isTechnician) {
-      fetch('/api/rta/config').then(r => r.json()).then(setRtaConfig).catch(() => {})
-    }
-  }, [isTechnician])
 
   function setPw(k: string, v: string) { setPwForm(f => ({ ...f, [k]: v })) }
 
@@ -187,37 +179,6 @@ export default function SettingsPage() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* UAE RTA Integration — admin only */}
-        {role === 'admin' && (
-          <div className="card">
-            <SectionHeader icon={Shield} title="UAE RTA Integration" subtitle="Connect to government APIs" />
-            <div className="space-y-3 mb-5">
-              {[
-                { key: 'moi_configured' as const, name: 'MOI Smart Services', desc: 'Federal traffic fines', url: 'https://smartservices.moi.gov.ae/developer' },
-                { key: 'dubai_police_configured' as const, name: 'Dubai Police API', desc: 'Dubai traffic fines (OAuth2)', url: 'https://smart.dubaipolice.gov.ae/developer' },
-                { key: 'rta_configured' as const, name: 'RTA Smart Integration', desc: 'Mulkiya, insurance, Salik balance', url: 'https://gateway.rta.ae/' },
-              ].map(src => {
-                const configured = rtaConfig?.[src.key] ?? false
-                return (
-                  <div key={src.key} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                    {configured ? <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" /> : <AlertCircle className="h-5 w-5 text-amber-400 shrink-0" />}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white">{src.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-white/40">{src.desc}</p>
-                    </div>
-                    <a href={src.url} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-brand transition-colors dark:text-white/20">
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </div>
-                )
-              })}
-            </div>
-            <Link href="/workshop/rta-guide" className="flex items-center gap-1.5 text-xs font-bold text-brand hover:underline">
-              View full RTA API guide <ExternalLink className="h-3 w-3" />
-            </Link>
           </div>
         )}
 
