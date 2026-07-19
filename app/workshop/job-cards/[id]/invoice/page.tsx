@@ -86,7 +86,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
         }
       `}</style>
 
-      {/* Action bar — hidden when printing */}
+      {/* Action bar â€” hidden when printing */}
       <div className="no-print fixed right-4 top-4 z-50 flex gap-2 flex-wrap justify-end">
         <button
           onClick={() => window.print()}
@@ -117,7 +117,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
         </button>
       </div>
 
-      {/* Invoice — A4 paper */}
+      {/* Invoice â€” A4 paper */}
       <div className="min-h-screen bg-gray-100 py-8 no-print-bg">
         <div className="max-w-[210mm] mx-auto bg-white shadow-xl print:shadow-none">
           <div className="p-10 text-gray-900 font-sans">
@@ -220,7 +220,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                     {(job.parts ?? []).map(p => (
                       <tr key={p.id} className="border-b border-gray-100">
                         <td className="px-3 py-2">{p.part_name}</td>
-                        <td className="px-3 py-2 font-mono text-xs text-gray-500">{p.part_number ?? '—'}</td>
+                        <td className="px-3 py-2 font-mono text-xs text-gray-500">{p.part_number ?? 'â€”'}</td>
                         <td className="px-3 py-2 text-center">{p.quantity}</td>
                         <td className="px-3 py-2 text-right tabular-nums">{p.unit_price.toFixed(2)}</td>
                         <td className="px-3 py-2 text-right tabular-nums font-semibold">{p.total_price.toFixed(2)}</td>
@@ -326,9 +326,9 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
 
             {/* Footer */}
             <div className="mt-8 border-t-2 border-brand pt-4 text-center">
-              <p className="text-xs text-gray-400">Bakkah · Al Qusais Industrial Area, Dubai, UAE · TRN: 100 000 000 000 003</p>
+              <p className="text-xs text-gray-400">Bakkah Â· Al Qusais Industrial Area, Dubai, UAE Â· TRN: 100 000 000 000 003</p>
               <p className="mt-1 text-xs text-gray-400">This is a computer-generated invoice. Thank you for your business.</p>
-              <p className="mt-1 text-xs font-medium text-brand">+971 54 588 6999 · bakkahgarage.com</p>
+              <p className="mt-1 text-xs font-medium text-brand">+971 54 588 6999 Â· bakkahgarage.com</p>
             </div>
 
           </div>

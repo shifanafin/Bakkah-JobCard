@@ -161,7 +161,7 @@ export default function PublicInvoicePage({
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-brand" />
           <p className="text-sm text-gray-400 dark:text-white/30">
-            Loading invoice…
+            Loading invoiceâ€¦
           </p>
         </div>
       </div>
@@ -475,7 +475,7 @@ export default function PublicInvoicePage({
                           {p.part_name}
                         </td>
                         <td className="px-3 py-2.5 border-b border-gray-100 font-mono text-xs text-gray-400">
-                          {p.part_number ?? "—"}
+                          {p.part_number ?? "â€”"}
                         </td>
                         <td className="px-3 py-2.5 border-b border-gray-100 text-center text-gray-600">
                           {p.quantity}
@@ -664,7 +664,7 @@ export default function PublicInvoicePage({
               style={{ borderTop: "2px solid #6B7A28", paddingTop: "1.25rem" }}
             >
               <p className="text-xs text-gray-400">
-                Bakkah Premium Auto Care · Al Qusais Industrial Area, Dubai, UAE ·
+                Bakkah Premium Auto Care Â· Al Qusais Industrial Area, Dubai, UAE Â·
                 TRN: 100 000 000 000 003
               </p>
               <p className="mt-1 text-xs text-gray-400">
@@ -672,7 +672,7 @@ export default function PublicInvoicePage({
                 Bakkah.
               </p>
               <p className="mt-1 text-xs font-bold text-[#6B7A28]">
-                +971 54 588 6999 · bakkahgarage.com
+                +971 54 588 6999 Â· bakkahgarage.com
               </p>
             </div>
           </div>
