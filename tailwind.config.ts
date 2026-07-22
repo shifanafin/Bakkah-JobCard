@@ -48,7 +48,6 @@ const config: Config = {
           900: '#0a0a0a',
           950: '#050505',
         },
-        // ── Sketchbook studio palette ──────────────────────
         paper: {
           DEFAULT: '#F6EFDD',
           50: '#FCF9F0',
@@ -72,6 +71,7 @@ const config: Config = {
         autoBlue: '#1E4FA0',
         luxRed: '#9E1B32',
         carbon: '#3A3D42',
+        chrome: '#E8E8E8',
       },
       animation: {
         'fade-up':    'fadeUp 0.5s ease forwards',
@@ -80,6 +80,10 @@ const config: Config = {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'slide-in':   'slideIn 0.25s ease forwards',
         'ticker':     'ticker 35s linear infinite',
+        'glow':       'glow 2s ease-in-out infinite alternate',
+        'slide-left': 'slideLeft 0.6s ease forwards',
+        'slide-right': 'slideRight 0.6s ease forwards',
+        'scale-in':   'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
       },
       keyframes: {
         fadeUp:  { '0%': { opacity: '0', transform: 'translateY(16px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
@@ -87,10 +91,16 @@ const config: Config = {
         shimmer: { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
         slideIn: { '0%': { transform: 'translateX(-100%)' }, '100%': { transform: 'translateX(0)' } },
         ticker:  { '0%': { transform: 'translateX(0)' }, '100%': { transform: 'translateX(-50%)' } },
+        glow:    { '0%': { boxShadow: '0 0 20px rgba(201,162,39,0.3)' }, '100%': { boxShadow: '0 0 40px rgba(201,162,39,0.6)' } },
+        slideLeft:  { '0%': { opacity: '0', transform: 'translateX(30px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
+        slideRight: { '0%': { opacity: '0', transform: 'translateX(-30px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
+        scaleIn: { '0%': { opacity: '0', transform: 'scale(0.9)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
       },
       backgroundImage: {
         'grid-pattern': "url(\"data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h32v1H0zM0 0v32h1V0z' fill='%23000000' fill-opacity='0.04'/%3E%3C/svg%3E\")",
         'grid-pattern-dark': "url(\"data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h32v1H0zM0 0v32h1V0z' fill='%23ffffff' fill-opacity='0.03'/%3E%3C/svg%3E\")",
+        'carbon-fiber': "url(\"data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 5v1zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E\")",
+        'metallic-shine': 'linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%)',
       },
     },
   },

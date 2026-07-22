@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="50%" style="stop-color:#141414"/>
+      <stop offset="100%" style="stop-color:#0a0a0a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C9A227"/>
+      <stop offset="50%" style="stop-color:#f0d060"/>
+      <stop offset="100%" style="stop-color:#C9A227"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" style="stop-color:rgba(201,162,39,0.15)"/>
+      <stop offset="100%" style="stop-color:rgba(201,162,39,0)"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bg)"/>
+  <rect width="1200" height="600" fill="url(#glow)"/>
+  <!-- Grid pattern -->
+  <g opacity="0.03" stroke="white" stroke-width="0.5">
+    <line x1="0" y1="0" x2="1200" y2="0"/><line x1="0" y1="40" x2="1200" y2="40"/>
+    <line x1="0" y1="80" x2="1200" y2="80"/><line x1="0" y1="120" x2="1200" y2="120"/>
+    <line x1="0" y1="160" x2="1200" y2="160"/><line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="240" x2="1200" y2="240"/><line x1="0" y1="280" x2="1200" y2="280"/>
+    <line x1="0" y1="320" x2="1200" y2="320"/><line x1="0" y1="360" x2="1200" y2="360"/>
+    <line x1="0" y1="400" x2="1200" y2="400"/><line x1="0" y1="440" x2="1200" y2="440"/>
+    <line x1="0" y1="480" x2="1200" y2="480"/><line x1="0" y1="520" x2="1200" y2="520"/>
+    <line x1="0" y1="560" x2="1200" y2="560"/><line x1="0" y1="600" x2="1200" y2="600"/>
+    <line x1="0" y1="0" x2="0" y2="600"/><line x1="40" y1="0" x2="40" y2="600"/>
+    <line x1="80" y1="0" x2="80" y2="600"/><line x1="120" y1="0" x2="120" y2="600"/>
+    <line x1="160" y1="0" x2="160" y2="600"/><line x1="200" y1="0" x2="200" y2="600"/>
+    <line x1="240" y1="0" x2="240" y2="600"/><line x1="280" y1="0" x2="280" y2="600"/>
+    <line x1="320" y1="0" x2="320" y2="600"/><line x1="360" y1="0" x2="360" y2="600"/>
+    <line x1="400" y1="0" x2="400" y2="600"/><line x1="440" y1="0" x2="440" y2="600"/>
+    <line x1="480" y1="0" x2="480" y2="600"/><line x1="520" y1="0" x2="520" y2="600"/>
+    <line x1="560" y1="0" x2="560" y2="600"/><line x1="600" y1="0" x2="600" y2="600"/>
+    <line x1="640" y1="0" x2="640" y2="600"/><line x1="680" y1="0" x2="680" y2="600"/>
+    <line x1="720" y1="0" x2="720" y2="600"/><line x1="760" y1="0" x2="760" y2="600"/>
+    <line x1="800" y1="0" x2="800" y2="600"/><line x1="840" y1="0" x2="840" y2="600"/>
+    <line x1="880" y1="0" x2="880" y2="600"/><line x1="920" y1="0" x2="920" y2="600"/>
+    <line x1="960" y1="0" x2="960" y2="600"/><line x1="1000" y1="0" x2="1000" y2="600"/>
+    <line x1="1040" y1="0" x2="1040" y2="600"/><line x1="1080" y1="0" x2="1080" y2="600"/>
+    <line x1="1120" y1="0" x2="1120" y2="600"/><line x1="1160" y1="0" x2="1160" y2="600"/>
+    <line x1="1200" y1="0" x2="1200" y2="600"/>
+  </g>
+  <!-- Car silhouette -->
+  <g transform="translate(350, 180)" opacity="0.12">
+    <path d="M50,200 L80,120 L150,80 L300,70 L400,80 L450,120 L480,200 Z" fill="white"/>
+    <rect x="60" y="200" width="400" height="30" rx="5" fill="white"/>
+    <circle cx="130" cy="230" r="25" fill="none" stroke="white" stroke-width="3"/>
+    <circle cx="380" cy="230" r="25" fill="none" stroke="white" stroke-width="3"/>
+    <circle cx="130" cy="230" r="12" fill="none" stroke="white" stroke-width="2"/>
+    <circle cx="380" cy="230" r="12" fill="none" stroke="white" stroke-width="2"/>
+  </g>
+  <!-- Center text -->
+  <text x="600" y="280" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="url(#gold)" letter-spacing="8" opacity="0.6">BAKKAH PREMIUM AUTO CARE</text>
+  <text x="600" y="320" text-anchor="middle" font-family="sans-serif" font-size="11" fill="white" opacity="0.25" letter-spacing="4">UPLOAD YOUR WORKSHOP IMAGE VIA ADMIN → WEBSITE → HERO SLIDESHOW</text>
+  <!-- Corner accents -->
+  <g stroke="url(#gold)" stroke-width="1" fill="none" opacity="0.3">
+    <path d="M30,50 L30,30 L50,30"/>
+    <path d="M1170,30 L1150,30 L1150,50" transform="translate(0,0)"/>
+    <path d="M30,550 L30,570 L50,570"/>
+    <path d="M1170,570 L1150,570 L1150,550"/>
+  </g>
+</svg>

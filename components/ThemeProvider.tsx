@@ -6,13 +6,13 @@ type Theme = 'dark' | 'light'
 
 interface ThemeCtx { theme: Theme; toggle: () => void }
 
-const ThemeContext = createContext<ThemeCtx>({ theme: 'light', toggle: () => { } })
+const ThemeContext = createContext<ThemeCtx>({ theme: 'dark', toggle: () => { } })
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light')
 
   useEffect(() => {
-    const saved = (localStorage.getItem('theme') as Theme) ?? 'light'
+    const saved = (localStorage.getItem('theme') as Theme) ?? 'dark'
     setTheme(saved)
     applyTheme(saved)
   }, [])
