@@ -1,29 +1,9 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState, use } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { JOB_TYPE_LABEL, JOB_STATUS_LABEL, PHOTO_CATEGORY_LABEL, type JobStatus, type JobType } from '@/types'
-import { Printer, Share2, Copy, MessageCircle, Check, Loader2, AlertTriangle, Shield, FileCheck, Gauge } from 'lucide-react'
-
-type RtaCheck = {
-  fines_count: number
-  fines_total_aed: number
-  fines: { id: string; date: string; description: string; amount_aed: number; status: string; source: string }[]
-  salik_tag_number?: string
-  salik_balance_aed?: number
-  mulkiya_expiry?: string
-  mulkiya_status?: string
-  registration_number?: string
-  owner_name?: string
-  insurance_expiry?: string
-  insurance_status?: string
-  insurance_company?: string
-  inspection_expiry?: string
-  inspection_status?: string
-  inspection_center?: string
-  notes?: string
-  include_in_invoice?: boolean
-}
+import { Printer, Share2, Copy, MessageCircle, Check, Loader2 } from 'lucide-react'
 
 type InvoiceJob = {
   id: string
@@ -55,22 +35,17 @@ function fmtDate(s: string) {
 export default function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const [job, setJob] = useState<InvoiceJob | null>(null)
-  const [rta, setRta] = useState<RtaCheck | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function load() {
       const sb = createClient()
-      const [{ data: jobData }, { data: rtaData }] = await Promise.all([
-        sb.from('job_cards').select(`
+      const { data: jobData } = await sb.from('job_cards').select(`
           *, customer:customers(*), vehicle:vehicles(*), technician:technicians(name),
           services:job_card_services(*), parts:job_card_parts(*), photos:job_card_photos(*)
-        `).eq('id', id).single(),
-        sb.from('vehicle_rta_checks').select('*').eq('job_card_id', id).maybeSingle(),
-      ])
+        `).eq('id', id).single()
       setJob(jobData as InvoiceJob)
-      setRta(rtaData as RtaCheck | null)
       setLoading(false)
     }
     load()
@@ -266,7 +241,7 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
                 {job.discount > 0 && (
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Discount</span>
-                    <span className="tabular-nums text-green-600">−{job.discount.toFixed(2)}</span>
+                    <span className="tabular-nums text-green-600">-{job.discount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm">
@@ -288,93 +263,6 @@ export default function InvoicePage({ params }: { params: Promise<{ id: string }
               <span className="text-sm font-semibold capitalize">{job.payment_status}</span>
               {job.payment_method && <span className="text-sm text-gray-500">via {job.payment_method}</span>}
             </div>
-
-            {/* UAE RTA Vehicle Check */}
-            {rta && rta.include_in_invoice && (
-              <div className="mb-6 rounded-xl border border-blue-100 bg-blue-50/50 p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Shield className="h-4 w-4 text-blue-600" />
-                  <h2 className="text-xs font-black uppercase tracking-widest text-blue-600">UAE Vehicle Status</h2>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                  <div className={`rounded-lg p-3 ${rta.fines_count > 0 ? 'bg-red-50 border border-red-100' : 'bg-emerald-50 border border-emerald-100'}`}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <AlertTriangle className={`h-3.5 w-3.5 ${rta.fines_count > 0 ? 'text-red-500' : 'text-emerald-500'}`} />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Fines</span>
-                    </div>
-                    <p className={`text-xl font-black tabular-nums ${rta.fines_count > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                      {rta.fines_count > 0 ? `AED ${rta.fines_total_aed.toFixed(0)}` : 'Clear'}
-                    </p>
-                    {rta.fines_count > 0 && <p className="text-[10px] text-red-400">{rta.fines_count} violation{rta.fines_count !== 1 ? 's' : ''}</p>}
-                  </div>
-                  <div className={`rounded-lg p-3 ${rta.mulkiya_status === 'expired' ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100'}`}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <FileCheck className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Mulkiya</span>
-                    </div>
-                    <p className={`text-sm font-bold capitalize ${rta.mulkiya_status === 'active' ? 'text-emerald-600' : rta.mulkiya_status === 'expired' ? 'text-red-600' : 'text-gray-600'}`}>
-                      {rta.mulkiya_status ?? 'Unknown'}
-                    </p>
-                    {rta.mulkiya_expiry && <p className="text-[10px] text-gray-400">Exp: {new Date(rta.mulkiya_expiry).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
-                  </div>
-                  <div className={`rounded-lg p-3 ${rta.insurance_status === 'expired' ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100'}`}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Shield className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Insurance</span>
-                    </div>
-                    <p className={`text-sm font-bold capitalize ${rta.insurance_status === 'valid' ? 'text-emerald-600' : rta.insurance_status === 'expired' ? 'text-red-600' : 'text-gray-600'}`}>
-                      {rta.insurance_status ?? 'Unknown'}
-                    </p>
-                    {rta.insurance_expiry && <p className="text-[10px] text-gray-400">Exp: {new Date(rta.insurance_expiry).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
-                  </div>
-                  <div className={`rounded-lg p-3 ${rta.inspection_status === 'fail' ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100'}`}>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Gauge className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Inspection</span>
-                    </div>
-                    <p className={`text-sm font-bold capitalize ${rta.inspection_status === 'pass' ? 'text-emerald-600' : rta.inspection_status === 'fail' ? 'text-red-600' : 'text-gray-600'}`}>
-                      {rta.inspection_status ?? 'Unknown'}
-                    </p>
-                    {rta.inspection_expiry && <p className="text-[10px] text-gray-400">Exp: {new Date(rta.inspection_expiry).toLocaleDateString('en-AE', { day: '2-digit', month: 'short', year: 'numeric' })}</p>}
-                  </div>
-                </div>
-                {rta.salik_tag_number && (
-                  <div className="flex items-center justify-between rounded-lg bg-white border border-blue-100 px-3 py-2.5 mb-3 text-sm">
-                    <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Salik Tag</span>
-                    <div className="text-right">
-                      <span className="font-mono text-gray-700 text-xs">{rta.salik_tag_number}</span>
-                      {rta.salik_balance_aed != null && <span className="ml-3 font-black text-blue-600">AED {rta.salik_balance_aed.toFixed(2)}</span>}
-                    </div>
-                  </div>
-                )}
-                {(rta.fines ?? []).length > 0 && (
-                  <div className="rounded-lg bg-white border border-red-100 overflow-hidden">
-                    <p className="text-[9px] uppercase tracking-wider font-black text-red-400 px-3 pt-2.5 pb-1">Fine Details</p>
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-red-50">
-                          <th className="px-3 py-1.5 text-left font-bold text-gray-500">Description</th>
-                          <th className="px-3 py-1.5 text-center font-bold text-gray-500 w-20">Date</th>
-                          <th className="px-3 py-1.5 text-right font-bold text-gray-500 w-20">Amount</th>
-                          <th className="px-3 py-1.5 text-right font-bold text-gray-500 w-16">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(rta.fines ?? []).map((f, i) => (
-                          <tr key={f.id ?? i} className="border-t border-gray-50">
-                            <td className="px-3 py-1.5 text-gray-700">{f.description}</td>
-                            <td className="px-3 py-1.5 text-center text-gray-400">{f.date ? new Date(f.date).toLocaleDateString('en-AE', { day: '2-digit', month: 'short' }) : '—'}</td>
-                            <td className="px-3 py-1.5 text-right tabular-nums font-bold text-red-600">AED {f.amount_aed.toFixed(0)}</td>
-                            <td className={`px-3 py-1.5 text-right capitalize font-bold ${f.status === 'paid' ? 'text-emerald-500' : 'text-red-500'}`}>{f.status}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-                {rta.notes && <p className="mt-3 text-xs text-gray-400 italic">{rta.notes}</p>}
-              </div>
-            )}
 
             {/* QR placeholder */}
             <div className="mb-6 flex items-center gap-4 rounded-lg border border-dashed border-gray-300 p-4">

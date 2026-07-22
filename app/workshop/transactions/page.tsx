@@ -690,59 +690,104 @@ function QuotationTable({ rows, SortIcon, onSort, busyId, onCreateProforma, onDe
 }) {
   const router = useRouter()
   if (rows.length === 0) return <EmptyState label="No quotations found" />
+
+  function actionsFor(row: Quotation) {
+    return [
+      ...(row.status === 'approved' && !row.has_proforma
+        ? [{ label: 'Create Proforma', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onCreateProforma(row) }]
+        : []),
+      ...(row.status === 'draft'
+        ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
+        : []),
+    ]
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
-          <tr>
-            <th className={thCls} onClick={() => onSort('number')}>Number <SortIcon k="number" /></th>
-            <th className={thCls}>Customer</th>
-            <th className={thCls}>Vehicle</th>
-            <th className={thCls}>Job Card</th>
-            <th className={thCls}>Status</th>
-            <th className={thClsRight} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
-            <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
-          {rows.map(row => {
-            const st = QUOTATION_STATUS[row.status] ?? QUOTATION_STATUS.draft
-            return (
-              <tr key={row.id}
-                onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/quotation`)}
-                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
-                <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.quotation_number}</td>
-                <td className={tdCls}>
-                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
-                  <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
-                </td>
-                <td className={tdCls}>
-                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
-                  <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
-                </td>
-                <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
-                <td className={tdCls}>
+    <>
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <tr>
+              <th className={thCls} onClick={() => onSort('number')}>Number <SortIcon k="number" /></th>
+              <th className={thCls}>Customer</th>
+              <th className={thCls}>Vehicle</th>
+              <th className={thCls}>Job Card</th>
+              <th className={thCls}>Status</th>
+              <th className={thClsRight} onClick={() => onSort('total')}>Total <SortIcon k="total" /></th>
+              <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
+              <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
+            {rows.map(row => {
+              const st = QUOTATION_STATUS[row.status] ?? QUOTATION_STATUS.draft
+              return (
+                <tr key={row.id}
+                  onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/quotation`)}
+                  className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                  <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.quotation_number}</td>
+                  <td className={tdCls}>
+                    <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
+                    <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
+                  </td>
+                  <td className={tdCls}>
+                    <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                    <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
+                  </td>
+                  <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
+                  <td className={tdCls}>
+                    <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)}>{st.label}</span>
+                  </td>
+                  <td className={cn(tdClsRight, 'font-semibold tabular-nums text-gray-900 dark:text-white')}>{formatAED(row.total)}</td>
+                  <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.created_at)}</td>
+                  <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
+                    <RowActionsMenu actions={actionsFor(row)} />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden divide-y divide-gray-100 dark:divide-white/[0.04]">
+        {rows.map(row => {
+          const st = QUOTATION_STATUS[row.status] ?? QUOTATION_STATUS.draft
+          return (
+            <div key={row.id}
+              onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/quotation`)}
+              className="p-4 space-y-2 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono font-semibold text-sm text-gray-900 dark:text-white">{row.quotation_number}</span>
+                <div className="flex items-center gap-1.5 shrink-0">
                   <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)}>{st.label}</span>
-                </td>
-                <td className={cn(tdClsRight, 'font-semibold tabular-nums text-gray-900 dark:text-white')}>{formatAED(row.total)}</td>
-                <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.created_at)}</td>
-                <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
-                  <RowActionsMenu actions={[
-                    ...(row.status === 'approved' && !row.has_proforma
-                      ? [{ label: 'Create Proforma', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onCreateProforma(row) }]
-                      : []),
-                    ...(row.status === 'draft'
-                      ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
-                      : []),
-                  ]} />
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                  <div onClick={e => e.stopPropagation()}>
+                    <RowActionsMenu actions={actionsFor(row)} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-white/40">
+                <div>
+                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
+                  <p>{row.job_card?.customer?.phone ?? ''}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                  <p className="font-mono">{row.job_card?.vehicle?.plate_number ?? ''}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-gray-400 dark:text-white/30">{row.job_card?.job_number ?? '—'}</span>
+                <span className="text-gray-400 dark:text-white/30">{formatDate(row.created_at)}</span>
+              </div>
+              <p className="font-bold tabular-nums text-gray-900 dark:text-white">{formatAED(row.total)}</p>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
 
@@ -756,57 +801,101 @@ function ProformaTable({ rows, SortIcon, onSort, busyId, onConvertToTax, onDelet
 }) {
   const router = useRouter()
   if (rows.length === 0) return <EmptyState label="No proforma invoices found" />
+
+  function actionsFor(row: Proforma) {
+    return [
+      ...(!row.has_tax_invoice
+        ? [{ label: 'Convert to Tax Invoice', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onConvertToTax(row) }]
+        : []),
+      ...(!row.has_tax_invoice
+        ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
+        : []),
+    ]
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
-          <tr>
-            <th className={thCls} onClick={() => onSort('number')}>Number <SortIcon k="number" /></th>
-            <th className={thCls}>Customer</th>
-            <th className={thCls}>Vehicle</th>
-            <th className={thCls}>Job Card</th>
-            <th className={thClsRight} onClick={() => onSort('total')}>Amount <SortIcon k="total" /></th>
-            <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
-          {rows.map(row => (
-            <tr key={row.id}
-              onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/proforma`)}
-              className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
-              <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.proforma_number}</td>
-              <td className={tdCls}>
-                <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
-                <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
-              </td>
-              <td className={tdCls}>
-                <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
-                <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
-              </td>
-              <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
-              <td className={tdClsRight}>
-                <p className="font-bold tabular-nums text-brand">{formatAED(row.total)}</p>
-                <p className="text-[11px] tabular-nums text-gray-400 dark:text-white/30">
-                  {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
-                </p>
-              </td>
-              <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
-              <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
-                <RowActionsMenu actions={[
-                  ...(!row.has_tax_invoice
-                    ? [{ label: 'Convert to Tax Invoice', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onConvertToTax(row) }]
-                    : []),
-                  ...(!row.has_tax_invoice
-                    ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
-                    : []),
-                ]} />
-              </td>
+    <>
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <tr>
+              <th className={thCls} onClick={() => onSort('number')}>Number <SortIcon k="number" /></th>
+              <th className={thCls}>Customer</th>
+              <th className={thCls}>Vehicle</th>
+              <th className={thCls}>Job Card</th>
+              <th className={thClsRight} onClick={() => onSort('total')}>Amount <SortIcon k="total" /></th>
+              <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
+              <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
+            {rows.map(row => (
+              <tr key={row.id}
+                onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/proforma`)}
+                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.proforma_number}</td>
+                <td className={tdCls}>
+                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
+                  <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
+                </td>
+                <td className={tdCls}>
+                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                  <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
+                </td>
+                <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
+                <td className={tdClsRight}>
+                  <p className="font-bold tabular-nums text-brand">{formatAED(row.total)}</p>
+                  <p className="text-[11px] tabular-nums text-gray-400 dark:text-white/30">
+                    {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
+                  </p>
+                </td>
+                <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
+                <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
+                  <RowActionsMenu actions={actionsFor(row)} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden divide-y divide-gray-100 dark:divide-white/[0.04]">
+        {rows.map(row => (
+          <div key={row.id}
+            onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/proforma`)}
+            className="p-4 space-y-2 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02]">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono font-semibold text-sm text-gray-900 dark:text-white">{row.proforma_number}</span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-xs text-gray-400 dark:text-white/30">{formatDate(row.invoice_date || row.created_at)}</span>
+                <div onClick={e => e.stopPropagation()}>
+                  <RowActionsMenu actions={actionsFor(row)} />
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-white/40">
+              <div>
+                <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
+                <p>{row.job_card?.customer?.phone ?? ''}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                <p className="font-mono">{row.job_card?.vehicle?.plate_number ?? ''}</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-mono text-gray-400 dark:text-white/30">{row.job_card?.job_number ?? '—'}</span>
+              <span className="text-gray-400 dark:text-white/30">
+                {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
+              </span>
+            </div>
+            <p className="font-bold tabular-nums text-brand">{formatAED(row.total)}</p>
+          </div>
+        ))}
+      </div>
+    </>
   )
 }
 
@@ -821,67 +910,117 @@ function TaxTable({ rows, SortIcon, onSort, busyId, onIssue, onMarkPaid, onDelet
 }) {
   const router = useRouter()
   if (rows.length === 0) return <EmptyState label="No tax invoices found" />
+
+  function actionsFor(row: TaxInvoice) {
+    return [
+      ...(row.status === 'draft'
+        ? [{ label: 'Issue Invoice', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onIssue(row) }]
+        : []),
+      ...(row.status === 'issued'
+        ? [{ label: 'Mark as Paid', icon: CheckCircle2, disabled: busyId === row.id, onClick: () => onMarkPaid(row) }]
+        : []),
+      ...(row.status !== 'paid'
+        ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
+        : []),
+    ]
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
-          <tr>
-            <th className={thCls} onClick={() => onSort('number')}>Invoice # <SortIcon k="number" /></th>
-            <th className={thCls}>Customer</th>
-            <th className={thCls}>Vehicle</th>
-            <th className={thCls}>Job Card</th>
-            <th className={thCls}>Status</th>
-            <th className={thClsRight} onClick={() => onSort('total')}>Amount <SortIcon k="total" /></th>
-            <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
-            <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
-          {rows.map(row => {
-            const st = TAX_STATUS[row.status] ?? TAX_STATUS.draft
-            return (
-              <tr key={row.id}
-                onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/tax-invoice`)}
-                className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
-                <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.invoice_number}</td>
-                <td className={tdCls}>
+    <>
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b border-gray-100 bg-gray-50 dark:border-white/[0.06] dark:bg-white/[0.02]">
+            <tr>
+              <th className={thCls} onClick={() => onSort('number')}>Invoice # <SortIcon k="number" /></th>
+              <th className={thCls}>Customer</th>
+              <th className={thCls}>Vehicle</th>
+              <th className={thCls}>Job Card</th>
+              <th className={thCls}>Status</th>
+              <th className={thClsRight} onClick={() => onSort('total')}>Amount <SortIcon k="total" /></th>
+              <th className={thCls} onClick={() => onSort('date')}>Date <SortIcon k="date" /></th>
+              <th className={cn(thCls, 'text-right cursor-default hover:text-gray-400 dark:hover:text-white/30')}>Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
+            {rows.map(row => {
+              const st = TAX_STATUS[row.status] ?? TAX_STATUS.draft
+              return (
+                <tr key={row.id}
+                  onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/tax-invoice`)}
+                  className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                  <td className={cn(tdCls, 'font-mono font-semibold text-gray-900 dark:text-white')}>{row.invoice_number}</td>
+                  <td className={tdCls}>
+                    <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
+                    <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
+                  </td>
+                  <td className={tdCls}>
+                    <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                    <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
+                  </td>
+                  <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
+                  <td className={tdCls}>
+                    <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)} title={st.label === 'Issued' ? 'Open the invoice to mark it as paid' : undefined}>{st.label}</span>
+                  </td>
+                  <td className={tdClsRight}>
+                    <p className="font-bold tabular-nums text-brand">{formatAED(row.total)}</p>
+                    <p className="text-[11px] tabular-nums text-gray-400 dark:text-white/30">
+                      {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
+                    </p>
+                  </td>
+                  <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
+                  <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
+                    <RowActionsMenu actions={actionsFor(row)} />
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden divide-y divide-gray-100 dark:divide-white/[0.04]">
+        {rows.map(row => {
+          const st = TAX_STATUS[row.status] ?? TAX_STATUS.draft
+          return (
+            <div key={row.id}
+              onClick={() => row.job_card_id && router.push(`/workshop/job-cards/${row.job_card_id}/tax-invoice`)}
+              className="p-4 space-y-2 cursor-pointer active:bg-gray-50 dark:active:bg-white/[0.02]">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono font-semibold text-sm text-gray-900 dark:text-white">{row.invoice_number}</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)}>{st.label}</span>
+                  <div onClick={e => e.stopPropagation()}>
+                    <RowActionsMenu actions={actionsFor(row)} />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-2 text-xs text-gray-500 dark:text-white/40">
+                <div>
                   <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.customer?.name ?? '—'}</p>
-                  <p className="text-xs text-gray-400 dark:text-white/30">{row.job_card?.customer?.phone ?? ''}</p>
-                </td>
-                <td className={tdCls}>
-                  <p className="font-medium text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
-                  <p className="font-mono text-xs text-gray-400 dark:text-white/30">{row.job_card?.vehicle?.plate_number ?? ''}</p>
-                </td>
-                <td className={cn(tdCls, 'font-mono text-xs text-gray-500 dark:text-white/40')}>{row.job_card?.job_number ?? '—'}</td>
-                <td className={tdCls}>
-                  <span className={cn('rounded-full px-2.5 py-1 text-[10px] font-bold uppercase', st.cls)} title={st.label === 'Issued' ? 'Open the invoice to mark it as paid' : undefined}>{st.label}</span>
-                </td>
-                <td className={tdClsRight}>
-                  <p className="font-bold tabular-nums text-brand">{formatAED(row.total)}</p>
-                  <p className="text-[11px] tabular-nums text-gray-400 dark:text-white/30">
-                    {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
-                  </p>
-                </td>
-                <td className={cn(tdCls, 'text-gray-500 dark:text-white/40')}>{formatDate(row.invoice_date || row.created_at)}</td>
-                <td className={cn(tdCls, 'text-right')} onClick={e => e.stopPropagation()}>
-                  <RowActionsMenu actions={[
-                    ...(row.status === 'draft'
-                      ? [{ label: 'Issue Invoice', icon: ArrowRightCircle, disabled: busyId === row.id, onClick: () => onIssue(row) }]
-                      : []),
-                    ...(row.status === 'issued'
-                      ? [{ label: 'Mark as Paid', icon: CheckCircle2, disabled: busyId === row.id, onClick: () => onMarkPaid(row) }]
-                      : []),
-                    ...(row.status !== 'paid'
-                      ? [{ label: 'Delete', icon: Trash2, variant: 'danger' as const, onClick: () => onDelete(row) }]
-                      : []),
-                  ]} />
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    </div>
+                  <p>{row.job_card?.customer?.phone ?? ''}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-800 dark:text-white/80">{row.job_card?.vehicle?.model ?? '—'}</p>
+                  <p className="font-mono">{row.job_card?.vehicle?.plate_number ?? ''}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono text-gray-400 dark:text-white/30">{row.job_card?.job_number ?? '—'}</span>
+                <span className="text-gray-400 dark:text-white/30">{formatDate(row.invoice_date || row.created_at)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-400 dark:text-white/30">
+                  {formatAED(row.subtotal)} sub{row.discount > 0 && <span className="text-emerald-500 dark:text-emerald-400"> · −{formatAED(row.discount)}</span>} · {formatAED(row.vat_amount)} VAT
+                </span>
+                <span className="font-bold tabular-nums text-brand">{formatAED(row.total)}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
 

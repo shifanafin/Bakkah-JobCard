@@ -8,12 +8,13 @@ import { useSession } from '@/lib/auth-client'
 import {
   ArrowLeft, User, Phone, Mail, Building2, Car, ClipboardList,
   Plus, Pencil, Save, X, Loader2, Star, ChevronRight, GitMerge,
-  Search, AlertTriangle, Calendar,
+  Search, AlertTriangle, Calendar, Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { formatDate, formatAED } from '@/lib/utils/format'
 import { toast } from 'sonner'
 import { JOB_STATUS_LABEL, JOB_STATUS_COLOR, PAYMENT_STATUS_COLOR } from '@/types'
+import ConfirmDialog from '@/components/ui/ConfirmDialog'
 
 type Customer = {
   id: string
@@ -76,6 +77,10 @@ export default function CustomerDetailPage() {
     plate_number: '', make: '', model: '', year: '', color: '', vin: '',
   })
   const [savingVehicleEdit, setSavingVehicleEdit] = useState(false)
+
+  // Delete vehicle
+  const [deleteVehicleTarget, setDeleteVehicleTarget] = useState<Vehicle | null>(null)
+  const [deletingVehicle, setDeletingVehicle] = useState(false)
 
   // Merge
   const [showMerge, setShowMerge] = useState(false)
@@ -192,6 +197,22 @@ export default function CustomerDetailPage() {
       toast.error(err instanceof Error ? err.message : 'Failed to update vehicle')
     } finally {
       setSavingVehicleEdit(false)
+    }
+  }
+
+  async function handleDeleteVehicle(vehicleId: string) {
+    setDeletingVehicle(true)
+    try {
+      const res = await fetch(`/api/customers/${id}/vehicles?vehicleId=${vehicleId}`, { method: 'DELETE' })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(d.error ?? 'Failed to delete')
+      setVehicles(vs => vs.filter(v => v.id !== vehicleId))
+      toast.success('Vehicle deleted')
+      setDeleteVehicleTarget(null)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete vehicle')
+    } finally {
+      setDeletingVehicle(false)
     }
   }
 
@@ -537,12 +558,21 @@ export default function CustomerDetailPage() {
                           )}
                         </div>
                       </div>
-                      <button
-                        onClick={() => startEditVehicle(v)}
-                        className="btn-ghost text-xs py-1 px-2.5 shrink-0 gap-1"
-                      >
-                        <Pencil className="h-3 w-3" /> Edit
-                      </button>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button
+                          onClick={() => startEditVehicle(v)}
+                          className="btn-ghost text-xs py-1 px-2.5 gap-1"
+                        >
+                          <Pencil className="h-3 w-3" /> Edit
+                        </button>
+                        <button
+                          onClick={() => setDeleteVehicleTarget(v)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                          title="Delete vehicle"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -729,6 +759,18 @@ export default function CustomerDetailPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!deleteVehicleTarget}
+        title="Delete Vehicle?"
+        message={`Delete "${deleteVehicleTarget?.plate_number}"?`}
+        detail="This will permanently remove the vehicle. Vehicles with job card history cannot be deleted."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deletingVehicle}
+        onConfirm={() => deleteVehicleTarget && handleDeleteVehicle(deleteVehicleTarget.id)}
+        onCancel={() => setDeleteVehicleTarget(null)}
+      />
     </div>
   )
 }
