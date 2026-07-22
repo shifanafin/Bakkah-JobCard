@@ -1,6 +1,7 @@
 # Bakkah — Workshop Management System
 
 Built with Next.js 15, Supabase, NextAuth v5, Cloudinary · 
+
 - ✅ NextAuth v5 authentication (email + password)
 - ✅ Protected routes via middleware
 - ✅ Job cards: create, view, update status
